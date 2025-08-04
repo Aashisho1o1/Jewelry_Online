@@ -45,7 +45,7 @@ export const sampleJewelryProducts: JewelryProduct[] = [
     tags: ["925silver", "minimalist", "adjustable", "hypoallergenic", "bestseller"],
     seo: {
       slug: "timeless-elegance-silver-necklace",
-      metaTitle: "Timeless Elegance 925 Silver Necklace | Nepal Silver",
+      metaTitle: "Timeless Elegance 925 Silver Necklace | Aadarsh Jewellers",
       metaDescription: "Beautiful 925 silver necklace perfect for daily wear. Hypoallergenic, adjustable length. Shop now for NPR 2,800."
     },
     ratings: {
@@ -100,7 +100,7 @@ export const sampleJewelryProducts: JewelryProduct[] = [
     tags: ["rosegold", "hoops", "trendy", "instagram_worthy"],
     seo: {
       slug: "rose-gold-plated-hoop-earrings",
-      metaTitle: "Rose Gold Plated Hoop Earrings | Nepal Silver Jewelry",
+      metaTitle: "Rose Gold Plated Hoop Earrings | Aadarsh Jewellers",
       metaDescription: "Trendy rose gold plated silver hoop earrings. Perfect for parties and special occasions. Shop for NPR 1,980."
     },
     ratings: {
@@ -154,7 +154,7 @@ export const sampleJewelryProducts: JewelryProduct[] = [
     tags: ["infinity", "symbol", "gift", "love", "minimalist"],
     seo: {
       slug: "infinity-love-ring-925-silver",
-      metaTitle: "Infinity Love Ring 925 Silver | Perfect Gift | Nepal Silver",
+      metaTitle: "Infinity Love Ring 925 Silver | Perfect Gift | Aadarsh Jewellers",
       metaDescription: "Beautiful infinity symbol ring in 925 silver. Perfect gift for loved ones. Available in sizes 5-9. NPR 1,800."
     },
     ratings: {
@@ -212,7 +212,7 @@ export const sampleJewelryProducts: JewelryProduct[] = [
     tags: ["charm", "customizable", "story", "personal", "collection"],
     seo: {
       slug: "charm-bracelet-collection-925-silver",
-      metaTitle: "Customizable Charm Bracelet | Build Your Story | Nepal Silver",
+      metaTitle: "Customizable Charm Bracelet | Build Your Story | Aadarsh Jewellers",
       metaDescription: "Create your unique story with our charm bracelet collection. 925 silver base with customizable charms. NPR 3,360."
     },
     ratings: {
@@ -267,7 +267,7 @@ export const sampleJewelryProducts: JewelryProduct[] = [
     tags: ["evil_eye", "protection", "spiritual", "traditional", "meaningful"],
     seo: {
       slug: "evil-eye-protection-pendant-925-silver",
-      metaTitle: "Evil Eye Protection Pendant | Traditional Design | Nepal Silver",
+      metaTitle: "Evil Eye Protection Pendant | Traditional Design | Aadarsh Jewellers",
       metaDescription: "Beautiful evil eye pendant in 925 silver. Traditional protection symbol with modern design. NPR 2,100."
     },
     ratings: {
@@ -327,7 +327,7 @@ export const sampleJewelryProducts: JewelryProduct[] = [
     tags: ["heritage", "traditional", "complete_set", "himalayan", "cultural", "premium"],
     seo: {
       slug: "himalayan-heritage-jewelry-set-925-silver",
-      metaTitle: "Himalayan Heritage Jewelry Set | Traditional Design | Nepal Silver",
+      metaTitle: "Himalayan Heritage Jewellery Set | Traditional Design | Aadarsh Jewellers",
       metaDescription: "Complete Himalayan heritage jewelry set in 925 silver. Perfect for weddings and festivals. NPR 6,800."
     },
     ratings: {

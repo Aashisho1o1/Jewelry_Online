@@ -84,7 +84,7 @@ export default function Footer() {
         </div>
         <div className="mt-8 pt-8 border-t">
           <div className="text-center text-sm text-muted-foreground">
-            {footer?.copyright || `© ${new Date().getFullYear()} ${settingsContent.companyName || 'Landscape Studio'}. All rights reserved.`}
+            {footer?.copyright || `© ${new Date().getFullYear()} ${settingsContent.companyName || 'Aadarsh Jewellers'}. All rights reserved.`}
           </div>
         </div>
       </div>

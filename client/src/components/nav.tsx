@@ -16,7 +16,7 @@ export default function Nav() {
       <div className="container flex h-16 items-center">
         <Link href="/">
           <a className="mr-8 font-bold text-xl">
-            {settingsContent.companyName || "Landscape Studio"}
+            {settingsContent.companyName || "Aadarsh Jewellers"}
           </a>
         </Link>
         <div className="flex gap-6">

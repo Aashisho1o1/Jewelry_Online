@@ -110,7 +110,7 @@ export default function Home() {
       <section className="py-20 bg-muted/30">
         <div className="container">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose Nepal Silver?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose Aadarsh Jewellers?</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Quality, craftsmanship, and customer satisfaction at the heart of everything we do
             </p>
@@ -246,7 +246,7 @@ export default function Home() {
             Ready to Find Your Perfect Piece?
           </h2>
           <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
-            Join thousands of satisfied customers who trust Nepal Silver for their jewelry needs
+            Join thousands of satisfied customers who trust Aadarsh Jewellers for their jewellery needs
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/products">

@@ -213,7 +213,7 @@ collections:
         label: "Website Settings"
         file: "client/src/content/settings.json"
         fields:
-          - { label: "Website Title", name: "siteTitle", widget: "string", default: "Nepal Silver" }
+          - { label: "Website Title", name: "siteTitle", widget: "string", default: "Aadarsh Jewellers" }
           - { label: "Company Name", name: "companyName", widget: "string" }
           - { label: "Tagline", name: "tagline", widget: "string" }
           - { label: "Logo", name: "logo", widget: "image", required: false }
