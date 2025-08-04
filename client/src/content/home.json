@@ -1,26 +1,26 @@
 {
-  "title": "Beautiful Landscapes, Done Right and Left Happy!",
-  "subtitle": "From garden design to full-service installation, we bring your vision to life.",
-  "imageUrl": "https://1s4oyld5dc.ucarecd.net/8768013b-e2bc-454b-853c-97caa29475df/",
+  "title": "Timeless Elegance, Modern Soul",
+  "subtitle": "Discover handcrafted 925 silver jewelry that blends Nepali tradition with contemporary style. Every piece tells a story of heritage and modern elegance.",
+  "imageUrl": "/images/jewelry/hero-jewelry.jpg",
   "hero": {
-    "ctaText": "Get Started",
-    "ctaLink": "/projects"
+    "ctaText": "Shop Collection",
+    "ctaLink": "/products"
   },
   "features": [
     {
-      "title": "Custom Design",
-      "description": "Every project is uniquely designed to match your vision and lifestyle.",
-      "icon": "tree"
+      "title": "925 Silver Quality",
+      "description": "Premium sterling silver jewelry with guaranteed purity and lasting shine.",
+      "icon": "diamond"
     },
     {
-      "title": "Expert Installation",
-      "description": "Our experienced team ensures quality craftsmanship in every detail.",
-      "icon": "home"
+      "title": "Hypoallergenic",
+      "description": "Skin-friendly jewelry crafted for sensitive skin with nickel-free materials.",
+      "icon": "heart"
     },
     {
-      "title": "Ongoing Support",
-      "description": "We provide maintenance and support to keep your landscape beautiful.",
-      "icon": "star"
+      "title": "Free Home Delivery",
+      "description": "Convenient delivery across Nepal with secure packaging and tracking.",
+      "icon": "truck"
     }
   ]
 }

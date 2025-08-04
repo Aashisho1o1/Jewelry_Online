@@ -11,31 +11,68 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
-        background: "#f8f9fa", // Light Gray
-        foreground: "#212529", // Dark Gray
+        background: "#fafafa", // Pure white luxury
+        foreground: "#1a1a1a", // Rich charcoal
         primary: {
-          DEFAULT: "#2a9d8f", // Green
-          foreground: "#ffffff", // White
+          DEFAULT: "#c0c0c0", // Premium silver
+          foreground: "#1a1a1a", // Dark text
         },
         secondary: {
-          DEFAULT: "#e9c46a", // Yellow
-          foreground: "#212529", // Dark Gray
+          DEFAULT: "#d4af37", // Luxury gold
+          foreground: "#1a1a1a", // Dark text
         },
         muted: {
-          DEFAULT: "#e9ecef", // Light Gray
-          foreground: "#6c757d", // Gray
+          DEFAULT: "#f5f5f5", // Soft gray
+          foreground: "#6b7280", // Muted text
         },
         accent: {
-          DEFAULT: "#f4a261", // Orange
-          foreground: "#212529", // Dark Gray
+          DEFAULT: "#e8b4b8", // Rose gold accent
+          foreground: "#1a1a1a", // Dark text
         },
         destructive: {
-          DEFAULT: "#e76f51", // Red
-          foreground: "#ffffff", // White
+          DEFAULT: "#ef4444", // Clean red
+          foreground: "#ffffff", // White text
         },
-        border: "#dee2e6", // Gray
-        input: "#ced4da", // Gray
-        ring: "#2a9d8f", // Green
+        border: "#e5e7eb", // Subtle border
+        input: "#f9fafb", // Input background
+        ring: "#c0c0c0", // Silver focus ring
+        // Custom jewelry colors
+        silver: {
+          50: "#f8f9fa",
+          100: "#f1f3f4",
+          200: "#e8eaed",
+          300: "#dadce0",
+          400: "#bdc1c6",
+          500: "#9aa0a6",
+          600: "#80868b",
+          700: "#5f6368",
+          800: "#3c4043",
+          900: "#202124",
+        },
+        gold: {
+          50: "#fefbf3",
+          100: "#fdf6e3",
+          200: "#f9ebc1",
+          300: "#f4da94",
+          400: "#ecc344",
+          500: "#d4af37",
+          600: "#b8941f",
+          700: "#977818",
+          800: "#7c5e19",
+          900: "#68501a",
+        },
+        rosegold: {
+          50: "#fdf2f8",
+          100: "#fce7f3",
+          200: "#fbcfe8",
+          300: "#f9a8d4",
+          400: "#f472b6",
+          500: "#e8b4b8",
+          600: "#db2777",
+          700: "#be185d",
+          800: "#9d174d",
+          900: "#831843",
+        },
       },
       keyframes: {
         "accordion-down": {
