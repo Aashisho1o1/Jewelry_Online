@@ -1,179 +1,119 @@
-import React, { useState } from 'react';
-import { Heart, ShoppingCart, Star, Tag } from 'lucide-react';
+import React from 'react';
+import { Heart, ShoppingCart } from 'lucide-react';
 import { JewelryProduct } from '../../types/jewelry';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Card, CardContent } from '../ui/card';
 
 interface ProductCardProps {
   product: JewelryProduct;
   onAddToCart?: (product: JewelryProduct) => void;
   onWishlist?: (product: JewelryProduct) => void;
-  className?: string;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   onAddToCart,
   onWishlist,
-  className = ""
 }) => {
-  const [isWishlisted, setIsWishlisted] = useState(false);
-  const [imageError, setImageError] = useState(false);
-
-  const handleWishlistClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsWishlisted(!isWishlisted);
-    onWishlist?.(product);
-  };
-
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onAddToCart?.(product);
-  };
-
-  const discountPercentage = product.price.discount || 0;
-  const hasDiscount = discountPercentage > 0;
+  const hasDiscount = product.originalPrice && product.originalPrice > product.price;
+  const discountPercent = hasDiscount 
+    ? Math.round(((product.originalPrice! - product.price) / product.originalPrice!) * 100)
+    : 0;
 
   return (
-    <Card className={`group cursor-pointer overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02] border-0 bg-white ${className}`}>
-      <div className="relative">
-        {/* Product Image */}
-        <div className="aspect-square overflow-hidden bg-gradient-to-br from-silver-50 to-silver-100">
-          {!imageError ? (
-            <img
-              src={product.images.main}
-              alt={product.name}
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-              onError={() => setImageError(true)}
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-silver-100 to-silver-200">
-              <div className="text-center">
-                <div className="mx-auto h-16 w-16 rounded-full bg-silver-300 flex items-center justify-center mb-2">
-                  <Tag className="h-8 w-8 text-silver-600" />
-                </div>
-                <p className="text-sm text-silver-600 font-medium">{product.name}</p>
-              </div>
-            </div>
-          )}
-        </div>
-
+    <div className="group relative bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+      {/* Product Image */}
+      <div className="aspect-square bg-gray-100 relative overflow-hidden">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            // Fallback for missing images
+            e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23f3f4f6"/><text x="100" y="100" text-anchor="middle" dy=".3em" fill="%236b7280">No Image</text></svg>';
+          }}
+        />
+        
         {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1">
-          {product.newArrival && (
-            <Badge className="bg-accent text-accent-foreground font-medium">
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
+          {product.isNew && (
+            <span className="bg-green-500 text-white text-xs px-2 py-1 rounded">
               New
-            </Badge>
+            </span>
           )}
-          {product.bestSeller && (
-            <Badge className="bg-secondary text-secondary-foreground font-medium">
-              Bestseller
-            </Badge>
+          {product.featured && (
+            <span className="bg-yellow-500 text-white text-xs px-2 py-1 rounded">
+              Featured
+            </span>
           )}
           {hasDiscount && (
-            <Badge className="bg-destructive text-destructive-foreground font-medium">
-              -{discountPercentage}%
-            </Badge>
+            <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">
+              -{discountPercent}%
+            </span>
           )}
         </div>
 
         {/* Wishlist Button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-3 right-3 h-8 w-8 p-0 bg-white/80 backdrop-blur-sm hover:bg-white/90 border border-white/20"
-          onClick={handleWishlistClick}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            onWishlist?.(product);
+          }}
+          className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors"
         >
-          <Heart
-            className={`h-4 w-4 transition-colors ${
-              isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600'
-            }`}
-          />
-        </Button>
+          <Heart className="w-4 h-4 text-gray-600" />
+        </button>
 
-        {/* Quick Add to Cart - appears on hover */}
-        <div className="absolute inset-x-3 bottom-3 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-          <Button
-            onClick={handleAddToCart}
-            className="w-full bg-foreground text-background hover:bg-foreground/90 font-medium"
-            size="sm"
+        {/* Add to Cart Button - appears on hover */}
+        <div className="absolute bottom-2 left-2 right-2 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              onAddToCart?.(product);
+            }}
+            className="w-full bg-gray-900 text-white py-2 px-4 rounded flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors"
           >
-            <ShoppingCart className="mr-2 h-4 w-4" />
+            <ShoppingCart className="w-4 h-4" />
             Add to Cart
-          </Button>
+          </button>
         </div>
       </div>
 
-      <CardContent className="p-4">
-        {/* Product Name */}
-        <h3 className="font-semibold text-foreground line-clamp-2 mb-2 min-h-[2.5rem]">
+      {/* Product Info */}
+      <div className="p-4">
+        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
           {product.name}
         </h3>
+        
+        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+          {product.description}
+        </p>
 
-        {/* Material & Features */}
-        <div className="flex items-center gap-2 mb-2">
-          <Badge variant="outline" className="text-xs border-silver-300 text-silver-700">
-            925 Silver
-          </Badge>
-          {product.features.hypoallergenic && (
-            <Badge variant="outline" className="text-xs border-green-300 text-green-700">
-              Hypoallergenic
-            </Badge>
-          )}
+        {/* Material */}
+        <div className="mb-3">
+          <span className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
+            {product.material.replace('_', ' ').replace('925_silver', '925 Silver')}
+          </span>
         </div>
-
-        {/* Rating */}
-        {product.ratings && (
-          <div className="flex items-center gap-1 mb-2">
-            <div className="flex items-center">
-              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-              <span className="text-sm font-medium text-foreground ml-1">
-                {product.ratings.average}
-              </span>
-            </div>
-            <span className="text-xs text-muted-foreground">
-              ({product.ratings.count})
-            </span>
-          </div>
-        )}
 
         {/* Price */}
         <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-foreground">
-            NPR {product.price.current.toLocaleString()}
+          <span className="text-lg font-bold text-gray-900">
+            NPR {product.price.toLocaleString()}
           </span>
           {hasDiscount && (
-            <span className="text-sm text-muted-foreground line-through">
-              NPR {product.price.original.toLocaleString()}
+            <span className="text-sm text-gray-500 line-through">
+              NPR {product.originalPrice!.toLocaleString()}
             </span>
           )}
         </div>
 
-        {/* Style Tags */}
-        <div className="flex flex-wrap gap-1 mt-2">
-          {product.style.slice(0, 2).map((style) => (
-            <span
-              key={style}
-              className="text-xs px-2 py-1 bg-muted text-muted-foreground rounded-full capitalize"
-            >
-              {style.replace('_', ' ')}
-            </span>
-          ))}
-        </div>
-
         {/* Stock Status */}
-        {!product.availability.inStock && (
+        {!product.inStock && (
           <div className="mt-2">
-            <Badge variant="destructive" className="text-xs">
-              Out of Stock
-            </Badge>
+            <span className="text-sm text-red-600 font-medium">Out of Stock</span>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 
