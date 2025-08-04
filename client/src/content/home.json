@@ -1,0 +1,26 @@
+{
+  "title": "Beautiful Landscapes, Done Right and Left Happy!",
+  "subtitle": "From garden design to full-service installation, we bring your vision to life.",
+  "imageUrl": "https://1s4oyld5dc.ucarecd.net/8768013b-e2bc-454b-853c-97caa29475df/",
+  "hero": {
+    "ctaText": "Get Started",
+    "ctaLink": "/projects"
+  },
+  "features": [
+    {
+      "title": "Custom Design",
+      "description": "Every project is uniquely designed to match your vision and lifestyle.",
+      "icon": "tree"
+    },
+    {
+      "title": "Expert Installation",
+      "description": "Our experienced team ensures quality craftsmanship in every detail.",
+      "icon": "home"
+    },
+    {
+      "title": "Ongoing Support",
+      "description": "We provide maintenance and support to keep your landscape beautiful.",
+      "icon": "star"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "siteTitle": "Landscape Studio",
+  "companyName": "Landscape Vision",
+  "tagline": "Beautiful Landscapes, Done Right!",
+  "logo": "/images/logo.png",
+  "social": {
+    "facebook": "https://facebook.com/landscapestudio",
+    "instagram": "https://instagram.com/landscapestudio",
+    "linkedin": "https://linkedin.com/company/landscapestudio"
+  },
+  "footer": {
+    "text": "Transform your outdoor space with our expert landscape design services. From concept to completion, we bring your vision to life.",
+    "copyright": "© 2024 Landscape Vision. All rights reserved."
+  }
+} 

@@ -1,0 +1,181 @@
+backend:
+  name: github
+  repo: Aashisho1o1/Landscape-Design
+  branch: main
+  base_url: https://landscape-design-aashisho1o1s-projects.vercel.app
+  auth_endpoint: /api/auth
+  site_domain: landscape-design-aashisho1o1s-projects.vercel.app
+
+media_folder: "public/images/uploads"
+public_folder: "/images/uploads"
+
+# Enable media library for easy image/video uploads
+media_library:
+  name: uploadcare
+  config:
+    publicKey: "demopublickey"
+
+# Global settings for the CMS
+local_backend: false
+display_url: https://landscape-design-aashisho1o1s-projects.vercel.app
+
+collections:
+  # Home Page Content
+  - name: "home"
+    label: "🏠 Home Page"
+    files:
+      - name: "home"
+        label: "Home Page Content"
+        file: "client/src/content/home.json"
+        fields:
+          - { label: "Hero Title", name: "title", widget: "string", hint: "Main headline on the home page" }
+          - { label: "Hero Subtitle", name: "subtitle", widget: "text", hint: "Subtitle text below the main title" }
+          - { label: "Hero Background Image", name: "imageUrl", widget: "image", hint: "Main background image for the hero section" }
+          - name: "hero"
+            label: "Hero Section"
+            widget: "object"
+            fields:
+              - { label: "Call to Action Button Text", name: "ctaText", widget: "string", default: "Get Started" }
+              - { label: "Call to Action Link", name: "ctaLink", widget: "string", default: "/projects" }
+          - name: "features"
+            label: "Features Section"
+            widget: "list"
+            fields:
+              - { label: "Feature Title", name: "title", widget: "string" }
+              - { label: "Feature Description", name: "description", widget: "text" }
+              - { label: "Feature Icon", name: "icon", widget: "string", hint: "Icon name (e.g., tree, home, star)" }
+
+  # About Page Content
+  - name: "about"
+    label: "👥 About Page"
+    files:
+      - name: "about"
+        label: "About Page Content"
+        file: "client/src/content/about.json"
+        fields:
+          - { label: "Page Title", name: "title", widget: "string" }
+          - name: "owners"
+            label: "Team Members"
+            widget: "list"
+            fields:
+              - { label: "Name", name: "name", widget: "string" }
+              - { label: "Job Title", name: "title", widget: "string" }
+              - { label: "Bio", name: "description", widget: "text" }
+              - { label: "Profile Photo", name: "imageUrl", widget: "image" }
+          - name: "story"
+            label: "Company Story"
+            widget: "object"
+            fields:
+              - { label: "Story Title", name: "title", widget: "string" }
+              - { label: "Story Content", name: "content", widget: "markdown", hint: "You can use formatting like **bold** and *italic*" }
+          - name: "approach"
+            label: "Our Process"
+            widget: "object"
+            fields:
+              - { label: "Section Title", name: "title", widget: "string" }
+              - name: "steps"
+                label: "Process Steps"
+                widget: "list"
+                fields:
+                  - { label: "Step Title", name: "title", widget: "string" }
+                  - { label: "Step Description", name: "description", widget: "text" }
+          - name: "contact"
+            label: "Contact Information"
+            widget: "object"
+            fields:
+              - { label: "Email Address", name: "email", widget: "string", hint: "Enter the email address" }
+              - { label: "Phone Number", name: "phone", widget: "string", hint: "Enter phone number in format: +1 (234) 567-890", required: false }
+
+  # Projects Portfolio
+  - name: "projects"
+    label: "📁 Projects Portfolio"
+    files:
+      - name: "projects"
+        label: "Projects Content"
+        file: "client/src/content/projects.json"
+        fields:
+          - name: "projects"
+            label: "All Projects"
+            widget: "list"
+            fields:
+              - { label: "Project Title", name: "title", widget: "string" }
+              - { label: "Project Description", name: "description", widget: "text" }
+              - { label: "Category", name: "category", widget: "select", options: ["Residential", "Commercial", "Garden Design", "Pool & Spa", "Outdoor Living"] }
+              - { label: "Main Image", name: "imageUrl", widget: "image" }
+              - { label: "YouTube Video URL", name: "videoUrl", widget: "string", required: false, hint: "Paste YouTube video URL (e.g., https://www.youtube.com/watch?v=VIDEO_ID)" }
+              - { label: "Project Location", name: "location", widget: "string", required: false }
+              - { label: "Completion Date", name: "completionDate", widget: "datetime", required: false }
+              - name: "gallery"
+                label: "Additional Photos"
+                widget: "list"
+                required: false
+                fields:
+                  - { label: "Photo", name: "image", widget: "image" }
+                  - { label: "Caption", name: "caption", widget: "string", required: false }
+              - { label: "Featured Project", name: "featured", widget: "boolean", default: false }
+
+  # Pricing & Services
+  - name: "pricing"
+    label: "💰 Pricing & Services"
+    files:
+      - name: "pricing"
+        label: "Pricing Content"
+        file: "client/src/content/pricing.json"
+        fields:
+          - { label: "Page Title", name: "title", widget: "string" }
+          - { label: "Page Subtitle", name: "subtitle", widget: "text" }
+          - name: "tiers"
+            label: "Service Packages"
+            widget: "list"
+            fields:
+              - { label: "Package Name", name: "name", widget: "string" }
+              - { label: "Price", name: "price", widget: "string", hint: "e.g., $250 or Custom Quote" }
+              - name: "features"
+                label: "Package Features"
+                widget: "list"
+                fields:
+                  - { label: "Feature", name: "feature", widget: "string" }
+              - { label: "Popular Package", name: "popular", widget: "boolean", default: false }
+          - name: "contract"
+            label: "Contract Information"
+            widget: "object"
+            fields:
+              - { label: "Contract Text", name: "text", widget: "text" }
+              - { label: "Link Text", name: "link_text", widget: "string" }
+              - { label: "Link URL", name: "link_url", widget: "string" }
+
+  # Website Settings
+  - name: "settings"
+    label: "⚙️ Website Settings"
+    files:
+      - name: "settings"
+        label: "Website Settings"
+        file: "client/src/content/settings.json"
+        fields:
+          - { label: "Website Title", name: "siteTitle", widget: "string", default: "Landscape Studio" }
+          - { label: "Company Name", name: "companyName", widget: "string" }
+          - { label: "Tagline", name: "tagline", widget: "string" }
+          - { label: "Logo", name: "logo", widget: "image", required: false }
+          - name: "social"
+            label: "Social Media Links"
+            widget: "object"
+            fields:
+              - { label: "Facebook", name: "facebook", widget: "string", required: false }
+              - { label: "Instagram", name: "instagram", widget: "string", required: false }
+              - { label: "LinkedIn", name: "linkedin", widget: "string", required: false }
+          - name: "footer"
+            label: "Footer Information"
+            widget: "object"
+            fields:
+              - { label: "Footer Text", name: "text", widget: "text" }
+              - { label: "Copyright Text", name: "copyright", widget: "string" }
+
+  # Media Library (for easy image/video management)
+  - name: "media"
+    label: "📸 Media Library"
+    folder: "public/images/uploads"
+    create: true
+    fields:
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Description", name: "description", widget: "text", required: false }
+      - { label: "Alt Text", name: "alt", widget: "string", required: false, hint: "Important for accessibility" } 

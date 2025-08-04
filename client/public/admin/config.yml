@@ -1,0 +1,81 @@
+backend:
+  name: git-gateway
+  branch: main # Branch to update (optional; defaults to master)
+media_folder: "public/images" # Media files will be stored in the public/images folder
+public_folder: "/images" # The src attribute for uploaded media will begin with /images
+collections:
+  - name: "pages"
+    label: "Pages"
+    files:
+      - label: "Home"
+        name: "home"
+        file: "client/src/content/home.json"
+        fields:
+          - { label: "Hero Title", name: "title", widget: "string" }
+          - { label: "Hero Subtitle", name: "subtitle", widget: "string" }
+          - { label: "Hero Image", name: "image", widget: "image" }
+      - label: "About"
+        name: "about"
+        file: "client/src/content/about.json"
+        fields:
+          - { label: "Title", name: "title", widget: "string" }
+          - label: "Owners"
+            name: "owners"
+            widget: "list"
+            fields:
+              - { label: "Name", name: "name", widget: "string" }
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Description", name: "description", widget: "markdown" }
+              - { label: "Image", name: "image", widget: "image" }
+          - label: "Story"
+            name: "story"
+            widget: "object"
+            fields:
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Content", name: "content", widget: "markdown" }
+          - label: "Approach"
+            name: "approach"
+            widget: "object"
+            fields:
+              - { label: "Title", name: "title", widget: "string" }
+              - label: "Steps"
+                name: "steps"
+                widget: "list"
+                fields:
+                  - { label: "Title", name: "title", widget: "string" }
+                  - { label: "Description", name: "description", widget: "text" }
+  - name: "projects"
+    label: "Projects"
+    folder: "client/src/content/projects"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Description", name: "description", widget: "markdown" }
+      - { label: "Category", name: "category", widget: "select", options: ["Residential", "Commercial", "Public"] }
+      - { label: "Featured Image", name: "imageUrl", widget: "image" }
+  - name: "settings"
+    label: "Settings"
+    files:
+      - label: "Contact Info"
+        name: "contact"
+        file: "client/src/content/contact.json"
+        fields:
+          - { label: "Title", name: "title", widget: "string" }
+          - label: "Office"
+            name: "office"
+            widget: "object"
+            fields:
+              - { label: "Address", name: "address", widget: "text" }
+          - label: "Contact"
+            name: "contact"
+            widget: "object"
+            fields:
+              - { label: "Phone", name: "phone", widget: "string" }
+              - { label: "Email", name: "email", widget: "string" }
+          - label: "Form"
+            name: "form"
+            widget: "object"
+            fields:
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Formspree URL", name: "formspreeUrl", widget: "string" } 

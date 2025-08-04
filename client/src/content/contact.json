@@ -1,0 +1,14 @@
+{
+  "title": "Contact Us",
+  "office": {
+    "address": "123 Design Street\nPortland, OR 97201"
+  },
+  "contact": {
+    "phone": "(555) 555-5555",
+    "email": "hello@landscapestudio.com"
+  },
+  "form": {
+    "title": "Send us a message",
+    "formspreeUrl": "https://formspree.io/f/YOUR_FORM_ID"
+  }
+} 

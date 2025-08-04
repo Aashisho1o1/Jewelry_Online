@@ -1,0 +1,46 @@
+{
+  "title": "Our Skills & Creation Design",
+  "owners": [
+    {
+      "name": "Devon Zeek",
+      "title": "CoFounder & Lead Designer",
+      "description": "With over 15 years of experience in landscape architecture, John brings a passion for creating beautiful and sustainable outdoor spaces.",
+      "imageUrl": "/images/owner1.jpg"
+    },
+    {
+      "name": "Sophia Kawada",
+      "title": "Co-Founder & Operations Manager",
+      "description": "Jane ensures that every project runs smoothly from start to finish, with a focus on quality and client satisfaction.",
+      "imageUrl": "/images/owner2.jpg"
+    }
+  ],
+  "story": {
+    "title": "Our Story",
+    "content": "Founded in 2008, Landscape Vision was born out of a shared passion for nature and design. We believe that a well-designed landscape can transform a property, creating a sanctuary for relaxation and enjoyment. Our team is dedicated to bringing your vision to life, with a commitment to quality, creativity, and sustainability."
+  },
+  "approach": {
+    "title": "Our Approach",
+    "steps": [
+      {
+        "title": "Consultation",
+        "description": "We start by listening to your ideas and understanding your needs. This initial consultation helps us to develop a clear vision for your project."
+      },
+      {
+        "title": "Design",
+        "description": "Our team creates a detailed design plan, including plant selections, material choices, and layout. We work with you to refine the design until it's perfect."
+      },
+      {
+        "title": "Installation",
+        "description": "Our experienced crew brings the design to life, with a focus on quality craftsmanship and attention to detail."
+      },
+      {
+        "title": "Maintenance",
+        "description": "We offer ongoing maintenance services to ensure that your landscape remains beautiful and healthy for years to come."
+      }
+    ]
+  },
+  "contact": {
+    "email": "dpzeek@gmail.com",
+    "phone": "+1 (949) 232-0650"
+  }
+}

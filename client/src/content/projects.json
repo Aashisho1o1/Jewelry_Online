@@ -1,0 +1,44 @@
+{
+  "projects": [
+    {
+      "title": "Modern Backyard Oasis",
+      "description": "A complete redesign of a residential backyard, featuring a new patio, fire pit, and drought-tolerant plants.",
+      "category": "Residential",
+      "imageUrl": "/images/uploads/carlos-somoza-landscape-design-4150-malaga-31_orig.jpg",
+      "videoUrl": "https://www.youtube.com/watch?v=JuoL4Tla5Iw&t=466s",
+      "location": "San Francisco, CA",
+      "completionDate": "2024-03-15",
+      "featured": true
+    },
+    {
+      "title": "Corporate Campus Greenspace",
+      "description": "Installation of a large-scale greenspace for a corporate campus, including walking paths and seating areas.",
+      "category": "Commercial",
+      "imageUrl": "/images/uploads/big-time-ryan-hughes-design-build-img_ea2139e30639f5f7_9-9775-1-d8470f0.jpg",
+      "videoUrl": "https://www.youtube.com/watch?v=2fTXrN3dzsY&t=149s",
+      "location": "",
+      "completionDate": "",
+      "featured": false
+    },
+    {
+      "title": "City Park Renovation",
+      "description": "A full renovation of a public park, including new playground equipment, a splash pad, and native plant gardens.",
+      "category": "Public",
+      "imageUrl": "/images/uploads/english-gardens-1582212436.jpg",
+      "videoUrl": "",
+      "location": "",
+      "completionDate": "",
+      "featured": false
+    },
+    {
+      "title": "Cozy Garden Retreat",
+      "description": "A small, intimate garden space with a focus on privacy and relaxation.",
+      "category": "Residential",
+      "imageUrl": "/images/uploads/ca-backyard-david-a-pedersen-landscape-architect_2905.jpg",
+      "videoUrl": "https://www.youtube.com/watch?v=-LU_DuRFTK0",
+      "location": "",
+      "completionDate": "",
+      "featured": false
+    }
+  ]
+}
