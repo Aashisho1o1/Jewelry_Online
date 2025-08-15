@@ -40,7 +40,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Aadarsh Jewellers
+              Aashish Jewellers
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
               Timeless Elegance, Modern Soul. Discover handcrafted 925 silver jewellery that blends Nepali tradition with contemporary style.
@@ -79,7 +79,7 @@ export default function Home() {
       <section className="py-16 bg-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose Aadarsh Jewellers?</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose Aashish Jewellers?</h2>
             <p className="text-xl text-gray-600">Quality, craftsmanship, and customer satisfaction at the heart of everything we do</p>
           </div>
           
@@ -178,7 +178,7 @@ export default function Home() {
             Ready to Find Your Perfect Piece?
           </h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
-            Join thousands of satisfied customers who trust Aadarsh Jewellers for their jewellery needs
+            Join thousands of satisfied customers who trust Aashish Jewellers for their jewellery needs
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="bg-white text-gray-900 px-8 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center justify-center gap-2">

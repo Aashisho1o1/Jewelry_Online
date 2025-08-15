@@ -1,4 +1,4 @@
-// Minimal Jewelry Types - Just what Aadarsh Jewellers actually needs
+// Minimal Jewelry Types - Just what Aashish Jewellers actually needs
 export interface JewelryProduct {
   id: string;
   name: string;

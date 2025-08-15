@@ -1,6 +1,6 @@
 import { JewelryProduct } from '../types/jewelry';
 
-// Minimal sample products for Aadarsh Jewellers
+// Minimal sample products for Aashish Jewellers
 export const sampleJewelryProducts: JewelryProduct[] = [
   {
     id: "NS001",
