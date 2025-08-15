@@ -2,9 +2,9 @@ backend:
   name: github
   repo: Aashisho1o1/Jewelry_Online
   branch: main
-  base_url: https://nepal-silver-jewelry.vercel.app
+  base_url: https://jewelry-online.vercel.app
   auth_endpoint: /api/auth
-  site_domain: nepal-silver-jewelry.vercel.app
+  site_domain: jewelry-online.vercel.app
 
 media_folder: "public/images/jewelry"
 public_folder: "/images/jewelry"
@@ -17,7 +17,7 @@ media_library:
 
 # Global settings for the CMS
 local_backend: false
-display_url: https://nepal-silver-jewelry.vercel.app
+display_url: https://jewelry-online.vercel.app
 
 collections:
   # Jewelry Products Management
