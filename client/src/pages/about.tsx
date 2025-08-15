@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import aboutContent from "@/content/about.json";
 
-const { title, owners, story, approach, contact } = aboutContent;
+const { title, team, story, craftsmanship, contact } = aboutContent;
 
 export default function About() {
   return (
@@ -11,24 +11,24 @@ export default function About() {
         <h1 className="text-4xl font-bold mb-8">{title}</h1>
 
         <div className="grid md:grid-cols-2 gap-8 mb-12">
-          {owners.map((owner) => (
-            <Card key={owner.name}>
+          {team.map((member) => (
+            <Card key={member.name}>
             <CardContent className="p-6">
               <AspectRatio ratio={1}>
                 <img
-                    src={owner.imageUrl}
-                    alt={owner.name}
+                    src={member.imageUrl}
+                    alt={member.name}
                   className="object-cover w-full h-full rounded-lg"
                 />
               </AspectRatio>
               <div className="mt-4">
                   <h2 className="text-2xl font-semibold mb-2">
-                    {owner.name}
+                    {member.name}
                   </h2>
                   <h3 className="text-lg text-muted-foreground mb-4">
-                    {owner.title}
+                    {member.title}
                   </h3>
-                  <p className="text-muted-foreground">{owner.description}</p>
+                  <p className="text-muted-foreground">{member.description}</p>
               </div>
             </CardContent>
           </Card>
@@ -46,9 +46,9 @@ export default function About() {
 
         <Card className="mb-12">
           <CardContent className="p-6">
-            <h2 className="text-2xl font-semibold mb-4">{approach.title}</h2>
+            <h2 className="text-2xl font-semibold mb-4">{craftsmanship.title}</h2>
             <ol className="space-y-4">
-              {approach.steps.map((step, index) => (
+              {craftsmanship.steps.map((step, index) => (
                 <li key={index} className="flex gap-4">
                   <span className="font-bold">{index + 1}.</span>
                   <div>
