@@ -1,7 +1,10 @@
-import crypto from 'crypto';
+const crypto = require('crypto');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   try {
+    console.log('eSewa success callback received');
+    console.log('Query params:', req.query);
+    
     const { data } = req.query;
     
     if (!data) {
@@ -14,6 +17,7 @@ export default async function handler(req, res) {
     const parsedData = JSON.parse(decodedData);
     
     console.log('eSewa response data:', parsedData);
+    console.log('Verifying signature...');
 
     // Verify signature (CRITICAL for security)
     const secretKey = process.env.ESEWA_SECRET_KEY || '8gBm/:&EnhH.1/q';
@@ -35,7 +39,7 @@ export default async function handler(req, res) {
     const transactionUuid = parsedData.transaction_uuid;
     const totalAmount = parsedData.total_amount;
     
-    console.log(`eSewa payment verified: ${transactionUuid}, amount: ${totalAmount}`);
+    console.log(`eSewa payment verified successfully: ${transactionUuid}, amount: ${totalAmount}`);
     
     // In production, update order status in database
     // await updateOrderStatus(transactionUuid, 'paid');
@@ -48,6 +52,7 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('eSewa success handler error:', error);
+    console.error('Error stack:', error.stack);
     return res.redirect('/checkout?status=failed&error=processing_error');
   }
 }

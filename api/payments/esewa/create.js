@@ -1,15 +1,20 @@
-import crypto from 'crypto';
+const crypto = require('crypto');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
+    console.log('eSewa payment request received');
+    console.log('Request method:', req.method);
+    console.log('Request body:', req.body);
+    
     const { items, customer, total } = req.body;
 
     // Validate required fields
     if (!items || !customer || !total) {
+      console.error('Missing required fields:', { items: !!items, customer: !!customer, total: !!total });
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -47,6 +52,9 @@ export default async function handler(req, res) {
     };
     
     console.log('eSewa order created:', order);
+    console.log('Generated signature:', signature);
+    console.log('Success URL:', successUrl);
+    console.log('Failure URL:', failureUrl);
 
     // Create beautiful payment form HTML
     const esewaFormHtml = `
@@ -139,6 +147,11 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('eSewa payment creation error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error('Error stack:', error.stack);
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
   }
 }
