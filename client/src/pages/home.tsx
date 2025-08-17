@@ -3,20 +3,42 @@ import { ShoppingBag, Heart, Star, Truck, Shield, Diamond } from "lucide-react";
 import { JewelryProduct } from "../types/jewelry";
 import { sampleJewelryProducts, getFeaturedProducts, getNewProducts, getProductsByCategory } from "../data/jewelry-products";
 import ProductCard from "../components/jewelry/ProductCard";
+import { useCartContext } from "../contexts/CartContext";
+import { useToast } from "../hooks/use-toast";
 
 const featuredProducts = getFeaturedProducts();
 const newProducts = getNewProducts();
 
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState('all');
+  const { addItem, openCart } = useCartContext();
+  const { toast } = useToast();
 
   const handleAddToCart = (product: JewelryProduct) => {
-    alert(`Added ${product.name} to cart!`);
-    // TODO: Implement actual cart functionality
+    if (!product.inStock) {
+      toast({
+        title: "Out of Stock",
+        description: "This item is currently out of stock.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    addItem(product);
+    toast({
+      title: "Added to cart!",
+      description: `${product.name} has been added to your cart.`,
+    });
+    
+    // Auto-open cart after adding item
+    setTimeout(() => openCart(), 500);
   };
 
   const handleWishlist = (product: JewelryProduct) => {
-    alert(`Added ${product.name} to wishlist!`);
+    toast({
+      title: "Added to wishlist!",
+      description: `${product.name} has been added to your wishlist.`,
+    });
     // TODO: Implement actual wishlist functionality
   };
 
