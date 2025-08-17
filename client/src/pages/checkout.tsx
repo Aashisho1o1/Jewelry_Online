@@ -110,20 +110,24 @@ export default function Checkout() {
           throw new Error('Failed to create order');
         }
       } else if (paymentMethod === 'esewa') {
-        // Handle eSewa payment
-        const response = await fetch('/api/payments/esewa/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(order),
+        // Handle eSewa payment - create form and submit to our API
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/api/payments/esewa/create';
+        form.target = '_self'; // Open in same window
+        form.style.display = 'none';
+        
+        // Add order data as form fields
+        Object.entries(order).forEach(([key, value]) => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = typeof value === 'object' ? JSON.stringify(value) : value;
+          form.appendChild(input);
         });
-
-        if (response.ok) {
-          const { orderId, paymentUrl } = await response.json();
-          // Redirect to eSewa
-          window.location.href = paymentUrl;
-        } else {
-          throw new Error('Failed to initiate eSewa payment');
-        }
+        
+        document.body.appendChild(form);
+        form.submit();
       } else if (paymentMethod === 'khalti') {
         // Handle Khalti payment
         const response = await fetch('/api/payments/khalti/create', {

@@ -1,47 +1,53 @@
+import crypto from 'crypto';
+
 export default async function handler(req, res) {
   try {
-    const { oid, amt, refId } = req.query;
-
-    if (!oid || !amt || !refId) {
-      return res.redirect('/checkout?status=failed&error=missing_params');
-    }
-
-    // Verify payment with eSewa
-    const verificationParams = new URLSearchParams({
-      amt: amt,
-      scd: process.env.ESEWA_MERCHANT_CODE || 'EPAYTEST',
-      pid: oid,
-      rid: refId,
-    });
-
-    const verificationUrl = `https://uat.esewa.com.np/epay/transrec?${verificationParams.toString()}`;
+    const { data } = req.query;
     
-    try {
-      const response = await fetch(verificationUrl);
-      const responseText = await response.text();
-
-      if (responseText.includes('Success')) {
-        // Payment verified successfully
-        console.log(`Payment verified for order ${oid}, amount: ${amt}, refId: ${refId}`);
-        
-        // Update order status in database
-        // await updateOrderStatus(oid, 'paid');
-        
-        // Send confirmation email/SMS
-        // await sendPaymentConfirmation(oid);
-
-        return res.redirect(`/order-success?id=${oid}&payment=esewa`);
-      } else {
-        console.error('eSewa verification failed:', responseText);
-        return res.redirect('/checkout?status=failed&error=verification_failed');
-      }
-    } catch (verificationError) {
-      console.error('eSewa verification error:', verificationError);
-      return res.redirect('/checkout?status=failed&error=verification_error');
+    if (!data) {
+      console.error('No data received from eSewa');
+      return res.redirect('/checkout?status=failed&error=no_data');
     }
+
+    // Decode the base64 data from eSewa
+    const decodedData = Buffer.from(data, 'base64').toString('utf-8');
+    const parsedData = JSON.parse(decodedData);
+    
+    console.log('eSewa response data:', parsedData);
+
+    // Verify signature (CRITICAL for security)
+    const secretKey = process.env.ESEWA_SECRET_KEY || '8gBm/:&EnhH.1/q';
+    const signedFields = parsedData.signed_field_names.split(',');
+    const message = signedFields.map(field => `${field}=${parsedData[field]}`).join(',');
+    
+    const expectedSignature = crypto.createHmac('sha256', secretKey)
+                                   .update(message)
+                                   .digest('base64');
+
+    if (expectedSignature !== parsedData.signature) {
+      console.error('Signature verification failed');
+      console.error('Expected:', expectedSignature);
+      console.error('Received:', parsedData.signature);
+      return res.redirect('/checkout?status=failed&error=invalid_signature');
+    }
+
+    // Payment verified successfully
+    const transactionUuid = parsedData.transaction_uuid;
+    const totalAmount = parsedData.total_amount;
+    
+    console.log(`eSewa payment verified: ${transactionUuid}, amount: ${totalAmount}`);
+    
+    // In production, update order status in database
+    // await updateOrderStatus(transactionUuid, 'paid');
+    
+    // Send confirmation email/SMS
+    // await sendPaymentConfirmation(transactionUuid);
+    
+    // Redirect to success page
+    return res.redirect(`/order-success?id=${transactionUuid}&payment=esewa&amount=${totalAmount}`);
 
   } catch (error) {
     console.error('eSewa success handler error:', error);
-    return res.redirect('/checkout?status=failed&error=server_error');
+    return res.redirect('/checkout?status=failed&error=processing_error');
   }
 }
