@@ -1,43 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ShoppingBag, Heart, Star, Truck, Shield, Diamond } from "lucide-react";
 import { JewelryProduct } from "../types/jewelry";
-import { 
-  sampleJewelryProducts, 
-  getProducts,
-  getFeaturedProductsSync, 
-  getNewProductsSync, 
-  getProductsByCategorySync 
-} from "../data/product-loader";
+import { sampleJewelryProducts, getFeaturedProducts, getNewProducts, getProductsByCategory } from "../data/jewelry-products";
 import ProductCard from "../components/jewelry/ProductCard";
 import { useCartContext } from "../contexts/CartContext";
 import { useToast } from "../hooks/use-toast";
 
+const featuredProducts = getFeaturedProducts();
+const newProducts = getNewProducts();
+
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState('all');
-  const [products, setProducts] = useState<JewelryProduct[]>(sampleJewelryProducts);
-  const [featuredProducts, setFeaturedProducts] = useState<JewelryProduct[]>(getFeaturedProductsSync());
-  const [loading, setLoading] = useState(false);
   const { addItem, openCart } = useCartContext();
   const { toast } = useToast();
-
-  // Load products dynamically on component mount
-  useEffect(() => {
-    const loadDynamicProducts = async () => {
-      try {
-        setLoading(true);
-        const dynamicProducts = await getProducts();
-        setProducts(dynamicProducts);
-        setFeaturedProducts(dynamicProducts.filter(p => p.featured));
-      } catch (error) {
-        console.warn('Failed to load dynamic products, using sample data:', error);
-        // Keep using sample data as fallback
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadDynamicProducts();
-  }, []);
 
   const handleAddToCart = (product: JewelryProduct) => {
     if (!product.inStock) {
@@ -67,19 +42,18 @@ export default function Home() {
     // TODO: Implement actual wishlist functionality
   };
 
-  // Calculate categories dynamically based on current products
   const categories = [
-    { id: 'all', name: 'All', count: products.length },
-    { id: 'rings', name: 'Rings', count: products.filter(p => p.category === 'rings').length },
-    { id: 'necklaces', name: 'Necklaces', count: products.filter(p => p.category === 'necklaces').length },
-    { id: 'earrings', name: 'Earrings', count: products.filter(p => p.category === 'earrings').length },
-    { id: 'bracelets', name: 'Bracelets', count: products.filter(p => p.category === 'bracelets').length },
-    { id: 'sets', name: 'Sets', count: products.filter(p => p.category === 'sets').length },
-  ].filter(category => category.count > 0); // Only show categories with products
+    { id: 'all', name: 'All', count: sampleJewelryProducts.length },
+    { id: 'rings', name: 'Rings', count: getProductsByCategory('rings').length },
+    { id: 'necklaces', name: 'Necklaces', count: getProductsByCategory('necklaces').length },
+    { id: 'earrings', name: 'Earrings', count: getProductsByCategory('earrings').length },
+    { id: 'bracelets', name: 'Bracelets', count: getProductsByCategory('bracelets').length },
+    { id: 'sets', name: 'Sets', count: getProductsByCategory('sets').length },
+  ];
 
   const displayProducts = activeCategory === 'all' 
-    ? products 
-    : products.filter(product => product.category === activeCategory);
+    ? sampleJewelryProducts 
+    : getProductsByCategory(activeCategory);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -165,9 +139,6 @@ export default function Home() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Shop by Category</h2>
             <p className="text-xl text-gray-600">Discover our curated collection of premium silver jewellery</p>
-            {loading && (
-              <p className="text-sm text-blue-600 mt-2">Loading latest products...</p>
-            )}
           </div>
 
           {/* Category Filters */}
@@ -198,37 +169,29 @@ export default function Home() {
               />
             ))}
           </div>
-
-          {displayProducts.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No products found in this category.</p>
-            </div>
-          )}
         </div>
       </section>
 
       {/* Featured Products */}
-      {featuredProducts.length > 0 && (
-        <section className="py-16 bg-gray-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Featured Products</h2>
-              <p className="text-xl text-gray-600">Our handpicked collection of bestsellers</p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onAddToCart={handleAddToCart}
-                  onWishlist={handleWishlist}
-                />
-              ))}
-            </div>
+      <section className="py-16 bg-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Featured Products</h2>
+            <p className="text-xl text-gray-600">Our handpicked collection of bestsellers</p>
           </div>
-        </section>
-      )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {featuredProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={handleAddToCart}
+                onWishlist={handleWishlist}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Call to Action */}
       <section className="py-16 bg-gray-900 text-white">
@@ -260,7 +223,7 @@ export default function Home() {
               <div className="text-sm">Average Rating</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold">{products.length}+</div>
+              <div className="text-2xl font-bold">50+</div>
               <div className="text-sm">Products</div>
             </div>
           </div>

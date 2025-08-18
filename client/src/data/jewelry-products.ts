@@ -1,7 +1,7 @@
 import { JewelryProduct } from '../types/jewelry';
 
-// Minimal sample products for Aashish Jewellers
-export const sampleJewelryProducts: JewelryProduct[] = [
+// CMS-managed products - edit through admin panel
+export const products: JewelryProduct[] = [
   {
     id: "NS001",
     name: "Silver Chain Necklace",
@@ -62,18 +62,21 @@ export const sampleJewelryProducts: JewelryProduct[] = [
   }
 ];
 
+// Export as main products array
+export const sampleJewelryProducts = products;
+
 // Helper functions
 export const getFeaturedProducts = () => 
-  sampleJewelryProducts.filter(product => product.featured);
+  products.filter(product => product.featured);
 
 export const getNewProducts = () => 
-  sampleJewelryProducts.filter(product => product.isNew);
+  products.filter(product => product.isNew);
 
 export const getProductsByCategory = (category: string) =>
-  sampleJewelryProducts.filter(product => product.category === category);
+  products.filter(product => product.category === category);
 
 export const getDiscountedProducts = () =>
-  sampleJewelryProducts.filter(product => product.originalPrice);
+  products.filter(product => product.originalPrice);
 
 // Legacy aliases for compatibility
 export const getBestSellers = getFeaturedProducts;

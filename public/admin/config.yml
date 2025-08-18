@@ -20,103 +20,26 @@ local_backend: false
 display_url: https://jewelry-online.vercel.app
 
 collections:
-  # Jewelry Products Management
+  # Jewelry Products Management - SIMPLIFIED
   - name: "jewelry"
     label: "💍 Jewelry Products"
-    folder: "client/src/data/products"
-    create: true
-    delete: true
-    slug: "{{slug}}"
+    file: "client/src/data/jewelry-products.ts"
     fields:
-      - { label: "Product Name", name: "name", widget: "string", hint: "e.g., Timeless Elegance Silver Necklace" }
-      - { label: "Product ID", name: "id", widget: "string", hint: "Unique code like NS001, ER002, etc." }
-      - { label: "Description", name: "description", widget: "text", hint: "Detailed product description for customers" }
-      
-      # Pricing
-      - name: "price"
-        label: "💰 Pricing"
-        widget: "object"
+      - name: "products"
+        label: "Product List"
+        widget: "list"
         fields:
-          - { label: "Original Price (NPR)", name: "original", widget: "number", value_type: "int", min: 500, max: 50000 }
-          - { label: "Current Price (NPR)", name: "current", widget: "number", value_type: "int", min: 500, max: 50000 }
-          - { label: "Discount %", name: "discount", widget: "number", value_type: "int", min: 0, max: 70, required: false }
-      
-      # Images
-      - name: "images"
-        label: "📷 Product Images"
-        widget: "object"
-        fields:
-          - { label: "Main Product Image", name: "main", widget: "image", hint: "Primary product photo (square format works best)" }
-          - name: "gallery"
-            label: "Additional Photos"
-            widget: "list"
-            max: 6
-            fields:
-              - { label: "Image", name: "image", widget: "image" }
-          - name: "lifestyle"
-            label: "Lifestyle Photos (optional)"
-            widget: "list"
-            max: 3
-            required: false
-            fields:
-              - { label: "Lifestyle Image", name: "image", widget: "image" }
-      
-      # Product Details
-      - { label: "Category", name: "category", widget: "select", options: ["rings", "necklaces", "earrings", "bracelets", "bangles", "pendants", "anklets", "nose_pins", "toe_rings", "sets"] }
-      - { label: "Subcategory", name: "subcategory", widget: "string", required: false, hint: "e.g., chain_necklaces, hoop_earrings" }
-      
-      # Specifications
-      - name: "specifications"
-        label: "🔍 Product Specifications"
-        widget: "object"
-        fields:
-          - { label: "Material", name: "material", widget: "select", options: ["925_silver", "silver_gold_plated", "silver_rose_gold_plated"], default: "925_silver" }
-          - { label: "Weight (grams)", name: "weight", widget: "number", value_type: "float", min: 0.5, max: 100, step: 0.1 }
-          - { label: "Dimensions", name: "dimensions", widget: "string", required: false, hint: "e.g., 16-18 inches adjustable, 2.5cm diameter" }
-          - { label: "Stone (if any)", name: "stone", widget: "string", required: false, hint: "e.g., Blue cubic zirconia" }
-          - { label: "Finish", name: "finish", widget: "select", options: ["polished", "oxidized", "matte", "textured"], default: "polished" }
-      
-      # Features
-      - name: "features"
-        label: "✨ Product Features"
-        widget: "object"
-        fields:
-          - { label: "Hypoallergenic", name: "hypoallergenic", widget: "boolean", default: true }
-          - { label: "Nickel Free", name: "nickelFree", widget: "boolean", default: true }
-          - { label: "Tarnish Resistant", name: "tarnishResistant", widget: "boolean", default: true }
-          - { label: "Adjustable Size", name: "adjustable", widget: "boolean", default: false, required: false }
-      
-      # Inventory
-      - name: "availability"
-        label: "📦 Stock & Availability"
-        widget: "object"
-        fields:
+          - { label: "Product ID", name: "id", widget: "string", hint: "Unique code like NS001, ER002, etc." }
+          - { label: "Product Name", name: "name", widget: "string", hint: "e.g., Timeless Elegance Silver Necklace" }
+          - { label: "Description", name: "description", widget: "text", hint: "Detailed product description for customers" }
+          - { label: "Price (NPR)", name: "price", widget: "number", value_type: "int", min: 500, max: 50000 }
+          - { label: "Original Price (NPR)", name: "originalPrice", widget: "number", value_type: "int", min: 500, max: 50000, required: false }
+          - { label: "Main Product Image", name: "image", widget: "image", hint: "Primary product photo" }
+          - { label: "Category", name: "category", widget: "select", options: ["rings", "necklaces", "earrings", "bracelets", "sets"] }
+          - { label: "Material", name: "material", widget: "select", options: ["925_silver", "rose_gold_plated", "gold_plated"], default: "925_silver" }
           - { label: "In Stock", name: "inStock", widget: "boolean", default: true }
-          - { label: "Stock Count", name: "stockCount", widget: "number", value_type: "int", min: 0, max: 1000, required: false }
-          - { label: "Pre-Order Available", name: "preOrder", widget: "boolean", default: false, required: false }
-          - { label: "Estimated Delivery", name: "estimatedDelivery", widget: "string", required: false, hint: "e.g., 3-5 days" }
-      
-      # Style & Occasions
-      - { label: "Style Tags", name: "style", widget: "select", multiple: true, options: ["minimalist", "traditional", "contemporary", "bohemian", "vintage", "geometric", "floral", "statement", "delicate", "chunky"] }
-      - { label: "Occasions", name: "occasions", widget: "select", multiple: true, options: ["daily_wear", "office", "party", "wedding", "festival", "casual", "formal", "gift", "special_occasion"] }
-      - { label: "Target Age Group", name: "targetAge", widget: "select", options: ["teens", "young_adults", "adults", "all"], default: "young_adults" }
-      
-      # Marketing
-      - { label: "Tags", name: "tags", widget: "list", max: 8, hint: "Search keywords like '925silver', 'minimalist', 'bestseller'" }
-      - { label: "Featured Product", name: "featured", widget: "boolean", default: false }
-      - { label: "Trending", name: "trending", widget: "boolean", default: false }
-      - { label: "New Arrival", name: "newArrival", widget: "boolean", default: false }
-      - { label: "Best Seller", name: "bestSeller", widget: "boolean", default: false }
-      
-      # SEO
-      - name: "seo"
-        label: "🔍 SEO Settings"
-        widget: "object"
-        collapsed: true
-        fields:
-          - { label: "URL Slug", name: "slug", widget: "string", hint: "URL-friendly name (auto-generated from product name)" }
-          - { label: "Meta Title", name: "metaTitle", widget: "string", hint: "Title for search engines (60 chars max)" }
-          - { label: "Meta Description", name: "metaDescription", widget: "text", hint: "Description for search engines (160 chars max)" }
+          - { label: "Featured Product", name: "featured", widget: "boolean", default: false }
+          - { label: "New Arrival", name: "isNew", widget: "boolean", default: false }
 
   # Home Page Content
   - name: "home"
@@ -185,26 +108,6 @@ collections:
               - { label: "Phone Number", name: "phone", widget: "string", hint: "Nepal phone format: +977-XX-XXXXXXX" }
               - { label: "WhatsApp Number", name: "whatsapp", widget: "string", required: false }
 
-  # Orders Management (for family to track)
-  - name: "orders"
-    label: "📋 Customer Orders"
-    folder: "client/src/data/orders"
-    create: true
-    delete: false
-    slug: "order-{{year}}-{{month}}-{{day}}-{{hour}}{{minute}}"
-    fields:
-      - { label: "Order ID", name: "orderId", widget: "string" }
-      - { label: "Customer Name", name: "customerName", widget: "string" }
-      - { label: "Customer Email", name: "customerEmail", widget: "string" }
-      - { label: "Customer Phone", name: "customerPhone", widget: "string" }
-      - { label: "Total Amount (NPR)", name: "totalAmount", widget: "number", value_type: "int" }
-      - { label: "Order Status", name: "status", widget: "select", options: ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"], default: "pending" }
-      - { label: "Payment Status", name: "paymentStatus", widget: "select", options: ["pending", "paid", "failed", "refunded"], default: "pending" }
-      - { label: "Payment Method", name: "paymentMethod", widget: "select", options: ["esewa", "khalti", "imepay", "cod", "bank_transfer"] }
-      - { label: "Delivery Address", name: "deliveryAddress", widget: "text" }
-      - { label: "Order Notes", name: "notes", widget: "text", required: false }
-      - { label: "Tracking Number", name: "trackingNumber", widget: "string", required: false }
-
   # Website Settings
   - name: "settings"
     label: "⚙️ Website Settings"
@@ -232,18 +135,6 @@ collections:
               - { label: "Footer Text", name: "text", widget: "text" }
               - { label: "Copyright Text", name: "copyright", widget: "string" }
 
-  # Analytics & Business Insights (View Only)
-  - name: "analytics"
-    label: "📊 Business Insights"
-    files:
-      - name: "analytics"
-        label: "Sales & Performance"
-        file: "client/src/data/analytics.json"
-        fields:
-          - { label: "Monthly Sales Target (NPR)", name: "monthlyTarget", widget: "number", value_type: "int" }
-          - { label: "Best Selling Category", name: "bestCategory", widget: "select", options: ["rings", "necklaces", "earrings", "bracelets", "sets"] }
-          - { label: "Customer Notes", name: "customerNotes", widget: "text", required: false }
-
   # Media Library (for jewelry photos)
   - name: "media"
     label: "📸 Jewelry Photos"
@@ -253,4 +144,4 @@ collections:
       - { label: "Photo Title", name: "title", widget: "string" }
       - { label: "Product Related", name: "productId", widget: "string", required: false, hint: "Product ID this photo belongs to" }
       - { label: "Photo Type", name: "type", widget: "select", options: ["product", "lifestyle", "detail", "packaging"], default: "product" }
-      - { label: "Alt Text", name: "alt", widget: "string", required: false, hint: "Important for accessibility and SEO" } 
+      - { label: "Alt Text", name: "alt", widget: "string", required: false, hint: "Important for accessibility and SEO" }
