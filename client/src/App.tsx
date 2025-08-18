@@ -9,6 +9,8 @@ import NotFound from "@/pages/not-found";
 import { CartProvider } from "@/contexts/CartContext";
 import { CartSheet } from "@/components/cart/CartSheet";
 
+// Main application component for Aashish Jewellers
+
 function App() {
   return (
     <CartProvider>
