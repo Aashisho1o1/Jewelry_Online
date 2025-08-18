@@ -12,10 +12,24 @@ export default async function handler(req, res) {
     
     const { items, customer, total } = req.body;
 
+    // Parse JSON strings if they come from form submission
+    let parsedItems, parsedCustomer;
+    try {
+      parsedItems = typeof items === 'string' ? JSON.parse(items) : items;
+      parsedCustomer = typeof customer === 'string' ? JSON.parse(customer) : customer;
+    } catch (parseError) {
+      console.error('JSON parsing error:', parseError);
+      return res.status(400).json({ error: 'Invalid data format' });
+    }
+
     // Validate required fields
-    if (!items || !customer || !total) {
-      console.error('Missing required fields:', { items: !!items, customer: !!customer, total: !!total });
-      return res.status(400).json({ error: 'Missing required fields' });
+    if (!parsedItems || !Array.isArray(parsedItems) || !parsedCustomer || !total) {
+      console.error('Missing or invalid required fields:', { 
+        items: !!parsedItems && Array.isArray(parsedItems), 
+        customer: !!parsedCustomer, 
+        total: !!total 
+      });
+      return res.status(400).json({ error: 'Missing or invalid required fields' });
     }
 
     // Generate unique transaction UUID (eSewa v2 requires UUID format)
@@ -44,8 +58,8 @@ export default async function handler(req, res) {
     // Store order data (in production, save to database)
     const order = {
       transactionUuid,
-      items,
-      customer,
+      items: parsedItems,
+      customer: parsedCustomer,
       total: totalAmount,
       status: 'pending',
       createdAt: new Date().toISOString(),
@@ -101,7 +115,7 @@ export default async function handler(req, res) {
             
             <div class="details">
               <strong>Order Summary:</strong><br>
-              ${items.map(item => `${item.name} x${item.quantity}`).join('<br>')}
+              ${parsedItems.map(item => `${item.name} x${item.quantity}`).join('<br>')}
             </div>
 
             <form id="esewaForm" action="https://rc-epay.esewa.com.np/api/epay/main/v2/form" method="POST">

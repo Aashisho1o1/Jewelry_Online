@@ -6,7 +6,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Separator } from '../components/ui/separator';
-import { MapPin, Phone, CreditCard, Truck } from 'lucide-react';
+import { MapPin, Phone, CreditCard, Truck, MessageCircle } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { Link } from 'wouter';
 
@@ -25,7 +25,7 @@ export default function Checkout() {
       landmark: '',
     },
   });
-  const [paymentMethod, setPaymentMethod] = useState<'esewa' | 'khalti' | 'cod'>('esewa');
+  const [paymentMethod, setPaymentMethod] = useState<'esewa' | 'khalti' | 'cod' | 'whatsapp'>('esewa');
 
   // Redirect if cart is empty
   if (items.length === 0) {
@@ -144,6 +144,57 @@ export default function Checkout() {
         } else {
           throw new Error('Failed to initiate Khalti payment');
         }
+      } else if (paymentMethod === 'whatsapp') {
+        // Handle WhatsApp ordering
+        const orderSummary = items.map(item => 
+          `• ${item.name} x${item.quantity} - NPR ${(item.price * item.quantity).toLocaleString()}`
+        ).join('\n');
+        
+        const deliveryInfo = deliveryFee === 0 ? 'Free Delivery' : `Delivery: NPR ${deliveryFee}`;
+        
+        const whatsappMessage = `🛍️ *New Order from Aashish Jewellers*
+
+👤 *Customer Details:*
+Name: ${customerInfo.name}
+Phone: ${customerInfo.phone}
+${customerInfo.email ? `Email: ${customerInfo.email}` : ''}
+
+📍 *Delivery Address:*
+${customerInfo.address.street}
+${customerInfo.address.district}${customerInfo.address.zone ? `, ${customerInfo.address.zone}` : ''}
+${customerInfo.address.landmark ? `Near: ${customerInfo.address.landmark}` : ''}
+
+🛒 *Order Items:*
+${orderSummary}
+
+💰 *Payment Summary:*
+Subtotal: NPR ${total.toLocaleString()}
+${deliveryInfo}
+*Total: NPR ${finalTotal.toLocaleString()}*
+
+Payment Method: Cash on Delivery / Bank Transfer
+
+Please confirm this order and let me know the estimated delivery time. Thank you! 🙏`;
+
+        // Your WhatsApp business number (replace with actual number)
+        const whatsappNumber = '9779876543210'; // Replace with your actual WhatsApp business number
+        
+        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+        
+        // Clear cart and redirect to WhatsApp
+        clearCart();
+        toast({ 
+          title: "Redirecting to WhatsApp", 
+          description: "Your order details will be sent via WhatsApp" 
+        });
+        
+        // Open WhatsApp in new tab
+        window.open(whatsappUrl, '_blank');
+        
+        // Redirect to success page
+        setTimeout(() => {
+          window.location.href = `/order-success?method=whatsapp&total=${finalTotal}`;
+        }, 1000);
       }
     } catch (error) {
       console.error('Order placement error:', error);
@@ -336,6 +387,19 @@ export default function Checkout() {
                     />
                     <img src="/images/khalti-logo.png" alt="Khalti" className="h-8" />
                     <span>Khalti</span>
+                  </label>
+                  <label className="flex items-center space-x-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="whatsapp"
+                      checked={paymentMethod === 'whatsapp'}
+                      onChange={(e) => setPaymentMethod(e.target.value as 'whatsapp')}
+                      className="w-4 h-4"
+                    />
+                    <MessageCircle className="w-6 h-6 text-green-500" />
+                    <span>Order via WhatsApp</span>
+                    <span className="text-xs text-gray-500">(Most Popular)</span>
                   </label>
                   <label className="flex items-center space-x-3 cursor-pointer">
                     <input
