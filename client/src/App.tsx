@@ -8,6 +8,7 @@ import OrderSuccess from "@/pages/order-success";
 import NotFound from "@/pages/not-found";
 import { CartProvider } from "@/contexts/CartContext";
 import { CartSheet } from "@/components/cart/CartSheet";
+import InstallPrompt from "@/components/InstallPrompt";
 
 // Main application component for Aashish Jewellers
 
@@ -27,6 +28,7 @@ function App() {
         </main>
         <Footer />
         <CartSheet />
+        <InstallPrompt />
       </div>
     </CartProvider>
   );
