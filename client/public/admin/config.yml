@@ -23,23 +23,26 @@ collections:
   # Jewelry Products Management - SIMPLIFIED
   - name: "jewelry"
     label: "💍 Jewelry Products"
-    file: "client/src/data/jewelry-products.ts"
-    fields:
-      - name: "products"
-        label: "Product List"
-        widget: "list"
+    files:
+      - name: "jewelry-products"
+        label: "Jewelry Products"
+        file: "client/src/data/jewelry-products.ts"
         fields:
-          - { label: "Product ID", name: "id", widget: "string", hint: "Unique code like NS001, ER002, etc." }
-          - { label: "Product Name", name: "name", widget: "string", hint: "e.g., Timeless Elegance Silver Necklace" }
-          - { label: "Description", name: "description", widget: "text", hint: "Detailed product description for customers" }
-          - { label: "Price (NPR)", name: "price", widget: "number", value_type: "int", min: 500, max: 50000 }
-          - { label: "Original Price (NPR)", name: "originalPrice", widget: "number", value_type: "int", min: 500, max: 50000, required: false }
-          - { label: "Main Product Image", name: "image", widget: "image", hint: "Primary product photo" }
-          - { label: "Category", name: "category", widget: "select", options: ["rings", "necklaces", "earrings", "bracelets", "sets"] }
-          - { label: "Material", name: "material", widget: "select", options: ["925_silver", "rose_gold_plated", "gold_plated"], default: "925_silver" }
-          - { label: "In Stock", name: "inStock", widget: "boolean", default: true }
-          - { label: "Featured Product", name: "featured", widget: "boolean", default: false }
-          - { label: "New Arrival", name: "isNew", widget: "boolean", default: false }
+          - name: "products"
+            label: "Product List"
+            widget: "list"
+            fields:
+              - { label: "Product ID", name: "id", widget: "string", hint: "Unique code like NS001, ER002, etc." }
+              - { label: "Product Name", name: "name", widget: "string", hint: "e.g., Timeless Elegance Silver Necklace" }
+              - { label: "Description", name: "description", widget: "text", hint: "Detailed product description for customers" }
+              - { label: "Price (NPR)", name: "price", widget: "number", value_type: "int", min: 500, max: 50000 }
+              - { label: "Original Price (NPR)", name: "originalPrice", widget: "number", value_type: "int", min: 500, max: 50000, required: false }
+              - { label: "Main Product Image", name: "image", widget: "image", hint: "Primary product photo" }
+              - { label: "Category", name: "category", widget: "select", options: ["rings", "necklaces", "earrings", "bracelets", "sets"] }
+              - { label: "Material", name: "material", widget: "select", options: ["925_silver", "rose_gold_plated", "gold_plated"], default: "925_silver" }
+              - { label: "In Stock", name: "inStock", widget: "boolean", default: true }
+              - { label: "Featured Product", name: "featured", widget: "boolean", default: false }
+              - { label: "New Arrival", name: "isNew", widget: "boolean", default: false }
 
   # Home Page Content
   - name: "home"
