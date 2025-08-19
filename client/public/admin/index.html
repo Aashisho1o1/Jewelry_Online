@@ -6,7 +6,60 @@
     <title>Content Manager</title>
   </head>
   <body>
+    <!-- Debug: Force cache bypass and add error handling -->
+    <div id="debug-info" style="background: #f0f0f0; padding: 10px; margin: 10px; font-family: monospace; font-size: 12px;">
+      <strong>Debug Info:</strong><br>
+      Config URL: <span id="config-url">Loading...</span><br>
+      Config Status: <span id="config-status">Loading...</span><br>
+      CMS Status: <span id="cms-status">Loading...</span><br>
+      Timestamp: <span id="timestamp"></span>
+    </div>
+    
+    <script>
+      // Debug information
+      const timestamp = new Date().toISOString();
+      document.getElementById('timestamp').textContent = timestamp;
+      
+      // Test config loading
+      const configUrl = './config.yml?v=' + Date.now();
+      document.getElementById('config-url').textContent = configUrl;
+      
+      fetch(configUrl)
+        .then(response => {
+          document.getElementById('config-status').textContent = 
+            `${response.status} - ${response.ok ? 'OK' : 'Failed'}`;
+          return response.text();
+        })
+        .then(text => {
+          console.log('Config loaded:', text.substring(0, 200) + '...');
+          document.getElementById('config-status').textContent += ` (${text.length} chars)`;
+        })
+        .catch(error => {
+          console.error('Config load error:', error);
+          document.getElementById('config-status').textContent = 'Error: ' + error.message;
+        });
+    </script>
+    
     <!-- Include the script that builds the page and powers Decap CMS -->
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+    
+    <script>
+      // Monitor CMS initialization
+      window.addEventListener('load', function() {
+        setTimeout(() => {
+          if (window.CMS) {
+            document.getElementById('cms-status').textContent = 'CMS Loaded';
+          } else {
+            document.getElementById('cms-status').textContent = 'CMS Failed to Load';
+          }
+        }, 2000);
+      });
+      
+      // Catch any errors
+      window.addEventListener('error', function(e) {
+        console.error('Page Error:', e.error);
+        document.getElementById('cms-status').textContent = 'Error: ' + e.error.message;
+      });
+    </script>
   </body>
 </html> 
