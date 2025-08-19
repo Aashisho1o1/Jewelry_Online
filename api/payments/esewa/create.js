@@ -45,8 +45,27 @@ export default async function handler(req, res) {
     const secretKey = process.env.ESEWA_SECRET_KEY || '8gBm/:&EnhH.1/q'; // Test secret key
     
     // Success/failure URLs - these are where eSewa will redirect after payment
-    const successUrl = `${process.env.VERCEL_URL || 'https://jewelry-online.vercel.app'}/api/payments/esewa/success`;
-    const failureUrl = `${process.env.VERCEL_URL || 'https://jewelry-online.vercel.app'}/api/payments/esewa/failure`;
+    // FIXED: Properly handle VERCEL_URL which doesn't include protocol
+    const buildBaseUrl = () => {
+      const vercelUrl = process.env.VERCEL_URL;
+      
+      // If VERCEL_URL exists but doesn't start with http, add https://
+      if (vercelUrl && !vercelUrl.startsWith('http')) {
+        return `https://${vercelUrl}`;
+      }
+      
+      // If VERCEL_URL already has protocol, use as-is
+      if (vercelUrl) {
+        return vercelUrl;
+      }
+      
+      // Fallback to hardcoded URL
+      return 'https://jewelry-online.vercel.app';
+    };
+
+    const baseUrl = buildBaseUrl();
+    const successUrl = `${baseUrl}/api/payments/esewa/success`;
+    const failureUrl = `${baseUrl}/api/payments/esewa/failure`;
 
     // Generate HMAC-SHA256 signature (CRITICAL for security)
     // eSewa uses this to verify the request hasn't been tampered with
