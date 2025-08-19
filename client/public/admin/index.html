@@ -6,7 +6,114 @@
     <title>Content Manager</title>
   </head>
   <body>
-    <!-- Include the script that builds the page and powers Decap CMS -->
+    <!-- Inline CMS configuration to avoid YAML loading/caching issues -->
+    <script>
+      window.CMS_MANUAL_INIT = true;
+      window.CMS_CONFIG = {
+        backend: {
+          name: 'github',
+          repo: 'Aashisho1o1/Jewelry_Online',
+          branch: 'main',
+          base_url: 'https://jewelry-online.vercel.app',
+          auth_endpoint: '/api/auth',
+          site_domain: 'jewelry-online.vercel.app'
+        },
+        media_folder: 'public/images/jewelry',
+        public_folder: '/images/jewelry',
+        media_library: {
+          name: 'uploadcare',
+          config: { publicKey: 'demopublickey' }
+        },
+        local_backend: false,
+        display_url: 'https://jewelry-online.vercel.app',
+        collections: [
+          {
+            name: 'home',
+            label: 'Home Page',
+            files: [
+              {
+                name: 'home',
+                label: 'Home Page Content',
+                file: 'client/src/content/home.json',
+                fields: [
+                  { label: 'Hero Title', name: 'title', widget: 'string' },
+                  { label: 'Hero Subtitle', name: 'subtitle', widget: 'text' },
+                  { label: 'Hero Background Image', name: 'imageUrl', widget: 'image' },
+                  {
+                    label: 'Hero Section',
+                    name: 'hero',
+                    widget: 'object',
+                    fields: [
+                      { label: 'Call to Action Button Text', name: 'ctaText', widget: 'string' },
+                      { label: 'Call to Action Link', name: 'ctaLink', widget: 'string' }
+                    ]
+                  },
+                  {
+                    label: 'Why Choose Us',
+                    name: 'features',
+                    widget: 'list',
+                    fields: [
+                      { label: 'Feature Title', name: 'title', widget: 'string' },
+                      { label: 'Feature Description', name: 'description', widget: 'text' },
+                      { label: 'Feature Icon', name: 'icon', widget: 'string' }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            name: 'about',
+            label: 'About Us',
+            files: [
+              {
+                name: 'about',
+                label: 'About Page Content',
+                file: 'client/src/content/about.json',
+                fields: [
+                  { label: 'Page Title', name: 'title', widget: 'string' },
+                  {
+                    label: 'Family Team Members',
+                    name: 'team',
+                    widget: 'list',
+                    fields: [
+                      { label: 'Name', name: 'name', widget: 'string' },
+                      { label: 'Role', name: 'title', widget: 'string' },
+                      { label: 'Bio', name: 'description', widget: 'text' },
+                      { label: 'Profile Photo', name: 'imageUrl', widget: 'image' }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            name: 'settings',
+            label: 'Website Settings',
+            files: [
+              {
+                name: 'settings',
+                label: 'Website Settings',
+                file: 'client/src/content/settings.json',
+                fields: [
+                  { label: 'Website Title', name: 'siteTitle', widget: 'string' },
+                  { label: 'Company Name', name: 'companyName', widget: 'string' },
+                  { label: 'Tagline', name: 'tagline', widget: 'string' }
+                ]
+              }
+            ]
+          }
+        ]
+      };
+    </script>
+    <!-- Include Decap CMS and initialize with inline config -->
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+    <script>
+      window.addEventListener('load', function () {
+        if (window.CMS && window.CMS_CONFIG) {
+          window.CMS.init({ config: window.CMS_CONFIG });
+        }
+      });
+    </script>
   </body>
 </html> 
