@@ -35,10 +35,33 @@ export default async function handler(req, res) {
     // Generate unique transaction UUID (eSewa v2 requires UUID format)
     const transactionUuid = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
-    // Calculate amounts according to eSewa v2 API
-    const amount = total;
-    const taxAmount = 0; // No tax for jewelry (you can add tax calculation later)
-    const totalAmount = amount + taxAmount;
+    // Calculate amounts according to eSewa v2 API specification
+    // CRITICAL: total_amount MUST equal amount + tax_amount + product_service_charge + product_delivery_charge
+    const productServiceCharge = 0;  // No service charge for jewelry
+    const productDeliveryCharge = 0; // Free delivery as per business model
+    const taxAmount = 0;              // No tax for jewelry (you can add tax calculation later)
+    
+    // The main product amount (this should be the base price)
+    const amount = parseFloat(total);
+    
+    // eSewa requires: total_amount = amount + tax_amount + service_charge + delivery_charge
+    const totalAmount = amount + taxAmount + productServiceCharge + productDeliveryCharge;
+    
+    // Validation: Ensure all amounts are valid numbers
+    if (isNaN(amount) || amount <= 0) {
+      console.error('Invalid amount:', { total, amount });
+      return res.status(400).json({ error: 'Invalid payment amount' });
+    }
+    
+    // Log amounts for debugging
+    console.log('eSewa Amount Breakdown:', {
+      amount,
+      taxAmount,
+      productServiceCharge,
+      productDeliveryCharge,
+      totalAmount,
+      calculatedTotal: amount + taxAmount + productServiceCharge + productDeliveryCharge
+    });
     
     // eSewa v2 configuration
     const productCode = process.env.ESEWA_PRODUCT_CODE || 'EPAYTEST'; // Test product code
@@ -88,6 +111,21 @@ export default async function handler(req, res) {
     console.log('Generated signature:', signature);
     console.log('Success URL:', successUrl);
     console.log('Failure URL:', failureUrl);
+    
+    // Enhanced logging for debugging amount issues
+    console.log('Final eSewa Form Data:', {
+      amount: amount,
+      tax_amount: taxAmount,
+      total_amount: totalAmount,
+      product_service_charge: productServiceCharge,
+      product_delivery_charge: productDeliveryCharge,
+      transaction_uuid: transactionUuid,
+      product_code: productCode,
+      validation: {
+        totalCalculation: `${amount} + ${taxAmount} + ${productServiceCharge} + ${productDeliveryCharge} = ${amount + taxAmount + productServiceCharge + productDeliveryCharge}`,
+        matches: totalAmount === (amount + taxAmount + productServiceCharge + productDeliveryCharge)
+      }
+    });
 
     // Create beautiful payment form HTML
     const esewaFormHtml = `
@@ -143,8 +181,8 @@ export default async function handler(req, res) {
               <input type="hidden" name="total_amount" value="${totalAmount}" />
               <input type="hidden" name="transaction_uuid" value="${transactionUuid}" />
               <input type="hidden" name="product_code" value="${productCode}" />
-              <input type="hidden" name="product_service_charge" value="0" />
-              <input type="hidden" name="product_delivery_charge" value="0" />
+              <input type="hidden" name="product_service_charge" value="${productServiceCharge}" />
+              <input type="hidden" name="product_delivery_charge" value="${productDeliveryCharge}" />
               <input type="hidden" name="success_url" value="${successUrl}" />
               <input type="hidden" name="failure_url" value="${failureUrl}" />
               <input type="hidden" name="signed_field_names" value="total_amount,transaction_uuid,product_code" />
