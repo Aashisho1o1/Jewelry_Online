@@ -1,81 +1,147 @@
 backend:
-  name: git-gateway
-  branch: main # Branch to update (optional; defaults to master)
-media_folder: "public/images" # Media files will be stored in the public/images folder
-public_folder: "/images" # The src attribute for uploaded media will begin with /images
+  name: github
+  repo: Aashisho1o1/Jewelry_Online
+  branch: main
+  base_url: https://jewelry-online.vercel.app
+  auth_endpoint: /api/auth
+  site_domain: jewelry-online.vercel.app
+
+media_folder: "public/images/jewelry"
+public_folder: "/images/jewelry"
+
+# Enable media library for easy image/video uploads
+media_library:
+  name: uploadcare
+  config:
+    publicKey: "demopublickey"
+
+# Global settings for the CMS
+local_backend: false
+display_url: https://jewelry-online.vercel.app
+
 collections:
-  - name: "pages"
-    label: "Pages"
+  # Jewelry Products Management - SIMPLIFIED
+  - name: "jewelry"
+    label: "💍 Jewelry Products"
+    file: "client/src/data/jewelry-products.ts"
+    fields:
+      - name: "products"
+        label: "Product List"
+        widget: "list"
+        fields:
+          - { label: "Product ID", name: "id", widget: "string", hint: "Unique code like NS001, ER002, etc." }
+          - { label: "Product Name", name: "name", widget: "string", hint: "e.g., Timeless Elegance Silver Necklace" }
+          - { label: "Description", name: "description", widget: "text", hint: "Detailed product description for customers" }
+          - { label: "Price (NPR)", name: "price", widget: "number", value_type: "int", min: 500, max: 50000 }
+          - { label: "Original Price (NPR)", name: "originalPrice", widget: "number", value_type: "int", min: 500, max: 50000, required: false }
+          - { label: "Main Product Image", name: "image", widget: "image", hint: "Primary product photo" }
+          - { label: "Category", name: "category", widget: "select", options: ["rings", "necklaces", "earrings", "bracelets", "sets"] }
+          - { label: "Material", name: "material", widget: "select", options: ["925_silver", "rose_gold_plated", "gold_plated"], default: "925_silver" }
+          - { label: "In Stock", name: "inStock", widget: "boolean", default: true }
+          - { label: "Featured Product", name: "featured", widget: "boolean", default: false }
+          - { label: "New Arrival", name: "isNew", widget: "boolean", default: false }
+
+  # Home Page Content
+  - name: "home"
+    label: "🏠 Home Page"
     files:
-      - label: "Home"
-        name: "home"
+      - name: "home"
+        label: "Home Page Content"
         file: "client/src/content/home.json"
         fields:
-          - { label: "Hero Title", name: "title", widget: "string" }
-          - { label: "Hero Subtitle", name: "subtitle", widget: "string" }
-          - { label: "Hero Image", name: "image", widget: "image" }
-      - label: "About"
-        name: "about"
+          - { label: "Hero Title", name: "title", widget: "string", hint: "Main headline - keep it inspiring!" }
+          - { label: "Hero Subtitle", name: "subtitle", widget: "text", hint: "Compelling description of your jewelry business" }
+          - { label: "Hero Background Image", name: "imageUrl", widget: "image", hint: "Beautiful jewelry hero image" }
+          - name: "hero"
+            label: "Hero Section"
+            widget: "object"
+            fields:
+              - { label: "Call to Action Button Text", name: "ctaText", widget: "string", default: "Shop Collection" }
+              - { label: "Call to Action Link", name: "ctaLink", widget: "string", default: "/products" }
+          - name: "features"
+            label: "Why Choose Us"
+            widget: "list"
+            fields:
+              - { label: "Feature Title", name: "title", widget: "string" }
+              - { label: "Feature Description", name: "description", widget: "text" }
+              - { label: "Feature Icon", name: "icon", widget: "select", options: ["diamond", "heart", "truck", "shield", "star"] }
+
+  # About Page Content
+  - name: "about"
+    label: "👥 About Us"
+    files:
+      - name: "about"
+        label: "About Page Content"
         file: "client/src/content/about.json"
         fields:
-          - { label: "Title", name: "title", widget: "string" }
-          - label: "Owners"
-            name: "owners"
+          - { label: "Page Title", name: "title", widget: "string" }
+          - name: "team"
+            label: "Family Team Members"
             widget: "list"
             fields:
               - { label: "Name", name: "name", widget: "string" }
-              - { label: "Title", name: "title", widget: "string" }
-              - { label: "Description", name: "description", widget: "markdown" }
-              - { label: "Image", name: "image", widget: "image" }
-          - label: "Story"
-            name: "story"
+              - { label: "Role", name: "title", widget: "string", hint: "e.g., Founder, Designer, Quality Manager" }
+              - { label: "Bio", name: "description", widget: "text" }
+              - { label: "Profile Photo", name: "imageUrl", widget: "image" }
+          - name: "story"
+            label: "Our Story"
             widget: "object"
             fields:
-              - { label: "Title", name: "title", widget: "string" }
-              - { label: "Content", name: "content", widget: "markdown" }
-          - label: "Approach"
-            name: "approach"
+              - { label: "Story Title", name: "title", widget: "string" }
+              - { label: "Story Content", name: "content", widget: "markdown", hint: "Tell your jewelry business story" }
+          - name: "craftsmanship"
+            label: "Our Craftsmanship Process"
             widget: "object"
             fields:
-              - { label: "Title", name: "title", widget: "string" }
-              - label: "Steps"
-                name: "steps"
+              - { label: "Section Title", name: "title", widget: "string" }
+              - name: "steps"
+                label: "Crafting Steps"
                 widget: "list"
                 fields:
-                  - { label: "Title", name: "title", widget: "string" }
-                  - { label: "Description", name: "description", widget: "text" }
-  - name: "projects"
-    label: "Projects"
-    folder: "client/src/content/projects"
-    create: true
-    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
-    fields:
-      - { label: "Title", name: "title", widget: "string" }
-      - { label: "Description", name: "description", widget: "markdown" }
-      - { label: "Category", name: "category", widget: "select", options: ["Residential", "Commercial", "Public"] }
-      - { label: "Featured Image", name: "imageUrl", widget: "image" }
+                  - { label: "Step Title", name: "title", widget: "string" }
+                  - { label: "Step Description", name: "description", widget: "text" }
+          - name: "contact"
+            label: "Contact Information"
+            widget: "object"
+            fields:
+              - { label: "Email Address", name: "email", widget: "string" }
+              - { label: "Phone Number", name: "phone", widget: "string", hint: "Nepal phone format: +977-XX-XXXXXXX" }
+              - { label: "WhatsApp Number", name: "whatsapp", widget: "string", required: false }
+
+  # Website Settings
   - name: "settings"
-    label: "Settings"
+    label: "⚙️ Website Settings"
     files:
-      - label: "Contact Info"
-        name: "contact"
-        file: "client/src/content/contact.json"
+      - name: "settings"
+        label: "Website Settings"
+        file: "client/src/content/settings.json"
         fields:
-          - { label: "Title", name: "title", widget: "string" }
-          - label: "Office"
-            name: "office"
+          - { label: "Website Title", name: "siteTitle", widget: "string", default: "Aashish Jewellers" }
+          - { label: "Company Name", name: "companyName", widget: "string" }
+          - { label: "Tagline", name: "tagline", widget: "string" }
+          - { label: "Logo", name: "logo", widget: "image", required: false }
+          - name: "social"
+            label: "Social Media Links"
             widget: "object"
             fields:
-              - { label: "Address", name: "address", widget: "text" }
-          - label: "Contact"
-            name: "contact"
+              - { label: "Facebook", name: "facebook", widget: "string", required: false }
+              - { label: "Instagram", name: "instagram", widget: "string", required: false }
+              - { label: "TikTok", name: "tiktok", widget: "string", required: false }
+              - { label: "WhatsApp Business", name: "whatsapp", widget: "string", required: false }
+          - name: "footer"
+            label: "Footer Information"
             widget: "object"
             fields:
-              - { label: "Phone", name: "phone", widget: "string" }
-              - { label: "Email", name: "email", widget: "string" }
-          - label: "Form"
-            name: "form"
-            widget: "object"
-            fields:
-              - { label: "Title", name: "title", widget: "string" }
-              - { label: "Formspree URL", name: "formspreeUrl", widget: "string" } 
+              - { label: "Footer Text", name: "text", widget: "text" }
+              - { label: "Copyright Text", name: "copyright", widget: "string" }
+
+  # Media Library (for jewelry photos)
+  - name: "media"
+    label: "📸 Jewelry Photos"
+    folder: "public/images/jewelry"
+    create: true
+    fields:
+      - { label: "Photo Title", name: "title", widget: "string" }
+      - { label: "Product Related", name: "productId", widget: "string", required: false, hint: "Product ID this photo belongs to" }
+      - { label: "Photo Type", name: "type", widget: "select", options: ["product", "lifestyle", "detail", "packaging"], default: "product" }
+      - { label: "Alt Text", name: "alt", widget: "string", required: false, hint: "Important for accessibility and SEO" }
