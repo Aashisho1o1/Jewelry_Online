@@ -105,16 +105,8 @@ export default async (req, res) => {
                   document.getElementById('message-status').textContent = 'Closing popup...';
                   window.close();
                   
-                  // If window.close() doesn't work, try to redirect the opener
-                  setTimeout(() => {
-                    try {
-                      if (window.opener && !window.opener.closed) {
-                        window.opener.location.reload();
-                      }
-                    } catch (e) {
-                      console.warn('Could not reload parent:', e);
-                    }
-                  }, 500);
+                  // Don't reload the opener - this causes a redirect loop
+                  // The CMS should handle the postMessage and update its state
                 }, 1000);
               } catch (err) {
                 console.error('Error sending message:', err);
