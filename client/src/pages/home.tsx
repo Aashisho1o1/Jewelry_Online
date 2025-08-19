@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { ShoppingBag, Heart, Star, Truck, Shield, Diamond } from "lucide-react";
+import { ShoppingBag, Heart, Truck, Shield, Diamond } from "lucide-react";
 import { JewelryProduct } from "../types/jewelry";
 import { sampleJewelryProducts, getFeaturedProducts, getNewProducts, getProductsByCategory } from "../data/jewelry-products";
 import ProductCard from "../components/jewelry/ProductCard";
 import { useCartContext } from "../contexts/CartContext";
 import { useToast } from "../hooks/use-toast";
+import homeContent from "../content/home.json";
 
 const featuredProducts = getFeaturedProducts();
-const newProducts = getNewProducts();
 
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -57,42 +57,51 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
+      {/* Hero Section - GoDaddy Style */}
       <section className="bg-white py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Aashish Jewellers
-            </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Timeless Elegance, Modern Soul. Discover handcrafted 925 silver jewellery that blends Nepali tradition with contemporary style.
-            </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left: Jewelry Image */}
+            <div className="relative order-2 lg:order-1">
+              <div className="aspect-square relative overflow-hidden rounded-lg shadow-lg">
+                <img 
+                  src={homeContent.hero.heroImage}
+                  alt="Elegant Nepali Jewelry"
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                  loading="eager"
+                />
+              </div>
+            </div>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <button className="bg-gray-900 text-white px-8 py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2">
-                <ShoppingBag className="w-5 h-5" />
-                Shop Collection
-              </button>
-              <button className="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors">
-                Learn Our Story
-              </button>
+            {/* Right: Content Block */}
+            <div className="order-1 lg:order-2">
+              <div className="bg-gradient-to-br from-cyan-50 to-blue-50 p-8 md:p-12 rounded-lg">
+                <div className="text-cyan-600 font-medium text-sm tracking-wide mb-3">
+                  {homeContent.hero.welcomeText}
+                </div>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-gray-900 mb-6 leading-tight">
+                  {homeContent.hero.mainTitle}
+                </h1>
+                <p className="text-gray-600 text-lg mb-8 leading-relaxed">
+                  {homeContent.hero.description}
+                </p>
+                <button className="bg-gray-800 text-white px-8 py-4 rounded-lg font-medium hover:bg-gray-700 transition-colors text-sm tracking-wide">
+                  {homeContent.hero.ctaText}
+                </button>
+              </div>
             </div>
+          </div>
 
-            {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-green-600" />
-                <span>925 Silver Certified</span>
+          {/* Trust Indicators */}
+          <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-600 mt-16">
+            {homeContent.features.map((feature, index) => (
+              <div key={index} className="flex items-center gap-2">
+                {feature.icon === 'shield' && <Shield className="w-4 h-4 text-green-600" />}
+                {feature.icon === 'truck' && <Truck className="w-4 h-4 text-blue-600" />}
+                {feature.icon === 'heart' && <Heart className="w-4 h-4 text-red-500" />}
+                <span>{feature.title}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Truck className="w-4 h-4 text-blue-600" />
-                <span>Free Delivery Nepal</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Heart className="w-4 h-4 text-red-500" />
-                <span>1000+ Happy Customers</span>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>

@@ -5,6 +5,10 @@ export default {
   content: ["./index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        serif: ['Playfair Display', 'Georgia', 'Times New Roman', 'serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
@@ -48,6 +52,19 @@ export default {
           700: "#5f6368",
           800: "#3c4043",
           900: "#202124",
+        },
+        // GoDaddy-inspired colors
+        cyan: {
+          50: "#ecfeff",
+          100: "#cffafe", 
+          200: "#a5f3fc",
+          300: "#67e8f9",
+          400: "#22d3ee",
+          500: "#06b6d4",
+          600: "#0891b2",
+          700: "#0e7490",
+          800: "#155e75",
+          900: "#164e63",
         },
         gold: {
           50: "#fefbf3",
@@ -98,5 +115,5 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+  plugins: [],
 } satisfies Config;

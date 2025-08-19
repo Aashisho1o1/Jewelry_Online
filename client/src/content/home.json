@@ -1,26 +1,31 @@
 {
-  "title": "Timeless Elegance, Modern Soul",
-  "subtitle": "Discover handcrafted 925 silver jewelry that blends Nepali tradition with contemporary style. Every piece tells a story of heritage and modern elegance.",
-  "imageUrl": "/images/jewelry/hero-jewelry.jpg",
   "hero": {
-    "ctaText": "Shop Collection",
-    "ctaLink": "/products"
+    "welcomeText": "WELCOME",
+    "mainTitle": "ELEGANT NEPALI JEWELRY",
+    "description": "Discover unique jewelry designs and exquisite craftsmanship in elegant handmade jewelry today!",
+    "ctaText": "SHOP NOW FOR BEAUTIFUL JEWELRY",
+    "ctaLink": "/about",
+    "heroImage": "/images/uploads/cb57e793c6800b8e8a115626c5544483.jpg"
+  },
+  "brand": {
+    "name": "AASHISH JEWELLERS",
+    "tagline": "Timeless Elegance, Modern Soul"
   },
   "features": [
     {
-      "title": "925 Silver Quality",
+      "title": "925 Silver Certified",
       "description": "Premium sterling silver jewelry with guaranteed purity and lasting shine.",
-      "icon": "diamond"
+      "icon": "shield"
     },
     {
-      "title": "Hypoallergenic",
-      "description": "Skin-friendly jewelry crafted for sensitive skin with nickel-free materials.",
-      "icon": "heart"
-    },
-    {
-      "title": "Free Home Delivery",
+      "title": "Free Delivery Nepal", 
       "description": "Convenient delivery across Nepal with secure packaging and tracking.",
       "icon": "truck"
+    },
+    {
+      "title": "1000+ Happy Customers",
+      "description": "Trusted by customers across Nepal for quality and craftsmanship.",
+      "icon": "heart"
     }
   ]
 }
