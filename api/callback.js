@@ -74,23 +74,29 @@ export default async (req, res) => {
             
             document.getElementById('opener-status').textContent = hasOpener ? 'Available' : 'Not available';
             
-            // Send postMessage in the exact format Decap CMS expects
+            // Send postMessage in the exact format Decap CMS 3.8.x expects
             if (hasOpener) {
               try {
-                // Format: "authorization:github:success:TOKEN"
-                const message = 'authorization:github:success:' + token;
-                console.log('Sending message:', message);
-                window.opener.postMessage(message, '*');
-                document.getElementById('message-status').textContent = 'Sent to opener';
-                
-                // Also send a custom message with the token for localStorage
-                const tokenMessage = {
-                  type: 'GITHUB_AUTH_SUCCESS',
-                  token: token,
+                // Modern Decap CMS expects this object format
+                const authMessage = {
+                  type: 'authorization',
                   provider: 'github',
-                  backendName: 'github'
+                  result: 'success',
+                  token: token,
+                  auth: {
+                    token: token,
+                    provider: 'github'
+                  }
                 };
-                window.opener.postMessage(tokenMessage, '*');
+                
+                console.log('Sending modern auth message:', authMessage);
+                window.opener.postMessage(authMessage, '*');
+                document.getElementById('message-status').textContent = 'Sent modern format to opener';
+                
+                // Also send legacy format for backward compatibility
+                const legacyMessage = 'authorization:github:success:' + token;
+                console.log('Sending legacy message:', legacyMessage);
+                window.opener.postMessage(legacyMessage, '*');
                 
                 // Try to focus the parent window
                 try {

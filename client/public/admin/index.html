@@ -6,7 +6,38 @@
     <title>Content Manager</title>
   </head>
   <body>
+    <!-- Debug: Monitor postMessage events for authentication -->
+    <script>
+      console.log('CMS Admin: Setting up postMessage listener for debugging');
+      
+      // Listen for authentication messages
+      window.addEventListener('message', function(event) {
+        console.log('CMS Admin: Received postMessage:', event.data);
+        console.log('CMS Admin: Message origin:', event.origin);
+        
+        // Log different message types
+        if (typeof event.data === 'string' && event.data.includes('authorization')) {
+          console.log('CMS Admin: Received legacy auth message:', event.data);
+        } else if (event.data && event.data.type === 'authorization') {
+          console.log('CMS Admin: Received modern auth message:', event.data);
+        }
+      });
+      
+      // Monitor CMS initialization
+      window.addEventListener('load', function() {
+        console.log('CMS Admin: Page loaded, CMS should initialize');
+        setTimeout(() => {
+          if (window.CMS) {
+            console.log('CMS Admin: CMS object available:', !!window.CMS);
+          } else {
+            console.error('CMS Admin: CMS object not found after load');
+          }
+        }, 2000);
+      });
+    </script>
+    
     <!-- Include the script that builds the page and powers Decap CMS -->
-    <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+    <!-- Using specific version 3.8.3 to avoid version mismatch issues -->
+    <script src="https://unpkg.com/decap-cms@3.8.3/dist/decap-cms.js"></script>
   </body>
 </html> 
