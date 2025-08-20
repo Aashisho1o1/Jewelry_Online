@@ -1,18 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Heart, Truck, Shield, Diamond } from "lucide-react";
 import { JewelryProduct } from "../types/jewelry";
-import { sampleJewelryProducts, getFeaturedProducts, getNewProducts, getProductsByCategory } from "../data/jewelry-products";
+import { getProducts, sampleJewelryProducts } from "../data/product-loader";
 import ProductCard from "../components/jewelry/ProductCard";
 import { useCartContext } from "../contexts/CartContext";
 import { useToast } from "../hooks/use-toast";
 import homeContent from "../content/home.json";
 
-const featuredProducts = getFeaturedProducts();
-
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState('all');
+  const [products, setProducts] = useState<JewelryProduct[]>(sampleJewelryProducts);
+  const [loading, setLoading] = useState(true);
   const { addItem, openCart } = useCartContext();
   const { toast } = useToast();
+
+  // Load products from CMS on component mount
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const cmsProducts = await getProducts();
+        setProducts(cmsProducts);
+        console.log(`Loaded ${cmsProducts.length} products from CMS`);
+      } catch (error) {
+        console.error('Failed to load CMS products:', error);
+        // Keep using sample products as fallback
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProducts();
+  }, []);
+
+  // Helper functions for product filtering
+  const getFeaturedProducts = () => products.filter(product => product.featured);
+  const getNewProducts = () => products.filter(product => product.isNew);
+  const getProductsByCategory = (category: string) => products.filter(product => product.category === category);
 
   const handleAddToCart = (product: JewelryProduct) => {
     if (!product.inStock) {
@@ -43,7 +66,7 @@ export default function Home() {
   };
 
   const categories = [
-    { id: 'all', name: 'All', count: sampleJewelryProducts.length },
+    { id: 'all', name: 'All', count: products.length },
     { id: 'rings', name: 'Rings', count: getProductsByCategory('rings').length },
     { id: 'necklaces', name: 'Necklaces', count: getProductsByCategory('necklaces').length },
     { id: 'earrings', name: 'Earrings', count: getProductsByCategory('earrings').length },
@@ -52,8 +75,10 @@ export default function Home() {
   ];
 
   const displayProducts = activeCategory === 'all' 
-    ? sampleJewelryProducts 
+    ? products 
     : getProductsByCategory(activeCategory);
+
+  const featuredProducts = getFeaturedProducts();
 
   return (
     <div className="min-h-screen bg-gray-50">
