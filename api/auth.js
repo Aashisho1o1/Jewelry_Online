@@ -20,7 +20,7 @@ export default (req, res) => {
   // CRITICAL FIX: Add redirect_uri parameter required by GitHub OAuth 2.0 spec
   // This MUST match the "Authorization callback URL" in GitHub OAuth App settings
   const baseUrl = req.headers.host ? `https://${req.headers.host}` : 'https://jewelry-online.vercel.app';
-  const redirectUri = `${baseUrl}/api/callback`;
+  const redirectUri = `${baseUrl}/callback`; // Must match GitHub OAuth App callback URL exactly
   
   const params = new URLSearchParams({
     client_id: GITHUB_CLIENT_ID,
