@@ -1,4 +1,4 @@
-import { updateOrderStatus, getOrderById } from './store';
+import { updateOrderStatus, getOrderById } from '../../lib/order-store';
 
 export default async function handler(req, res) {
   // Only allow POST requests

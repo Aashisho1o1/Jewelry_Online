@@ -1,4 +1,4 @@
-import { getAllOrders, getOrdersByStatus, getOrdersByCustomerPhone } from './store';
+import { getAllOrders, getOrdersByStatus, getOrdersByCustomerPhone } from '../../lib/order-store';
 
 export default async function handler(req, res) {
   // Only allow GET requests

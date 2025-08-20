@@ -1,4 +1,4 @@
-import { getOrderById } from './store';
+import { getOrderById } from '../../lib/order-store';
 
 export default async function handler(req, res) {
   // Only allow GET requests
