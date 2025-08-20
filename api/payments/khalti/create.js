@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     const { createOrder } = await import('../../../lib/db-store.js');
     
     // Create order in our store
-    const order = createOrder({
+    const order = await createOrder({
       id: orderId,
       items,
       customer,

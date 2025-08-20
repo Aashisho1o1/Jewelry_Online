@@ -33,7 +33,11 @@ export default async function handler(req, res) {
     }
 
     // Generate unique transaction UUID (eSewa v2 requires UUID format)
-    const transactionUuid = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // Using crypto for better randomness and microsecond precision
+    const timestamp = Date.now();
+    const microseconds = process.hrtime.bigint().toString().slice(-6); // Last 6 digits for microsecond precision
+    const randomBytes = crypto.randomBytes(8).toString('hex'); // Cryptographically secure random
+    const transactionUuid = `TXN-${timestamp}-${microseconds}-${randomBytes}`;
     
     // Calculate amounts according to eSewa v2 API specification
     // CRITICAL: total_amount MUST equal amount + tax_amount + product_service_charge + product_delivery_charge
@@ -115,7 +119,7 @@ export default async function handler(req, res) {
     const { createOrder } = await import('../../../lib/db-store.js');
     
     // Create order in our store
-    const order = createOrder({
+    const order = await createOrder({
       id: transactionUuid, // Use transaction UUID as order ID
       items: parsedItems,
       customer: parsedCustomer,

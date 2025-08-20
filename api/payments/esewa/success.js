@@ -97,10 +97,10 @@ export default async function handler(req, res) {
     const { updateOrderStatus, getOrderById } = await import('../../../lib/db-store.js');
     
     // Check if order exists
-    const existingOrder = getOrderById(transactionUuid);
+    const existingOrder = await getOrderById(transactionUuid);
     if (existingOrder) {
       // Update order status
-      updateOrderStatus(transactionUuid, 'confirmed');
+      await updateOrderStatus(transactionUuid, 'confirmed');
       console.log(`✅ Order status updated to confirmed: ${transactionUuid}`);
     } else {
       console.warn(`⚠️ Order not found for transaction: ${transactionUuid}`);
