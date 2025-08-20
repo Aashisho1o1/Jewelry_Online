@@ -94,7 +94,7 @@ export default async function handler(req, res) {
     }
     
     // Update order status in our store
-    const { updateOrderStatus, getOrderById } = await import('../../../lib/db-store');
+    const { updateOrderStatus, getOrderById } = await import('../../../lib/db-store.js');
     
     // Check if order exists
     const existingOrder = getOrderById(transactionUuid);

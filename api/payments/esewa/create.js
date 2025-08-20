@@ -112,7 +112,7 @@ export default async function handler(req, res) {
                            .digest('base64');
 
     // Import order store
-    const { createOrder } = await import('../../../lib/db-store');
+    const { createOrder } = await import('../../../lib/db-store.js');
     
     // Create order in our store
     const order = createOrder({

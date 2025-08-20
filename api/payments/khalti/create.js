@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     // Import order store
-    const { createOrder } = await import('../../../lib/db-store');
+    const { createOrder } = await import('../../../lib/db-store.js');
     
     // Create order in our store
     const order = createOrder({
