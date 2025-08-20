@@ -4,6 +4,8 @@
   "framework": null,
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/auth", "dest": "/api/auth" },
+    { "src": "/callback", "dest": "/api/callback" },
     { "src": "/config.yml", "dest": "/admin/config.yml", "headers": { "Content-Type": "text/yaml; charset=utf-8" } },
     { "src": "/admin/config.yml", "dest": "/admin/config.yml", "headers": { "Content-Type": "text/yaml; charset=utf-8" } },
     { "src": "/admin", "dest": "/admin/index.html" },
