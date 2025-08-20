@@ -1,67 +1,8 @@
 import { JewelryProduct } from '../types/jewelry';
 import { parseFrontmatter } from '../utils/markdown-parser';
 
-// Sample products as fallback
-const sampleProducts: JewelryProduct[] = [
-  {
-    id: "NS001",
-    name: "Silver Chain Necklace",
-    description: "Beautiful 925 silver chain necklace, perfect for daily wear.",
-    price: 2800,
-    originalPrice: 3500,
-    image: "/images/jewelry/necklace-1.jpg",
-    category: "necklaces",
-    material: "925_silver",
-    inStock: true,
-    featured: true,
-  },
-  {
-    id: "ER002", 
-    name: "Rose Gold Hoop Earrings",
-    description: "Trendy rose gold plated hoops for a modern look.",
-    price: 1980,
-    originalPrice: 2200,
-    image: "/images/jewelry/earrings-1.jpg",
-    category: "earrings",
-    material: "rose_gold_plated", 
-    inStock: true,
-    isNew: true,
-  },
-  {
-    id: "RG003",
-    name: "Infinity Symbol Ring", 
-    description: "Delicate infinity ring representing eternal love.",
-    price: 1800,
-    image: "/images/jewelry/ring-1.jpg",
-    category: "rings",
-    material: "925_silver",
-    inStock: true,
-    featured: true,
-  },
-  {
-    id: "BR004",
-    name: "Silver Charm Bracelet",
-    description: "Customizable charm bracelet to tell your story.",
-    price: 3360,
-    originalPrice: 4200,
-    image: "/images/jewelry/bracelet-1.jpg", 
-    category: "bracelets",
-    material: "925_silver",
-    inStock: true,
-  },
-  {
-    id: "ST005",
-    name: "Heritage Jewelry Set",
-    description: "Complete set with necklace, earrings, and bracelet.",
-    price: 6800,
-    originalPrice: 8500,
-    image: "/images/jewelry/set-1.jpg",
-    category: "sets", 
-    material: "925_silver",
-    inStock: true,
-    featured: true,
-  }
-];
+// No hardcoded products - everything comes from CMS
+// This ensures your website only shows YOUR actual products
 
 // Interface for CMS product data structure
 interface CMSProduct {
@@ -141,62 +82,54 @@ function transformFrontmatterProduct(attributes: Record<string, any>): JewelryPr
   };
 }
 
-// Load CMS products - simplified for build compatibility
+// This function is deprecated - we now use API integration
+// Keeping for backward compatibility but it returns empty array
 async function loadCMSProducts(): Promise<JewelryProduct[]> {
-  const products: JewelryProduct[] = [];
-  
-  try {
-    // In a client-side app, we can't directly read files from content/jewelry/
-    // This would need to be handled by the build process or API
-    // For now, we'll return the sample products with a note that CMS integration
-    // requires server-side rendering or build-time processing
-    
-    console.log('CMS product loading requires build-time processing or API integration');
-    return sampleProducts;
-    
-  } catch (error) {
-    console.warn('Failed to load CMS products:', error);
-    return sampleProducts;
-  }
+  console.log('⚠️ loadCMSProducts is deprecated - use API integration instead');
+  return [];
 }
 
-// Dynamic product loader with API integration
+// Pure CMS product loader - no hardcoded fallbacks
 async function loadProducts(): Promise<JewelryProduct[]> {
   try {
-    console.log('🔍 PRODUCT LOADER: Attempting to load products from CMS API...');
+    console.log('🔍 PRODUCT LOADER: Loading products from CMS API...');
     
-    // Try to fetch products from our API endpoint
     const response = await fetch('/api/products');
     
-    if (response.ok) {
-      const apiProducts = await response.json();
-      console.log('🔍 PRODUCT LOADER: API Response received:', apiProducts);
-      
-      if (Array.isArray(apiProducts) && apiProducts.length > 0) {
-        console.log(`✅ PRODUCT LOADER: Successfully loaded ${apiProducts.length} products from CMS`);
-        console.log('✅ PRODUCT LOADER: Product names:', apiProducts.map(p => p.name));
-        
-        // Validate product structure
-        const validProducts = apiProducts.filter(product => 
-          product.id && product.name && typeof product.price === 'number'
-        );
-        
-        if (validProducts.length > 0) {
-          console.log(`✅ PRODUCT LOADER: ${validProducts.length} valid products found`);
-          return validProducts;
-        }
-      }
-    } else {
-      console.warn('⚠️ PRODUCT LOADER: API request failed with status:', response.status);
+    if (!response.ok) {
+      throw new Error(`API request failed with status: ${response.status}`);
     }
     
-    console.log('⚠️ PRODUCT LOADER: No valid CMS products found, using sample products as fallback');
-    return sampleProducts;
+    const apiProducts = await response.json();
+    console.log('🔍 PRODUCT LOADER: API Response received:', apiProducts);
+    
+    if (!Array.isArray(apiProducts)) {
+      throw new Error('API returned invalid data format');
+    }
+    
+    // Validate product structure
+    const validProducts = apiProducts.filter(product => 
+      product.id && 
+      product.name && 
+      typeof product.price === 'number' &&
+      product.category &&
+      product.material
+    );
+    
+    console.log(`✅ PRODUCT LOADER: Successfully loaded ${validProducts.length} products from CMS`);
+    
+    if (validProducts.length > 0) {
+      console.log('✅ PRODUCT LOADER: Product names:', validProducts.map(p => p.name));
+    }
+    
+    return validProducts; // Return empty array if no products - this is honest!
     
   } catch (error) {
-    console.error('❌ PRODUCT LOADER: Error loading products from API:', error);
-    console.log('⚠️ PRODUCT LOADER: Falling back to sample products');
-    return sampleProducts;
+    console.error('❌ PRODUCT LOADER: Failed to load products from CMS:', error);
+    
+    // Return empty array instead of fake products
+    // The UI should handle empty state gracefully
+    return [];
   }
 }
 
@@ -227,10 +160,7 @@ export function clearProductCache(): void {
   cacheTimestamp = 0;
 }
 
-// Synchronous version for immediate use (returns sample data initially)
-export const sampleJewelryProducts = sampleProducts;
-
-// Helper functions (maintain compatibility with existing code)
+// Helper functions for async product filtering
 export const getFeaturedProducts = async (): Promise<JewelryProduct[]> => {
   const products = await getProducts();
   return products.filter(product => product.featured);
@@ -246,18 +176,6 @@ export const getProductsByCategory = async (category: string): Promise<JewelryPr
   return products.filter(product => product.category === category);
 };
 
-// Synchronous versions for backward compatibility
-export const getFeaturedProductsSync = () => 
-  sampleProducts.filter(product => product.featured);
-
-export const getNewProductsSync = () => 
-  sampleProducts.filter(product => product.isNew);
-
-export const getProductsByCategorySync = (category: string) =>
-  sampleProducts.filter(product => product.category === category);
-
 // Legacy aliases for compatibility
 export const getBestSellers = getFeaturedProducts;
 export const getNewArrivals = getNewProducts;
-export const getBestSellersSync = getFeaturedProductsSync;
-export const getNewArrivalsSync = getNewProductsSync;

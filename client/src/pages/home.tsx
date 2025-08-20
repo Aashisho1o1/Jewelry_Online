@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Heart, Truck, Shield, Diamond } from "lucide-react";
 import { JewelryProduct } from "../types/jewelry";
-import { getProducts, sampleJewelryProducts } from "../data/product-loader";
+import { getProducts } from "../data/product-loader";
 import ProductCard from "../components/jewelry/ProductCard";
 import { useCartContext } from "../contexts/CartContext";
 import { useToast } from "../hooks/use-toast";
@@ -9,8 +9,9 @@ import homeContent from "../content/home.json";
 
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState('all');
-  const [products, setProducts] = useState<JewelryProduct[]>(sampleJewelryProducts);
+  const [products, setProducts] = useState<JewelryProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { addItem, openCart } = useCartContext();
   const { toast } = useToast();
 
@@ -18,12 +19,17 @@ export default function Home() {
   useEffect(() => {
     const loadProducts = async () => {
       try {
+        setError(null);
         const cmsProducts = await getProducts();
         setProducts(cmsProducts);
-        console.log(`Loaded ${cmsProducts.length} products from CMS`);
+        console.log(`✅ Loaded ${cmsProducts.length} products from CMS`);
+        
+        if (cmsProducts.length === 0) {
+          console.log('ℹ️ No products found in CMS - this is normal for a new store');
+        }
       } catch (error) {
-        console.error('Failed to load CMS products:', error);
-        // Keep using sample products as fallback
+        console.error('❌ Failed to load CMS products:', error);
+        setError('Unable to load products. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -193,39 +199,77 @@ export default function Home() {
           </div>
 
           {/* Product Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {displayProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={handleAddToCart}
-                onWishlist={handleWishlist}
-              />
-            ))}
-          </div>
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading products...</p>
+              </div>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <div className="text-red-500 mb-4">⚠️ {error}</div>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          ) : displayProducts.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-gray-500 mb-4">
+                {products.length === 0 
+                  ? "🏪 We're preparing our collection. Check back soon!" 
+                  : `No products found in ${activeCategory === 'all' ? 'any category' : activeCategory}.`
+                }
+              </div>
+              {activeCategory !== 'all' && (
+                <button 
+                  onClick={() => setActiveCategory('all')} 
+                  className="text-gray-900 hover:underline"
+                >
+                  View all products
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {displayProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={handleAddToCart}
+                  onWishlist={handleWishlist}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Featured Products */}
-      <section className="py-16 bg-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Featured Products</h2>
-            <p className="text-xl text-gray-600">Our handpicked collection of bestsellers</p>
-          </div>
+      {/* Featured Products - Only show if we have featured products */}
+      {!loading && featuredProducts.length > 0 && (
+        <section className="py-16 bg-gray-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Featured Products</h2>
+              <p className="text-xl text-gray-600">Our handpicked collection of bestsellers</p>
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={handleAddToCart}
-                onWishlist={handleWishlist}
-              />
-            ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={handleAddToCart}
+                  onWishlist={handleWishlist}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Call to Action */}
       <section className="py-16 bg-gray-900 text-white">
