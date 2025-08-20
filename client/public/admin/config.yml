@@ -53,6 +53,10 @@ collections:
             label: "Hero Section"
             widget: "object"
             fields:
+              - { label: "Welcome Text", name: "welcomeText", widget: "string", default: "WELCOME" }
+              - { label: "Main Title", name: "mainTitle", widget: "string", default: "ELEGANT NEPALI JEWELRY" }
+              - { label: "Description", name: "description", widget: "text", default: "Discover unique jewelry designs and exquisite craftsmanship" }
+              - { label: "Hero Background Image", name: "heroImage", widget: "image", hint: "Main hero background image" }
               - { label: "Call to Action Button Text", name: "ctaText", widget: "string", default: "Shop Collection" }
               - { label: "Call to Action Link", name: "ctaLink", widget: "string", default: "/products" }
           - name: "features"

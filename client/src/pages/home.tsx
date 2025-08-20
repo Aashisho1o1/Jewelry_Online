@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Heart, Truck, Shield, Diamond } from "lucide-react";
+import { ShoppingBag, Heart, Truck, Diamond } from "lucide-react";
 import { JewelryProduct } from "../types/jewelry";
 import { getProducts } from "../data/product-loader";
 import ProductCard from "../components/jewelry/ProductCard";
@@ -92,13 +92,13 @@ export default function Home() {
         {/* Background Image with Overlay */}
         <div className="absolute inset-0">
           <img 
-            src={homeContent.hero.heroImage}
+            src={homeContent.hero.heroImage || homeContent.imageUrl}
             alt="Luxury Jewelry Collection"
             className="w-full h-full object-cover"
             loading="eager"
           />
-          {/* Gradient overlay for text readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+          {/* Enhanced gradient overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/20" />
         </div>
         
         {/* Content Overlay */}
@@ -115,9 +115,8 @@ export default function Home() {
             </div>
             
             {/* Main Title with Luxury Typography */}
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-light text-white mb-6 tracking-wide">
-              <span className="block text-2xl md:text-3xl font-light tracking-[0.2em] mb-4">AASHISH</span>
-              <span className="block font-thin italic">Jewellers</span>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif font-light text-white mb-6 tracking-wide">
+              <span className="block font-thin italic">{homeContent.hero.mainTitle || homeContent.title}</span>
             </h1>
             
             {/* Tagline */}
@@ -138,69 +137,17 @@ export default function Home() {
           </div>
         </div>
         
-        {/* Scroll Indicator */}
+        {/* Scroll Indicator - Perfectly Centered */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white/60 animate-bounce">
-          <div className="flex flex-col items-center">
-            <span className="text-xs tracking-[0.2em] mb-2">SCROLL</span>
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex flex-col items-center justify-center">
+            <span className="text-xs tracking-[0.2em] mb-2 text-center">SCROLL</span>
+            <svg className="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>
           </div>
         </div>
       </section>
       
-      {/* Trust Indicators - Elegant Strip */}
-      <section className="bg-black text-white py-6">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-wrap justify-center gap-8 md:gap-16 text-xs tracking-[0.2em]">
-            {homeContent.features.map((feature, index) => (
-              <div key={index} className="flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity">
-                {feature.icon === 'shield' && <Shield className="w-4 h-4" />}
-                {feature.icon === 'truck' && <Truck className="w-4 h-4" />}
-                {feature.icon === 'heart' && <Heart className="w-4 h-4" />}
-                <span className="font-light">{feature.title.toUpperCase()}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section - Minimalist Luxury */}
-      <section className="py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-serif font-light text-gray-900 mb-4">The Aashish Promise</h2>
-            <div className="w-16 h-px bg-gray-300 mx-auto" />
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-12">
-            <div className="text-center group">
-              <div className="mb-8 transform group-hover:scale-110 transition-transform duration-300">
-                <Diamond className="w-12 h-12 mx-auto text-gray-700" strokeWidth={1} />
-              </div>
-              <h3 className="text-lg font-light tracking-[0.1em] mb-4">925 STERLING SILVER</h3>
-              <p className="text-gray-600 font-light leading-relaxed">Certified pure silver with lasting brilliance and timeless appeal</p>
-            </div>
-            
-            <div className="text-center group">
-              <div className="mb-8 transform group-hover:scale-110 transition-transform duration-300">
-                <Heart className="w-12 h-12 mx-auto text-gray-700" strokeWidth={1} />
-              </div>
-              <h3 className="text-lg font-light tracking-[0.1em] mb-4">SKIN SAFE</h3>
-              <p className="text-gray-600 font-light leading-relaxed">Hypoallergenic materials crafted for sensitive skin comfort</p>
-            </div>
-            
-            <div className="text-center group">
-              <div className="mb-8 transform group-hover:scale-110 transition-transform duration-300">
-                <Truck className="w-12 h-12 mx-auto text-gray-700" strokeWidth={1} />
-              </div>
-              <h3 className="text-lg font-light tracking-[0.1em] mb-4">COMPLIMENTARY DELIVERY</h3>
-              <p className="text-gray-600 font-light leading-relaxed">Secure nationwide shipping with elegant packaging</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Product Categories - Luxury Gallery */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
@@ -300,6 +247,42 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      {/* Features Section - What Sets Us Apart */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-serif font-light text-gray-900 mb-4">What Sets Us Apart</h2>
+            <div className="w-16 h-px bg-gray-300 mx-auto" />
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-12">
+            <div className="text-center group">
+              <div className="mb-8 transform group-hover:scale-110 transition-transform duration-300">
+                <Diamond className="w-12 h-12 mx-auto text-gray-700" strokeWidth={1} />
+              </div>
+              <h3 className="text-lg font-light tracking-[0.1em] mb-4">925 STERLING SILVER</h3>
+              <p className="text-gray-600 font-light leading-relaxed">Certified pure silver with lasting brilliance and timeless appeal</p>
+            </div>
+            
+            <div className="text-center group">
+              <div className="mb-8 transform group-hover:scale-110 transition-transform duration-300">
+                <Heart className="w-12 h-12 mx-auto text-gray-700" strokeWidth={1} />
+              </div>
+              <h3 className="text-lg font-light tracking-[0.1em] mb-4">SKIN SAFE</h3>
+              <p className="text-gray-600 font-light leading-relaxed">Hypoallergenic materials crafted for sensitive skin comfort</p>
+            </div>
+            
+            <div className="text-center group">
+              <div className="mb-8 transform group-hover:scale-110 transition-transform duration-300">
+                <Truck className="w-12 h-12 mx-auto text-gray-700" strokeWidth={1} />
+              </div>
+              <h3 className="text-lg font-light tracking-[0.1em] mb-4">COMPLIMENTARY DELIVERY</h3>
+              <p className="text-gray-600 font-light leading-relaxed">Secure nationwide shipping with elegant packaging</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Call to Action - Elegant Finish */}
       <section className="py-32 bg-black text-white relative overflow-hidden">

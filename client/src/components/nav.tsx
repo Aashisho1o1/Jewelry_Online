@@ -28,18 +28,8 @@ export default function Nav() {
             <Menu className="w-6 h-6" strokeWidth={1} />
           </button>
           
-          {/* Center - Brand Name - Luxury Typography */}
-          <Link href="/">
-            <a className="absolute left-1/2 transform -translate-x-1/2">
-              <h1 className="text-2xl font-serif font-light tracking-[0.2em] text-gray-900">
-                AASHISH
-              </h1>
-              <p className="text-[10px] tracking-[0.3em] text-gray-500 text-center">JEWELLERS</p>
-            </a>
-          </Link>
-          
           {/* Left Navigation - Desktop */}
-          <div className="hidden md:flex items-center space-x-12">
+          <div className="hidden md:flex items-center space-x-8">
             {links.slice(0, 2).map(({ href, label }) => (
               <Link key={href} href={href}>
                 <a
@@ -56,8 +46,18 @@ export default function Nav() {
             ))}
           </div>
           
+          {/* Center - Brand Name - Luxury Typography */}
+          <Link href="/">
+            <a className="flex flex-col items-center">
+              <h1 className="text-xl font-serif font-light tracking-[0.2em] text-gray-900">
+                AASHISH
+              </h1>
+              <p className="text-[9px] tracking-[0.3em] text-gray-500">JEWELLERS</p>
+            </a>
+          </Link>
+          
           {/* Right Navigation - Desktop */}
-          <div className="hidden md:flex items-center space-x-12">
+          <div className="hidden md:flex items-center space-x-8">
             {links.slice(2).map(({ href, label }) => (
               <Link key={href} href={href}>
                 <a
