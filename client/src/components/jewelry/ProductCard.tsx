@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Heart, Eye } from 'lucide-react';
 import { JewelryProduct } from '../../types/jewelry';
+import ImageLightbox from '../ui/image-lightbox';
 
 interface ProductCardProps {
   product: JewelryProduct;
@@ -13,6 +14,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onAddToCart,
   onWishlist,
 }) => {
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  
   const hasDiscount = product.originalPrice && product.originalPrice > product.price;
   const discountPercent = hasDiscount 
     ? Math.round(((product.originalPrice! - product.price) / product.originalPrice!) * 100)
@@ -21,7 +24,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div className="group relative">
       {/* Product Image - Photo First Design */}
-      <div className="aspect-[3/4] bg-gray-50 relative overflow-hidden">
+      <div className="aspect-[3/4] bg-gray-50 relative overflow-hidden cursor-pointer" onClick={() => setIsLightboxOpen(true)}>
         <img
           src={product.image}
           alt={product.name}
@@ -58,6 +61,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <button
               onClick={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 onAddToCart?.(product);
               }}
               disabled={!product.inStock}
@@ -68,6 +72,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <button
               onClick={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 onWishlist?.(product);
               }}
               className="p-3 bg-white hover:bg-black hover:text-white transition-all duration-300"
@@ -79,7 +84,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Quick View Icon */}
-        <button className="absolute top-4 right-4 p-2 bg-white/80 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white">
+        <button 
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsLightboxOpen(true);
+          }}
+          className="absolute top-4 right-4 p-2 bg-white/80 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white"
+          aria-label="View full size image"
+        >
           <Eye className="w-4 h-4" strokeWidth={1} />
         </button>
       </div>
@@ -115,6 +128,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </span>
         </div>
       </div>
+
+      {/* Image Lightbox */}
+      <ImageLightbox
+        isOpen={isLightboxOpen}
+        onClose={() => setIsLightboxOpen(false)}
+        imageSrc={product.image}
+        imageAlt={product.name}
+        productName={product.name}
+      />
     </div>
   );
 };
