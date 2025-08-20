@@ -124,70 +124,52 @@ function transformCMSProduct(cmsProduct: CMSProduct): JewelryProduct {
   };
 }
 
-// Load CMS products from markdown files
-async function loadCMSProducts(): Promise<CMSProduct[]> {
-  const products: CMSProduct[] = [];
+// Simple transform function for our CMS frontmatter format
+function transformFrontmatterProduct(attributes: Record<string, any>): JewelryProduct {
+  return {
+    id: attributes.id || 'unknown',
+    name: attributes.name || 'Unnamed Product',
+    description: attributes.description || '',
+    price: attributes.price || 0,
+    originalPrice: attributes.originalPrice,
+    image: attributes.image || '/images/jewelry/placeholder.jpg',
+    category: attributes.category || 'rings',
+    material: attributes.material || '925_silver',
+    inStock: attributes.inStock !== false, // Default to true
+    featured: attributes.featured || false,
+    isNew: attributes.isNew || false,
+  };
+}
+
+// Load CMS products - simplified for build compatibility
+async function loadCMSProducts(): Promise<JewelryProduct[]> {
+  const products: JewelryProduct[] = [];
   
   try {
-    // For now, we'll manually import the sample CMS product
-    // In a real build system, this would be handled by the bundler
-    const sampleCMSProductContent = `---
-name: "Elegant Silver Ring"
-id: "CMS001"
-description: "Beautiful handcrafted silver ring with intricate design"
-price:
-  original: 3000
-  current: 2500
-  discount: 17
-images:
-  main: "/images/jewelry/ring-1.jpg"
-category: "rings"
-specifications:
-  material: "925_silver"
-  weight: 5.2
-  dimensions: "Size adjustable"
-  finish: "polished"
-availability:
-  inStock: true
-  stockCount: 15
-featured: true
-newArrival: false
-bestSeller: true
----
-
-This elegant silver ring showcases the finest craftsmanship.`;
-
-    const parsed = parseFrontmatter(sampleCMSProductContent);
-    if (parsed.attributes && parsed.attributes.name) {
-      products.push(parsed.attributes as CMSProduct);
-    }
+    // In a client-side app, we can't directly read files from content/jewelry/
+    // This would need to be handled by the build process or API
+    // For now, we'll return the sample products with a note that CMS integration
+    // requires server-side rendering or build-time processing
+    
+    console.log('CMS product loading requires build-time processing or API integration');
+    return sampleProducts;
     
   } catch (error) {
     console.warn('Failed to load CMS products:', error);
+    return sampleProducts;
   }
-  
-  return products;
 }
 
 // Dynamic product loader
 async function loadProducts(): Promise<JewelryProduct[]> {
   try {
-    // Try to load CMS products dynamically
-    const cmsProducts = await loadCMSProducts();
-    
-    if (cmsProducts.length > 0) {
-      console.log(`Loaded ${cmsProducts.length} products from CMS`);
-      const transformedProducts = cmsProducts.map(transformCMSProduct);
-      // Combine CMS products with sample products for now
-      return [...transformedProducts, ...sampleProducts];
-    }
-    
-    // Fallback to sample products
-    console.log('No CMS products found, using sample products');
+    // For now, return sample products
+    // TODO: Implement proper CMS integration with build-time processing
+    console.log('Using sample products (CMS integration pending)');
     return sampleProducts;
     
   } catch (error) {
-    console.warn('Error loading CMS products, using sample products:', error);
+    console.warn('Error loading products, using sample products:', error);
     return sampleProducts;
   }
 }
