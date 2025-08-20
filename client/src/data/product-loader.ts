@@ -160,28 +160,71 @@ async function loadCMSProducts(): Promise<JewelryProduct[]> {
   }
 }
 
-// Dynamic product loader
+// Dynamic product loader with API integration
 async function loadProducts(): Promise<JewelryProduct[]> {
   try {
-    // For now, return sample products
-    // TODO: Implement proper CMS integration with build-time processing
-    console.log('Using sample products (CMS integration pending)');
+    console.log('🔍 PRODUCT LOADER: Attempting to load products from CMS API...');
+    
+    // Try to fetch products from our API endpoint
+    const response = await fetch('/api/products');
+    
+    if (response.ok) {
+      const apiProducts = await response.json();
+      console.log('🔍 PRODUCT LOADER: API Response received:', apiProducts);
+      
+      if (Array.isArray(apiProducts) && apiProducts.length > 0) {
+        console.log(`✅ PRODUCT LOADER: Successfully loaded ${apiProducts.length} products from CMS`);
+        console.log('✅ PRODUCT LOADER: Product names:', apiProducts.map(p => p.name));
+        
+        // Validate product structure
+        const validProducts = apiProducts.filter(product => 
+          product.id && product.name && typeof product.price === 'number'
+        );
+        
+        if (validProducts.length > 0) {
+          console.log(`✅ PRODUCT LOADER: ${validProducts.length} valid products found`);
+          return validProducts;
+        }
+      }
+    } else {
+      console.warn('⚠️ PRODUCT LOADER: API request failed with status:', response.status);
+    }
+    
+    console.log('⚠️ PRODUCT LOADER: No valid CMS products found, using sample products as fallback');
     return sampleProducts;
     
   } catch (error) {
-    console.warn('Error loading products, using sample products:', error);
+    console.error('❌ PRODUCT LOADER: Error loading products from API:', error);
+    console.log('⚠️ PRODUCT LOADER: Falling back to sample products');
     return sampleProducts;
   }
 }
 
-// Export the main products array (this will be used by the website)
+// Export the main products array with cache management
 let cachedProducts: JewelryProduct[] | null = null;
+let cacheTimestamp: number = 0;
+const CACHE_DURATION = 60000; // 1 minute cache
 
-export async function getProducts(): Promise<JewelryProduct[]> {
-  if (cachedProducts === null) {
+export async function getProducts(forceRefresh: boolean = false): Promise<JewelryProduct[]> {
+  const now = Date.now();
+  const cacheExpired = (now - cacheTimestamp) > CACHE_DURATION;
+  
+  if (cachedProducts === null || forceRefresh || cacheExpired) {
+    console.log('🔄 PRODUCT LOADER: Cache miss or expired, loading fresh products...');
     cachedProducts = await loadProducts();
+    cacheTimestamp = now;
+  } else {
+    console.log('✅ PRODUCT LOADER: Using cached products');
   }
+  
   return cachedProducts;
+}
+
+// Function to clear cache (useful for CMS updates)
+export function clearProductCache(): void {
+  console.log('🗑️ PRODUCT LOADER: Clearing product cache');
+  cachedProducts = null;
+  cacheTimestamp = 0;
 }
 
 // Synchronous version for immediate use (returns sample data initially)
