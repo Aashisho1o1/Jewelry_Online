@@ -2,9 +2,6 @@ backend:
   name: github
   repo: Aashisho1o1/Jewelry_Online
   branch: main
-  base_url: https://jewelry-online.vercel.app
-  auth_endpoint: /api/auth
-  site_domain: jewelry-online.vercel.app
 
 media_folder: "public/images/jewelry"
 public_folder: "/images/jewelry"
