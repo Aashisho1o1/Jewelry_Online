@@ -17,11 +17,19 @@ export default (req, res) => {
   }
 
   // Build the GitHub OAuth URL with proper parameters
+  // CRITICAL FIX: Add redirect_uri parameter required by GitHub OAuth 2.0 spec
+  // This MUST match the "Authorization callback URL" in GitHub OAuth App settings
+  const baseUrl = req.headers.host ? `https://${req.headers.host}` : 'https://jewelry-online.vercel.app';
+  const redirectUri = `${baseUrl}/api/callback`;
+  
   const params = new URLSearchParams({
     client_id: GITHUB_CLIENT_ID,
+    redirect_uri: redirectUri, // ← CRITICAL: Tells GitHub where to send user after auth
     scope: 'repo,user,read:user,user:email',
-    state: site_id || 'default' // Use site_id as state parameter
+    state: site_id || 'default' // CSRF protection - GitHub sends this back unchanged
   });
+  
+  console.log('OAuth redirect_uri:', redirectUri);
 
   const redirectUrl = `https://github.com/login/oauth/authorize?${params.toString()}`;
   console.log('Redirecting to:', redirectUrl);
