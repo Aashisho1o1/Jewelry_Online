@@ -1,4 +1,4 @@
-import { createOrder } from '../../lib/order-store';
+import { createOrder } from '../../lib/db-store';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

@@ -41,7 +41,7 @@ export default async function handler(req, res) {
         });
         
         // Update order status in our store
-        const { updateOrderStatus, getOrderById } = await import('../../../lib/order-store');
+        const { updateOrderStatus, getOrderById } = await import('../../../lib/db-store');
         
         // Check if order exists
         const existingOrder = getOrderById(purchase_order_id);
@@ -51,7 +51,7 @@ export default async function handler(req, res) {
           console.log(`✅ Order status updated to confirmed: ${purchase_order_id}`);
           
           // Update payment details
-          const { updateOrder } = await import('../../../lib/order-store');
+          const { updateOrder } = await import('../../../lib/db-store');
           updateOrder(purchase_order_id, {
             paymentDetails: {
               ...existingOrder.paymentDetails,

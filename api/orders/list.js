@@ -1,4 +1,4 @@
-import { getAllOrders, getOrdersByStatus, getOrdersByCustomerPhone } from '../../lib/order-store';
+import { getRecentOrders, getOrderStats } from '../../lib/db-store';
 
 export default async function handler(req, res) {
   // Only allow GET requests
@@ -7,25 +7,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { status, phone } = req.query;
+    const { limit = 20 } = req.query;
 
-    let orders;
-
-    // Filter by status if provided
-    if (status) {
-      orders = getOrdersByStatus(status);
-    }
-    // Filter by customer phone if provided
-    else if (phone) {
-      orders = getOrdersByCustomerPhone(phone);
-    }
-    // Otherwise, get all orders
-    else {
-      orders = getAllOrders();
-    }
-
-    // Sort orders by creation date (newest first)
-    orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    // For MVP, just get recent orders (keeps it simple and fast)
+    const orders = await getRecentOrders(parseInt(limit));
 
     // Return orders
     return res.status(200).json({
