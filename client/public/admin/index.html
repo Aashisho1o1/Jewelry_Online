@@ -8,32 +8,150 @@
   <body>
     <!-- Debug: Monitor postMessage events for authentication -->
     <script>
-      console.log('CMS Admin: Setting up postMessage listener for debugging');
+      console.log('🚀 CMS DEBUG: Starting comprehensive OAuth debugging');
       
-      // Listen for authentication messages
-      window.addEventListener('message', function(event) {
-        console.log('CMS Admin: Received postMessage:', event.data);
-        console.log('CMS Admin: Message origin:', event.origin);
+      // Step 1: Intercept ALL window.open calls to trace auth flow
+      const originalOpen = window.open;
+      window.open = function(url, name, specs) {
+        console.log('🔍 STEP 1: CMS attempting to open auth popup');
+        console.log('🔍 STEP 1: Auth URL:', url);
+        console.log('🔍 STEP 1: Window name:', name);
+        console.log('🔍 STEP 1: Window specs:', specs);
         
-        // Log different message types
-        if (typeof event.data === 'string' && event.data.includes('authorization')) {
-          console.log('CMS Admin: Received legacy auth message:', event.data);
-        } else if (event.data && event.data.type === 'authorization') {
-          console.log('CMS Admin: Received modern auth message:', event.data);
+        // Test if the auth endpoint is reachable
+        if (url && typeof url === 'string') {
+          const testUrl = url.split('?')[0];
+          console.log('🔍 STEP 1: Testing auth endpoint:', testUrl);
+          
+          fetch(testUrl, { method: 'HEAD' })
+            .then(response => {
+              console.log('✅ STEP 1: Auth endpoint test - Status:', response.status);
+              console.log('✅ STEP 1: Auth endpoint test - Headers:', Object.fromEntries(response.headers.entries()));
+            })
+            .catch(error => {
+              console.error('❌ STEP 1: Auth endpoint test failed:', error);
+            });
+        }
+        
+        const popup = originalOpen.call(this, url, name, specs);
+        
+        if (popup) {
+          console.log('✅ STEP 1: Popup window created successfully');
+          
+          // Monitor popup for navigation events
+          const checkPopup = setInterval(() => {
+            try {
+              if (popup.closed) {
+                console.log('🔍 STEP 1: Popup window was closed');
+                clearInterval(checkPopup);
+                return;
+              }
+              
+              // Try to read popup URL (will fail due to CORS, but we can catch that)
+              try {
+                const popupUrl = popup.location.href;
+                console.log('🔍 STEP 1: Popup URL:', popupUrl);
+              } catch (e) {
+                // Expected CORS error when popup navigates to GitHub
+                if (e.name === 'SecurityError') {
+                  console.log('🔍 STEP 1: Popup navigated to external domain (GitHub) - this is expected');
+                }
+              }
+            } catch (e) {
+              console.error('❌ STEP 1: Error monitoring popup:', e);
+            }
+          }, 1000);
+          
+          // Stop monitoring after 30 seconds
+          setTimeout(() => {
+            clearInterval(checkPopup);
+            console.log('🔍 STEP 1: Stopped monitoring popup after 30 seconds');
+          }, 30000);
+        } else {
+          console.error('❌ STEP 1: Failed to create popup window');
+        }
+        
+        return popup;
+      };
+      
+      // Step 2: Monitor ALL postMessage events with detailed logging
+      window.addEventListener('message', function(event) {
+        console.log('🔍 STEP 4: Received postMessage event');
+        console.log('🔍 STEP 4: Event origin:', event.origin);
+        console.log('🔍 STEP 4: Event source:', event.source);
+        console.log('🔍 STEP 4: Event data type:', typeof event.data);
+        console.log('🔍 STEP 4: Event data:', event.data);
+        
+        // Check if this is from our callback
+        if (event.origin === window.location.origin) {
+          console.log('✅ STEP 4: Message from same origin (our callback)');
+          
+          // Check for different auth message formats
+          if (typeof event.data === 'string' && event.data.includes('authorization')) {
+            console.log('✅ STEP 4: Legacy auth message detected:', event.data);
+          } else if (event.data && event.data.type === 'authorization') {
+            console.log('✅ STEP 4: Modern auth message detected:', event.data);
+            console.log('✅ STEP 4: Token present:', !!event.data.token);
+            console.log('✅ STEP 4: Provider:', event.data.provider);
+          } else {
+            console.log('🔍 STEP 4: Unknown message format');
+          }
+        } else {
+          console.log('🔍 STEP 4: Message from external origin:', event.origin);
         }
       });
       
-      // Monitor CMS initialization
+      // Step 3: Monitor CMS initialization and auth state
       window.addEventListener('load', function() {
-        console.log('CMS Admin: Page loaded, CMS should initialize');
+        console.log('🔍 STEP 0: Page loaded, CMS should initialize');
+        
         setTimeout(() => {
           if (window.CMS) {
-            console.log('CMS Admin: CMS object available:', !!window.CMS);
+            console.log('✅ STEP 0: CMS object available');
+            console.log('✅ STEP 0: CMS version:', window.CMS.version || 'unknown');
+            
+            // Try to hook into CMS events if possible
+            if (window.CMS.registerEventListener) {
+              console.log('✅ STEP 0: CMS event listener available');
+              try {
+                window.CMS.registerEventListener({
+                  name: 'login_start',
+                  handler: () => console.log('🔍 CMS EVENT: Login started')
+                });
+                window.CMS.registerEventListener({
+                  name: 'login_success', 
+                  handler: () => console.log('✅ CMS EVENT: Login successful')
+                });
+                window.CMS.registerEventListener({
+                  name: 'login_failure',
+                  handler: (error) => console.error('❌ CMS EVENT: Login failed:', error)
+                });
+              } catch (e) {
+                console.log('🔍 STEP 0: Could not register CMS event listeners:', e);
+              }
+            }
           } else {
-            console.error('CMS Admin: CMS object not found after load');
+            console.error('❌ STEP 0: CMS object not found after load');
           }
         }, 2000);
       });
+      
+      // Step 4: Monitor for any JavaScript errors
+      window.addEventListener('error', function(e) {
+        console.error('❌ JAVASCRIPT ERROR:', e.error);
+        console.error('❌ ERROR DETAILS:', {
+          message: e.message,
+          filename: e.filename,
+          lineno: e.lineno,
+          colno: e.colno
+        });
+      });
+      
+      window.addEventListener('unhandledrejection', function(e) {
+        console.error('❌ UNHANDLED PROMISE REJECTION:', e.reason);
+      });
+      
+      console.log('🚀 CMS DEBUG: All debugging listeners set up');
     </script>
     
     <!-- Include the script that builds the page and powers Decap CMS -->
