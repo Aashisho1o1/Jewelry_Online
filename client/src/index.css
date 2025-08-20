@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -12,10 +12,66 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Selection color */
+  ::selection {
+    @apply bg-black text-white;
+  }
 }
 
 @layer components {
   .container {
     @apply px-6 md:px-8 max-w-7xl mx-auto;
   }
+  
+  /* Luxury button animations */
+  .luxury-button {
+    @apply relative overflow-hidden transition-all duration-500;
+  }
+  
+  .luxury-button::before {
+    content: '';
+    @apply absolute inset-0 bg-white transform -translate-x-full transition-transform duration-500;
+  }
+  
+  .luxury-button:hover::before {
+    @apply translate-x-0;
+  }
+  
+  /* Elegant underline animation */
+  .elegant-underline {
+    @apply relative;
+  }
+  
+  .elegant-underline::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-0 h-px bg-current transition-all duration-300;
+  }
+  
+  .elegant-underline:hover::after {
+    @apply w-full;
+  }
+}
+
+/* Custom scrollbar for luxury feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-400 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-600;
 }

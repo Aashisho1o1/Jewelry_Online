@@ -40,7 +40,6 @@ export default function Home() {
 
   // Helper functions for product filtering
   const getFeaturedProducts = () => products.filter(product => product.featured);
-  const getNewProducts = () => products.filter(product => product.isNew);
   const getProductsByCategory = (category: string) => products.filter(product => product.category === category);
 
   const handleAddToCart = (product: JewelryProduct) => {
@@ -87,113 +86,144 @@ export default function Home() {
   const featuredProducts = getFeaturedProducts();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section - GoDaddy Style */}
-      <section className="bg-white py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left: Jewelry Image */}
-            <div className="relative order-2 lg:order-1">
-              <div className="aspect-square relative overflow-hidden rounded-lg shadow-lg">
-                <img 
-                  src={homeContent.hero.heroImage}
-                  alt="Elegant Nepali Jewelry"
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                  loading="eager"
-                />
+    <div className="min-h-screen bg-white">
+      {/* Hero Section - Luxury Full Screen */}
+      <section className="relative h-screen w-full overflow-hidden -mt-20">
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0">
+          <img 
+            src={homeContent.hero.heroImage}
+            alt="Luxury Jewelry Collection"
+            className="w-full h-full object-cover"
+            loading="eager"
+          />
+          {/* Gradient overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+        </div>
+        
+        {/* Content Overlay */}
+        <div className="relative h-full flex items-center justify-center">
+          <div className="max-w-4xl mx-auto px-6 text-center">
+            {/* Logo/Brand Mark */}
+            <div className="mb-8">
+              <div className="inline-block">
+                <div className="text-white/80 text-xs tracking-[0.3em] font-light mb-2">
+                  {homeContent.hero.welcomeText}
+                </div>
+                <div className="w-24 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent mx-auto" />
               </div>
             </div>
             
-            {/* Right: Content Block */}
-            <div className="order-1 lg:order-2">
-              <div className="bg-gradient-to-br from-cyan-50 to-blue-50 p-8 md:p-12 rounded-lg">
-                <div className="text-cyan-600 font-medium text-sm tracking-wide mb-3">
-                  {homeContent.hero.welcomeText}
-                </div>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-gray-900 mb-6 leading-tight">
-                  {homeContent.hero.mainTitle}
-                </h1>
-                <p className="text-gray-600 text-lg mb-8 leading-relaxed">
-                  {homeContent.hero.description}
-                </p>
-                <button className="bg-gray-800 text-white px-8 py-4 rounded-lg font-medium hover:bg-gray-700 transition-colors text-sm tracking-wide">
-                  {homeContent.hero.ctaText}
-                </button>
-              </div>
+            {/* Main Title with Luxury Typography */}
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-light text-white mb-6 tracking-wide">
+              <span className="block text-2xl md:text-3xl font-light tracking-[0.2em] mb-4">AASHISH</span>
+              <span className="block font-thin italic">Jewellers</span>
+            </h1>
+            
+            {/* Tagline */}
+            <p className="text-white/90 text-lg md:text-xl font-light tracking-wide mb-12 max-w-2xl mx-auto">
+              {homeContent.hero.description}
+            </p>
+            
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button className="group relative px-10 py-4 overflow-hidden border border-white/80 text-white hover:text-black transition-all duration-500">
+                <span className="relative z-10 text-sm tracking-[0.2em] font-light">EXPLORE COLLECTION</span>
+                <div className="absolute inset-0 bg-white transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
+              </button>
+              <button className="px-10 py-4 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-all duration-300 text-sm tracking-[0.2em] font-light">
+                OUR STORY
+              </button>
             </div>
           </div>
-
-          {/* Trust Indicators */}
-          <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-600 mt-16">
+        </div>
+        
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white/60 animate-bounce">
+          <div className="flex flex-col items-center">
+            <span className="text-xs tracking-[0.2em] mb-2">SCROLL</span>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </div>
+        </div>
+      </section>
+      
+      {/* Trust Indicators - Elegant Strip */}
+      <section className="bg-black text-white py-6">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-wrap justify-center gap-8 md:gap-16 text-xs tracking-[0.2em]">
             {homeContent.features.map((feature, index) => (
-              <div key={index} className="flex items-center gap-2">
-                {feature.icon === 'shield' && <Shield className="w-4 h-4 text-green-600" />}
-                {feature.icon === 'truck' && <Truck className="w-4 h-4 text-blue-600" />}
-                {feature.icon === 'heart' && <Heart className="w-4 h-4 text-red-500" />}
-                <span>{feature.title}</span>
+              <div key={index} className="flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity">
+                {feature.icon === 'shield' && <Shield className="w-4 h-4" />}
+                {feature.icon === 'truck' && <Truck className="w-4 h-4" />}
+                {feature.icon === 'heart' && <Heart className="w-4 h-4" />}
+                <span className="font-light">{feature.title.toUpperCase()}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 bg-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose Aashish Jewellers?</h2>
-            <p className="text-xl text-gray-600">Quality, craftsmanship, and customer satisfaction at the heart of everything we do</p>
+      {/* Features Section - Minimalist Luxury */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-serif font-light text-gray-900 mb-4">The Aashish Promise</h2>
+            <div className="w-16 h-px bg-gray-300 mx-auto" />
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-lg shadow-md text-center">
-              <div className="w-16 h-16 mx-auto mb-6 bg-gray-900 rounded-full flex items-center justify-center">
-                <Diamond className="w-8 h-8 text-white" />
+          <div className="grid md:grid-cols-3 gap-12">
+            <div className="text-center group">
+              <div className="mb-8 transform group-hover:scale-110 transition-transform duration-300">
+                <Diamond className="w-12 h-12 mx-auto text-gray-700" strokeWidth={1} />
               </div>
-              <h3 className="text-xl font-semibold mb-4">925 Silver Quality</h3>
-              <p className="text-gray-600">Premium sterling silver jewellery with guaranteed purity and lasting shine.</p>
+              <h3 className="text-lg font-light tracking-[0.1em] mb-4">925 STERLING SILVER</h3>
+              <p className="text-gray-600 font-light leading-relaxed">Certified pure silver with lasting brilliance and timeless appeal</p>
             </div>
             
-            <div className="bg-white p-8 rounded-lg shadow-md text-center">
-              <div className="w-16 h-16 mx-auto mb-6 bg-gray-900 rounded-full flex items-center justify-center">
-                <Heart className="w-8 h-8 text-white" />
+            <div className="text-center group">
+              <div className="mb-8 transform group-hover:scale-110 transition-transform duration-300">
+                <Heart className="w-12 h-12 mx-auto text-gray-700" strokeWidth={1} />
               </div>
-              <h3 className="text-xl font-semibold mb-4">Hypoallergenic</h3>
-              <p className="text-gray-600">Skin-friendly jewellery crafted for sensitive skin with nickel-free materials.</p>
+              <h3 className="text-lg font-light tracking-[0.1em] mb-4">SKIN SAFE</h3>
+              <p className="text-gray-600 font-light leading-relaxed">Hypoallergenic materials crafted for sensitive skin comfort</p>
             </div>
             
-            <div className="bg-white p-8 rounded-lg shadow-md text-center">
-              <div className="w-16 h-16 mx-auto mb-6 bg-gray-900 rounded-full flex items-center justify-center">
-                <Truck className="w-8 h-8 text-white" />
+            <div className="text-center group">
+              <div className="mb-8 transform group-hover:scale-110 transition-transform duration-300">
+                <Truck className="w-12 h-12 mx-auto text-gray-700" strokeWidth={1} />
               </div>
-              <h3 className="text-xl font-semibold mb-4">Free Home Delivery</h3>
-              <p className="text-gray-600">Convenient delivery across Nepal with secure packaging and tracking.</p>
+              <h3 className="text-lg font-light tracking-[0.1em] mb-4">COMPLIMENTARY DELIVERY</h3>
+              <p className="text-gray-600 font-light leading-relaxed">Secure nationwide shipping with elegant packaging</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Product Categories */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Shop by Category</h2>
-            <p className="text-xl text-gray-600">Discover our curated collection of premium silver jewellery</p>
+      {/* Product Categories - Luxury Gallery */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-20">
+            <h2 className="text-xs tracking-[0.3em] text-gray-500 mb-4">EXPLORE</h2>
+            <h3 className="text-4xl md:text-5xl font-serif font-light text-gray-900 mb-6">Our Collections</h3>
+            <p className="text-lg text-gray-600 font-light max-w-2xl mx-auto">Each piece tells a story of craftsmanship and elegance</p>
           </div>
 
-          {/* Category Filters */}
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
+          {/* Category Filters - Minimal Design */}
+          <div className="flex flex-wrap justify-center gap-3 mb-16">
             {categories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => setActiveCategory(category.id)}
-                className={`px-6 py-3 rounded-full font-medium transition-colors ${
+                className={`px-8 py-3 text-sm tracking-[0.15em] font-light transition-all duration-300 ${
                   activeCategory === category.id
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? 'text-white bg-black'
+                    : 'text-gray-700 bg-transparent border border-gray-300 hover:border-black'
                 }`}
               >
-                {category.name} ({category.count})
+                {category.name.toUpperCase()}
+                <span className="ml-2 text-xs opacity-60">({category.count})</span>
               </button>
             ))}
           </div>
@@ -271,38 +301,50 @@ export default function Home() {
         </section>
       )}
 
-      {/* Call to Action */}
-      <section className="py-16 bg-gray-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-6">
-            Ready to Find Your Perfect Piece?
+      {/* Call to Action - Elegant Finish */}
+      <section className="py-32 bg-black text-white relative overflow-hidden">
+        {/* Subtle Pattern Background */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 1px)`,
+            backgroundSize: '40px 40px'
+          }} />
+        </div>
+        
+        <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
+          <h2 className="text-4xl md:text-6xl font-serif font-light mb-8 tracking-wide">
+            Begin Your Journey
           </h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
-            Join thousands of satisfied customers who trust Aashish Jewellers for their jewellery needs
+          <p className="text-lg font-light opacity-80 mb-12 max-w-2xl mx-auto leading-relaxed">
+            Discover timeless elegance in every piece, crafted with passion for those who appreciate beauty
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-gray-900 px-8 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center justify-center gap-2">
-              <ShoppingBag className="w-5 h-5" />
-              Start Shopping
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-20">
+            <button className="group relative px-10 py-4 overflow-hidden border border-white/80 text-white hover:text-black transition-all duration-500">
+              <span className="relative z-10 text-sm tracking-[0.2em] font-light flex items-center gap-3">
+                <ShoppingBag className="w-4 h-4" strokeWidth={1} />
+                SHOP NOW
+              </span>
+              <div className="absolute inset-0 bg-white transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
             </button>
-            <button className="border border-white text-white px-8 py-3 rounded-lg font-medium hover:bg-white hover:text-gray-900 transition-colors">
-              Learn Our Story
+            <button className="px-10 py-4 text-white/80 hover:text-white transition-colors text-sm tracking-[0.2em] font-light">
+              OUR HERITAGE
             </button>
           </div>
 
-          {/* Social Proof */}
-          <div className="mt-12 flex justify-center gap-8 opacity-80">
-            <div className="text-center">
-              <div className="text-2xl font-bold">1000+</div>
-              <div className="text-sm">Happy Customers</div>
+          {/* Social Proof - Elegant Display */}
+          <div className="flex justify-center gap-12 text-center">
+            <div className="group">
+              <div className="text-3xl font-light mb-1 group-hover:scale-110 transition-transform">1000+</div>
+              <div className="text-xs tracking-[0.2em] opacity-60">HAPPY CLIENTS</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold">4.8★</div>
-              <div className="text-sm">Average Rating</div>
+            <div className="group">
+              <div className="text-3xl font-light mb-1 group-hover:scale-110 transition-transform">4.8★</div>
+              <div className="text-xs tracking-[0.2em] opacity-60">RATING</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold">50+</div>
-              <div className="text-sm">Products</div>
+            <div className="group">
+              <div className="text-3xl font-light mb-1 group-hover:scale-110 transition-transform">50+</div>
+              <div className="text-xs tracking-[0.2em] opacity-60">DESIGNS</div>
             </div>
           </div>
         </div>

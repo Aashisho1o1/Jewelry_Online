@@ -17,7 +17,7 @@ function App() {
     <CartProvider>
       <div className="min-h-screen flex flex-col">
         <Nav />
-        <main className="flex-1">
+        <main className="flex-1 pt-20">
           <Switch>
             <Route path="/" component={Home} />
             <Route path="/about" component={About} />

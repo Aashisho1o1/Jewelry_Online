@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, ShoppingCart } from 'lucide-react';
+import { Heart, Eye } from 'lucide-react';
 import { JewelryProduct } from '../../types/jewelry';
 
 interface ProductCardProps {
@@ -19,99 +19,101 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     : 0;
 
   return (
-    <div className="group relative bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-      {/* Product Image */}
-      <div className="aspect-square bg-gray-100 relative overflow-hidden">
+    <div className="group relative">
+      {/* Product Image - Photo First Design */}
+      <div className="aspect-[3/4] bg-gray-50 relative overflow-hidden">
         <img
           src={product.image}
           alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          loading="lazy"
           onError={(e) => {
-            // Fallback for missing images
-            e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23f3f4f6"/><text x="100" y="100" text-anchor="middle" dy=".3em" fill="%236b7280">No Image</text></svg>';
+            // Elegant fallback for missing images
+            e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400"><rect width="300" height="400" fill="%23fafafa"/><text x="150" y="200" text-anchor="middle" dy=".3em" fill="%23e5e5e5" font-size="14" font-family="serif">Image Coming Soon</text></svg>';
           }}
         />
         
-        {/* Badges */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1">
-          {product.isNew && (
-            <span className="bg-green-500 text-white text-xs px-2 py-1 rounded">
-              New
-            </span>
-          )}
-          {product.featured && (
-            <span className="bg-yellow-500 text-white text-xs px-2 py-1 rounded">
-              Featured
-            </span>
-          )}
-          {hasDiscount && (
-            <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">
-              -{discountPercent}%
-            </span>
-          )}
+        {/* Gradient Overlay on Hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        
+        {/* Minimal Badges */}
+        {(product.isNew || hasDiscount) && (
+          <div className="absolute top-4 left-4">
+            {product.isNew && (
+              <span className="inline-block bg-black text-white text-xs tracking-[0.1em] px-3 py-1 mb-2">
+                NEW ARRIVAL
+              </span>
+            )}
+            {hasDiscount && (
+              <span className="block bg-white/90 text-black text-xs tracking-[0.1em] px-3 py-1">
+                {discountPercent}% OFF
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Action Buttons - Appear on Hover */}
+        <div className="absolute inset-x-0 bottom-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500">
+          <div className="flex gap-2">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                onAddToCart?.(product);
+              }}
+              disabled={!product.inStock}
+              className="flex-1 bg-white text-black py-3 px-4 text-sm tracking-[0.1em] font-light hover:bg-black hover:text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {product.inStock ? 'ADD TO BAG' : 'OUT OF STOCK'}
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                onWishlist?.(product);
+              }}
+              className="p-3 bg-white hover:bg-black hover:text-white transition-all duration-300"
+              aria-label="Add to wishlist"
+            >
+              <Heart className="w-4 h-4" strokeWidth={1} />
+            </button>
+          </div>
         </div>
 
-        {/* Wishlist Button */}
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            onWishlist?.(product);
-          }}
-          className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors"
-        >
-          <Heart className="w-4 h-4 text-gray-600" />
+        {/* Quick View Icon */}
+        <button className="absolute top-4 right-4 p-2 bg-white/80 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white">
+          <Eye className="w-4 h-4" strokeWidth={1} />
         </button>
-
-        {/* Add to Cart Button - appears on hover */}
-        <div className="absolute bottom-2 left-2 right-2 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              onAddToCart?.(product);
-            }}
-            className="w-full bg-gray-900 text-white py-2 px-4 rounded flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors"
-          >
-            <ShoppingCart className="w-4 h-4" />
-            Add to Cart
-          </button>
-        </div>
       </div>
 
-      {/* Product Info */}
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+      {/* Product Info - Minimal & Elegant */}
+      <div className="pt-4">
+        {/* Category */}
+        <p className="text-xs tracking-[0.2em] text-gray-500 mb-2">
+          {product.category?.toUpperCase() || 'JEWELRY'}
+        </p>
+        
+        {/* Product Name */}
+        <h3 className="font-serif text-lg font-light text-gray-900 mb-2 leading-tight">
           {product.name}
         </h3>
         
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-          {product.description}
-        </p>
-
-        {/* Material */}
-        <div className="mb-3">
-          <span className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
-            {product.material.replace('_', ' ').replace('925_silver', '925 Silver')}
-          </span>
-        </div>
-
         {/* Price */}
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-gray-900">
+        <div className="flex items-baseline gap-3">
+          <span className="text-lg font-light tracking-wide">
             NPR {product.price.toLocaleString()}
           </span>
           {hasDiscount && (
-            <span className="text-sm text-gray-500 line-through">
+            <span className="text-sm text-gray-400 line-through">
               NPR {product.originalPrice!.toLocaleString()}
             </span>
           )}
         </div>
 
-        {/* Stock Status */}
-        {!product.inStock && (
-          <div className="mt-2">
-            <span className="text-sm text-red-600 font-medium">Out of Stock</span>
-          </div>
-        )}
+        {/* Material Tag */}
+        <div className="mt-3">
+          <span className="text-xs text-gray-600 tracking-[0.1em]">
+            {product.material.replace('_', ' ').replace('925-silver', '925 STERLING SILVER').toUpperCase()}
+          </span>
+        </div>
       </div>
     </div>
   );
