@@ -187,8 +187,8 @@ Payment Method: Cash on Delivery / Bank Transfer
 
 Please confirm this order and let me know the estimated delivery time. Thank you! 🙏`;
 
-        // WhatsApp testing number (will update to business number later)
-        const whatsappNumber = '19496859936'; // Testing number: +1 (949) 685-9936
+        // WhatsApp business number
+        const whatsappNumber = '9779811469486'; // Nepal: +977 981-1469486
         
         const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
         
