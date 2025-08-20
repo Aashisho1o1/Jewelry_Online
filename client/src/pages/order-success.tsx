@@ -134,9 +134,9 @@ export default function OrderSuccess() {
             If you have any questions about your order, feel free to contact us:
           </p>
           <div className="space-y-1 text-blue-800">
-            <p>📞 Phone: +977-XXX-XXXXXXX</p>
-            <p>📧 Email: support@aashishjewellers.com</p>
-            <p>💬 WhatsApp: +977-XXX-XXXXXXX</p>
+            <p>📞 Phone: +1 (949) 685-9936</p>
+            <p>📧 Email: aashishsunar.01@gmail.com</p>
+            <p>💬 WhatsApp: +1 (949) 685-9936</p>
           </div>
         </div>
 

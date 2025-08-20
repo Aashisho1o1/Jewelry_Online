@@ -187,8 +187,8 @@ Payment Method: Cash on Delivery / Bank Transfer
 
 Please confirm this order and let me know the estimated delivery time. Thank you! 🙏`;
 
-        // Your WhatsApp business number (replace with actual number)
-        const whatsappNumber = '9779876543210'; // Replace with your actual WhatsApp business number
+        // WhatsApp testing number (will update to business number later)
+        const whatsappNumber = '19496859936'; // Testing number: +1 (949) 685-9936
         
         const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
         
