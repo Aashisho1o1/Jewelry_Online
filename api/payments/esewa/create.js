@@ -63,6 +63,20 @@ export default async function handler(req, res) {
       calculatedTotal: amount + taxAmount + productServiceCharge + productDeliveryCharge
     });
     
+    // Validate that total_amount equals the sum of all components (eSewa requirement)
+    const calculatedTotal = amount + taxAmount + productServiceCharge + productDeliveryCharge;
+    if (totalAmount !== calculatedTotal) {
+      console.error('❌ eSewa amount validation failed:', {
+        totalAmount,
+        calculatedTotal,
+        difference: totalAmount - calculatedTotal
+      });
+      return res.status(400).json({
+        error: 'Invalid payment amount calculation',
+        message: 'The total amount must equal the sum of all components'
+      });
+    }
+    
     // eSewa v2 configuration
     const productCode = process.env.ESEWA_PRODUCT_CODE || 'EPAYTEST'; // Test product code
     const secretKey = process.env.ESEWA_SECRET_KEY || '8gBm/:&EnhH.1/q'; // Test secret key
@@ -97,15 +111,23 @@ export default async function handler(req, res) {
                            .update(message)
                            .digest('base64');
 
-    // Store order data (in production, save to database)
-    const order = {
-      transactionUuid,
+    // Import order store
+    const { createOrder } = await import('../../orders/store');
+    
+    // Create order in our store
+    const order = createOrder({
+      id: transactionUuid, // Use transaction UUID as order ID
       items: parsedItems,
       customer: parsedCustomer,
       total: totalAmount,
+      paymentMethod: 'esewa',
       status: 'pending',
-      createdAt: new Date().toISOString(),
-    };
+      paymentDetails: {
+        provider: 'esewa',
+        transactionUuid,
+        signature
+      }
+    });
     
     console.log('eSewa order created:', order);
     console.log('Generated signature:', signature);

@@ -129,7 +129,7 @@ export default function Checkout() {
         document.body.appendChild(form);
         form.submit();
       } else if (paymentMethod === 'khalti') {
-        // Handle Khalti payment
+        // Handle Khalti payment with proper redirection
         const response = await fetch('/api/payments/khalti/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -137,12 +137,23 @@ export default function Checkout() {
         });
 
         if (response.ok) {
-          const { orderId, paymentToken } = await response.json();
-          // Initialize Khalti checkout
-          // This would typically open Khalti's payment widget
-          console.log('Khalti payment token:', paymentToken);
+          const { paymentUrl, orderId } = await response.json();
+          
+          // Show toast notification
+          toast({ 
+            title: "Redirecting to Khalti", 
+            description: "You will be redirected to Khalti payment page" 
+          });
+          
+          // Store order ID in localStorage for reference
+          localStorage.setItem('pendingOrderId', orderId);
+          
+          // Redirect to Khalti payment page
+          window.location.href = paymentUrl;
         } else {
-          throw new Error('Failed to initiate Khalti payment');
+          const errorData = await response.json();
+          console.error('Khalti payment error:', errorData);
+          throw new Error(errorData.error || 'Failed to initiate Khalti payment');
         }
       } else if (paymentMethod === 'whatsapp') {
         // Handle WhatsApp ordering

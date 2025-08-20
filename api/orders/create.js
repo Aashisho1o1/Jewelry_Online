@@ -1,45 +1,45 @@
+import { createOrder } from './store';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
+    console.log('🛒 Order creation request received');
     const { items, customer, total, paymentMethod } = req.body;
 
     // Validate required fields
     if (!items || !customer || !total || !paymentMethod) {
+      console.error('❌ Missing required fields in order request');
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
     // Validate customer info
     if (!customer.name || !customer.phone || !customer.address?.street || !customer.address?.district) {
+      console.error('❌ Incomplete customer information');
       return res.status(400).json({ error: 'Incomplete customer information' });
     }
 
-    // Generate order ID
-    const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
     // Create order object
-    const order = {
-      id: orderId,
+    const orderData = {
       items,
       customer,
       total,
       paymentMethod,
       status: paymentMethod === 'cod' ? 'confirmed' : 'pending',
-      createdAt: new Date().toISOString(),
     };
 
-    // In a real app, you would save this to a database
-    // For now, we'll just log it and return success
-    console.log('New order created:', order);
+    // Save order to store
+    const order = createOrder(orderData);
+    console.log('✅ New order created:', order.id);
 
     // You could also send an email/SMS notification here
     // await sendOrderConfirmation(order);
 
     return res.status(200).json({
       success: true,
-      orderId,
+      orderId: order.id,
       message: paymentMethod === 'cod' 
         ? 'Order placed successfully! We will call you to confirm.'
         : 'Order created successfully!',

@@ -5,10 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Link } from 'wouter';
 
 export default function OrderSuccess() {
-  // In a real app, you'd get these from URL params or API
+  // Get order details from URL params
   const urlParams = new URLSearchParams(window.location.search);
   const orderId = urlParams.get('id');
   const paymentMethod = urlParams.get('payment');
+  const amount = urlParams.get('amount');
+  const transactionId = urlParams.get('txn');
+  
+  // Clear any pending order from localStorage
+  React.useEffect(() => {
+    localStorage.removeItem('pendingOrderId');
+  }, []);
 
   return (
     <div className="container py-12">
@@ -42,8 +49,36 @@ export default function OrderSuccess() {
                 <p className="font-semibold capitalize">
                   {paymentMethod === 'esewa' ? 'eSewa' : 
                    paymentMethod === 'khalti' ? 'Khalti' : 
+                   paymentMethod === 'whatsapp' ? 'WhatsApp Order' :
                    'Cash on Delivery'}
                 </p>
+                
+                {/* Show payment details if available */}
+                {amount && (
+                  <div className="mt-2 text-sm">
+                    <span className="text-gray-600">Amount Paid:</span>
+                    <span className="font-semibold ml-2">NPR {parseFloat(amount).toLocaleString()}</span>
+                  </div>
+                )}
+                
+                {transactionId && (
+                  <div className="mt-1 text-sm">
+                    <span className="text-gray-600">Transaction ID:</span>
+                    <span className="font-mono ml-2">{transactionId}</span>
+                  </div>
+                )}
+                
+                {paymentMethod === 'esewa' && (
+                  <div className="mt-2 text-xs text-green-600">
+                    Payment verified by eSewa
+                  </div>
+                )}
+                
+                {paymentMethod === 'khalti' && (
+                  <div className="mt-2 text-xs text-purple-600">
+                    Payment verified by Khalti
+                  </div>
+                )}
               </div>
             )}
 
