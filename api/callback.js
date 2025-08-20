@@ -129,34 +129,86 @@ export default async (req, res) => {
             
             document.getElementById('opener-status').textContent = hasOpener ? 'Available' : 'Not available';
             
-            // Send postMessage in the exact format Decap CMS 3.8.x expects
+            // Implement proper two-way handshake as required by Decap CMS
             if (hasOpener) {
               try {
-                console.log('🔍 STEP 4: Preparing to send postMessage to parent window');
+                console.log('🔍 STEP 4: Implementing two-way OAuth handshake');
                 console.log('🔍 STEP 4: Parent window origin:', window.opener.location.origin);
                 
-                // Modern Decap CMS expects this object format
-                const authMessage = {
-                  type: 'authorization',
-                  provider: 'github',
-                  result: 'success',
-                  token: token,
-                  auth: {
-                    token: token,
-                    provider: 'github'
+                // STEP 4A: Initiate handshake - tell CMS we're starting authorization
+                console.log('🔍 STEP 4A: Sending authorization initiation message');
+                window.opener.postMessage("authorizing:github", "*");
+                document.getElementById('message-status').textContent = 'Handshake initiated...';
+                
+                // STEP 4B: Wait for acknowledgment from CMS
+                let handshakeComplete = false;
+                const receiveMessage = (event) => {
+                  console.log('🔍 STEP 4B: Received handshake response:', event.data);
+                  
+                  // Check if this is the acknowledgment we're waiting for
+                  if (event.data && typeof event.data === 'string' && event.data.includes('authorizing')) {
+                    console.log('✅ STEP 4B: CMS acknowledged handshake');
+                    handshakeComplete = true;
+                    
+                    // STEP 4C: Send the actual token after acknowledgment
+                    console.log('🔍 STEP 4C: Sending token after acknowledgment');
+                    
+                    // Send in the exact format Decap CMS expects
+                    const tokenData = {
+                      token: token,
+                      provider: 'github'
+                    };
+                    
+                    const authMessage = \`authorization:github:success:\${JSON.stringify(tokenData)}\`;
+                    console.log('🔍 STEP 4C: Final auth message:', authMessage);
+                    
+                    window.opener.postMessage(authMessage, event.origin);
+                    console.log('✅ STEP 4C: Token sent successfully');
+                    document.getElementById('message-status').textContent = 'Token sent after handshake ✅';
+                    
+                    // Clean up listener
+                    window.removeEventListener('message', receiveMessage);
+                    
+                    // Close popup after successful handshake
+                    setTimeout(() => {
+                      console.log('🔍 STEP 4: Closing popup after successful handshake');
+                      window.close();
+                    }, 1000);
+                  } else {
+                    console.log('🔍 STEP 4B: Waiting for proper acknowledgment, received:', event.data);
                   }
                 };
                 
-                console.log('🔍 STEP 4: Sending modern auth message:', authMessage);
-                window.opener.postMessage(authMessage, '*');
-                console.log('✅ STEP 4: Modern postMessage sent successfully');
-                document.getElementById('message-status').textContent = 'Sent modern format to opener';
+                // Set up listener for CMS acknowledgment
+                window.addEventListener('message', receiveMessage, false);
                 
-                // Also send legacy format for backward compatibility
-                const legacyMessage = 'authorization:github:success:' + token;
-                console.log('🔍 STEP 4: Sending legacy auth message:', legacyMessage);
-                window.opener.postMessage(legacyMessage, '*');
-                console.log('✅ STEP 4: Legacy postMessage sent successfully');
+                // Fallback: if no acknowledgment received within 5 seconds, send token anyway
+                setTimeout(() => {
+                  if (!handshakeComplete) {
+                    console.log('⚠️ STEP 4: No acknowledgment received, sending token directly (fallback)');
+                    
+                    // Try both modern and legacy formats as fallback
+                    const modernMessage = {
+                      type: 'authorization',
+                      provider: 'github',
+                      result: 'success',
+                      token: token,
+                      auth: {
+                        token: token,
+                        provider: 'github'
+                      }
+                    };
+                    
+                    window.opener.postMessage(modernMessage, '*');
+                    window.opener.postMessage(\`authorization:github:success:\${token}\`, '*');
+                    
+                    console.log('⚠️ STEP 4: Fallback messages sent');
+                    document.getElementById('message-status').textContent = 'Fallback token sent';
+                    
+                    window.removeEventListener('message', receiveMessage);
+                    setTimeout(() => window.close(), 1000);
+                  }
+                }, 5000);
                 
                 // Try to focus the parent window
                 try {
@@ -165,17 +217,19 @@ export default async (req, res) => {
                   console.warn('Could not focus parent window:', e);
                 }
                 
-                // Close popup after short delay
-                setTimeout(() => {
-                  console.log('🔍 STEP 4: Closing popup window...');
-                  document.getElementById('message-status').textContent = 'Closing popup...';
-                  window.close();
-                  console.log('✅ STEP 4: Popup close requested');
-                }, 1000);
               } catch (err) {
-                console.error('❌ STEP 4: Error sending postMessage:', err);
+                console.error('❌ STEP 4: Error in OAuth handshake:', err);
                 console.error('❌ STEP 4: Error details:', err.message);
-                document.getElementById('message-status').textContent = 'Error: ' + err.message;
+                document.getElementById('message-status').textContent = 'Handshake error: ' + err.message;
+                
+                // Fallback: send token directly if handshake fails
+                try {
+                  console.log('⚠️ STEP 4: Handshake failed, sending token directly');
+                  window.opener.postMessage(\`authorization:github:success:\${token}\`, '*');
+                  setTimeout(() => window.close(), 1000);
+                } catch (fallbackErr) {
+                  console.error('❌ STEP 4: Fallback also failed:', fallbackErr);
+                }
               }
             } else {
               console.log('❌ STEP 4: No window opener available, redirecting to /admin');
