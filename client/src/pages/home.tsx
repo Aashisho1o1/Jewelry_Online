@@ -153,7 +153,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-      
+
       {/* Product Categories - Luxury Gallery */}
       <section id="collections" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
@@ -217,41 +217,41 @@ export default function Home() {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {displayProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onAddToCart={handleAddToCart}
-                  onWishlist={handleWishlist}
-                />
-              ))}
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {displayProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={handleAddToCart}
+                onWishlist={handleWishlist}
+              />
+            ))}
+          </div>
           )}
         </div>
       </section>
 
       {/* Featured Products - Only show if we have featured products */}
       {!loading && featuredProducts.length > 0 && (
-        <section className="py-16 bg-gray-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Featured Products</h2>
-              <p className="text-xl text-gray-600">Our handpicked collection of bestsellers</p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onAddToCart={handleAddToCart}
-                  onWishlist={handleWishlist}
-                />
-              ))}
-            </div>
+      <section className="py-16 bg-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Featured Products</h2>
+            <p className="text-xl text-gray-600">Our handpicked collection of bestsellers</p>
           </div>
-        </section>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {featuredProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={handleAddToCart}
+                onWishlist={handleWishlist}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
       )}
 
       {/* Features Section - What Sets Us Apart */}

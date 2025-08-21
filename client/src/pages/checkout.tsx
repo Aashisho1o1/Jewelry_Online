@@ -384,7 +384,7 @@ Please confirm this order and let me know the estimated delivery time. Thank you
                       onChange={(e) => setPaymentMethod(e.target.value as 'esewa')}
                       className="w-4 h-4"
                     />
-                    <img src="/images/esewa-logo.png" alt="eSewa" className="h-8" />
+                    <img src="/images/esewa-logo.jpeg" alt="eSewa" className="h-8" />
                     <span>eSewa</span>
                   </label>
                   <label className="flex items-center space-x-3 cursor-pointer">
