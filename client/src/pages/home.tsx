@@ -126,11 +126,17 @@ export default function Home() {
             
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="group relative px-10 py-4 overflow-hidden border border-white/80 text-white hover:text-black transition-all duration-500">
+              <button 
+                onClick={() => document.getElementById('collections')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                className="group relative px-10 py-4 overflow-hidden border border-white/80 text-white hover:text-black transition-all duration-500"
+              >
                 <span className="relative z-10 text-sm tracking-[0.2em] font-light">EXPLORE COLLECTION</span>
                 <div className="absolute inset-0 bg-white transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
               </button>
-              <button className="px-10 py-4 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-all duration-300 text-sm tracking-[0.2em] font-light">
+              <button 
+                onClick={() => window.location.href = '/about'}
+                className="px-10 py-4 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-all duration-300 text-sm tracking-[0.2em] font-light"
+              >
                 OUR STORY
               </button>
             </div>

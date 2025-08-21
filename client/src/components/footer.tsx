@@ -1,6 +1,7 @@
 import settingsContent from "@/content/settings.json";
 import aboutContent from "@/content/about.json";
-import { Instagram, Facebook, Linkedin, Mail, Phone, MapPin } from "lucide-react";
+import { Instagram, Facebook, Mail, Phone, MapPin } from "lucide-react";
+import { Music } from "lucide-react"; // Using Music icon for TikTok
 
 export default function Footer() {
   const { social, footer } = settingsContent;
@@ -66,7 +67,7 @@ export default function Footer() {
               )}
               <div className="flex items-start gap-3 text-sm text-gray-600 font-light">
                 <MapPin className="w-4 h-4 mt-0.5" strokeWidth={1} />
-                <span>Kathmandu, Nepal</span>
+                <span>Butwal, Nepal</span>
               </div>
             </div>
             
@@ -77,7 +78,7 @@ export default function Footer() {
                   href={social.instagram}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 border border-gray-300 rounded-full flex items-center justify-center hover:border-gray-900 transition-colors"
+                  className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center hover:scale-110 transition-transform text-white"
                   aria-label="Instagram"
                 >
                   <Instagram className="w-4 h-4" strokeWidth={1} />
@@ -88,21 +89,21 @@ export default function Footer() {
                   href={social.facebook}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 border border-gray-300 rounded-full flex items-center justify-center hover:border-gray-900 transition-colors"
+                  className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center hover:scale-110 transition-transform text-white"
                   aria-label="Facebook"
                 >
                   <Facebook className="w-4 h-4" strokeWidth={1} />
                 </a>
               )}
-              {social?.linkedin && (
+              {social?.tiktok && (
                 <a
-                  href={social.linkedin}
+                  href={social.tiktok}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 border border-gray-300 rounded-full flex items-center justify-center hover:border-gray-900 transition-colors"
-                  aria-label="LinkedIn"
+                  className="w-10 h-10 bg-black rounded-full flex items-center justify-center hover:scale-110 transition-transform text-white"
+                  aria-label="TikTok"
                 >
-                  <Linkedin className="w-4 h-4" strokeWidth={1} />
+                  <Music className="w-4 h-4" strokeWidth={1} />
                 </a>
               )}
             </div>
@@ -118,7 +119,6 @@ export default function Footer() {
             <div className="flex gap-6">
               <span className="text-xs text-gray-500 font-light">Secure Payments</span>
               <span className="text-xs text-gray-500 font-light">Free Shipping</span>
-              <span className="text-xs text-gray-500 font-light">925 Silver Certified</span>
             </div>
           </div>
         </div>
