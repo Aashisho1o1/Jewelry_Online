@@ -149,7 +149,7 @@ export default function Home() {
       </section>
       
       {/* Product Categories - Luxury Gallery */}
-      <section className="py-24 bg-white">
+      <section id="collections" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-20">
             <h2 className="text-xs tracking-[0.3em] text-gray-500 mb-4">EXPLORE</h2>
@@ -249,7 +249,7 @@ export default function Home() {
       )}
 
       {/* Features Section - What Sets Us Apart */}
-      <section className="py-24 bg-gray-50">
+      <section id="about" className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-5xl font-serif font-light text-gray-900 mb-4">What Sets Us Apart</h2>
@@ -285,7 +285,7 @@ export default function Home() {
       </section>
 
       {/* Call to Action - Elegant Finish */}
-      <section className="py-32 bg-black text-white relative overflow-hidden">
+      <section id="contact" className="py-32 bg-black text-white relative overflow-hidden">
         {/* Subtle Pattern Background */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute inset-0" style={{

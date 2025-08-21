@@ -9,11 +9,23 @@ export default function Nav() {
   const { count, openCart } = useCartContext();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const navHeight = 80; // Height of fixed nav
+      const elementPosition = element.offsetTop - navHeight;
+      window.scrollTo({
+        top: elementPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   const links = [
-    { href: "/", label: "HOME" },
-    { href: "/about", label: "COLLECTIONS" },
-    { href: "#", label: "ABOUT" },
-    { href: "#", label: "CONTACT" },
+    { href: "/", label: "HOME", action: () => window.scrollTo({ top: 0, behavior: 'smooth' }) },
+    { href: "#collections", label: "COLLECTIONS", action: () => scrollToSection('collections') },
+    { href: "#about", label: "ABOUT", action: () => scrollToSection('about') },
+    { href: "#contact", label: "CONTACT", action: () => scrollToSection('contact') },
   ];
 
   return (
@@ -56,19 +68,19 @@ export default function Nav() {
         <div className="hidden md:grid grid-cols-3 h-20 items-center">
           {/* Left Column - Navigation */}
           <div className="flex items-center space-x-8 justify-start">
-            {links.slice(0, 2).map(({ href, label }) => (
-              <Link key={href} href={href}>
-                <a
-                  className={cn(
-                    "text-xs tracking-[0.2em] font-light transition-all duration-300 hover:opacity-100",
-                    location === href 
-                      ? "text-gray-900 opacity-100" 
-                      : "text-gray-600 opacity-70"
-                  )}
-                >
-                  {label}
-                </a>
-              </Link>
+            {links.slice(0, 2).map(({ href, label, action }) => (
+              <button
+                key={href}
+                onClick={action}
+                className={cn(
+                  "text-xs tracking-[0.2em] font-light transition-all duration-300 hover:opacity-100",
+                  (href === "/" && location === "/") || (href !== "/" && location === "/")
+                    ? "text-gray-900 opacity-100" 
+                    : "text-gray-600 opacity-70"
+                )}
+              >
+                {label}
+              </button>
             ))}
           </div>
           
@@ -88,19 +100,19 @@ export default function Nav() {
           <div className="flex items-center justify-end space-x-6">
             {/* Right Navigation */}
             <div className="flex items-center space-x-8">
-              {links.slice(2).map(({ href, label }) => (
-                <Link key={href} href={href}>
-                  <a
-                    className={cn(
-                      "text-xs tracking-[0.2em] font-light transition-all duration-300 hover:opacity-100",
-                      location === href 
-                        ? "text-gray-900 opacity-100" 
-                        : "text-gray-600 opacity-70"
-                    )}
-                  >
-                    {label}
-                  </a>
-                </Link>
+              {links.slice(2).map(({ href, label, action }) => (
+                <button
+                  key={href}
+                  onClick={action}
+                  className={cn(
+                    "text-xs tracking-[0.2em] font-light transition-all duration-300 hover:opacity-100",
+                    location === "/" 
+                      ? "text-gray-900 opacity-100" 
+                      : "text-gray-600 opacity-70"
+                  )}
+                >
+                  {label}
+                </button>
               ))}
             </div>
             
@@ -134,15 +146,17 @@ export default function Nav() {
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-20 left-0 right-0 bg-white border-t border-gray-100">
           <div className="py-8 px-6">
-            {links.map(({ href, label }) => (
-              <Link key={href} href={href}>
-                <a
-                  className="block py-3 text-sm tracking-[0.2em] font-light text-gray-700"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {label}
-                </a>
-              </Link>
+            {links.map(({ href, label, action }) => (
+              <button
+                key={href}
+                onClick={() => {
+                  action();
+                  setMobileMenuOpen(false);
+                }}
+                className="block w-full text-left py-3 text-sm tracking-[0.2em] font-light text-gray-700 hover:text-gray-900 transition-colors"
+              >
+                {label}
+              </button>
             ))}
           </div>
         </div>
