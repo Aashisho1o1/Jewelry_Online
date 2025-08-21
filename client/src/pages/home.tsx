@@ -261,8 +261,16 @@ export default function Home() {
               <div className="mb-8 transform group-hover:scale-110 transition-transform duration-300">
                 <Diamond className="w-12 h-12 mx-auto text-gray-700" strokeWidth={1} />
               </div>
-              <h3 className="text-lg font-light tracking-[0.1em] mb-4">925 STERLING SILVER</h3>
+              <h3 className="text-lg font-light tracking-[0.1em] mb-4">HIGH QUALITY SILVER</h3>
               <p className="text-gray-600 font-light leading-relaxed">Certified pure silver with lasting brilliance and timeless appeal</p>
+            </div>
+            
+            <div className="text-center group">
+              <div className="mb-8 transform group-hover:scale-110 transition-transform duration-300">
+                <Truck className="w-12 h-12 mx-auto text-gray-700" strokeWidth={1} />
+              </div>
+              <h3 className="text-lg font-light tracking-[0.1em] mb-4">COMPLIMENTARY DELIVERY</h3>
+              <p className="text-gray-600 font-light leading-relaxed">Secure shipping inside Butwal and Bhairahawa with elegant packaging</p>
             </div>
             
             <div className="text-center group">
@@ -271,14 +279,6 @@ export default function Home() {
               </div>
               <h3 className="text-lg font-light tracking-[0.1em] mb-4">SKIN SAFE</h3>
               <p className="text-gray-600 font-light leading-relaxed">Hypoallergenic materials crafted for sensitive skin comfort</p>
-            </div>
-            
-            <div className="text-center group">
-              <div className="mb-8 transform group-hover:scale-110 transition-transform duration-300">
-                <Truck className="w-12 h-12 mx-auto text-gray-700" strokeWidth={1} />
-              </div>
-              <h3 className="text-lg font-light tracking-[0.1em] mb-4">COMPLIMENTARY DELIVERY</h3>
-              <p className="text-gray-600 font-light leading-relaxed">Secure nationwide shipping with elegant packaging</p>
             </div>
           </div>
         </div>

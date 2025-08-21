@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, Search, User, Menu } from "lucide-react";
+import { ShoppingBag, Search, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCartContext } from "../contexts/CartContext";
 import { useState } from "react";
@@ -24,7 +24,7 @@ export default function Nav() {
   const links = [
     { href: "/", label: "HOME", action: () => window.scrollTo({ top: 0, behavior: 'smooth' }) },
     { href: "#collections", label: "COLLECTIONS", action: () => scrollToSection('collections') },
-    { href: "#about", label: "ABOUT", action: () => scrollToSection('about') },
+    { href: "/about", label: "ABOUT", action: () => window.location.href = '/about' },
     { href: "#contact", label: "CONTACT", action: () => scrollToSection('contact') },
   ];
 
@@ -120,10 +120,6 @@ export default function Nav() {
             <div className="flex items-center gap-6">
               <button className="group">
                 <Search className="w-5 h-5 text-gray-700" strokeWidth={1} />
-              </button>
-              
-              <button className="group">
-                <User className="w-5 h-5 text-gray-700" strokeWidth={1} />
               </button>
               
               <button
