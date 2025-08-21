@@ -138,10 +138,10 @@ export default function Home() {
         </div>
         
         {/* Scroll Indicator - Perfectly Centered */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white/60 animate-bounce">
-          <div className="flex flex-col items-center justify-center">
-            <span className="text-xs tracking-[0.2em] mb-2 text-center">SCROLL</span>
-            <svg className="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="absolute bottom-8 left-0 right-0 flex justify-center text-white/60 animate-bounce">
+          <div className="flex flex-col items-center">
+            <span className="text-xs tracking-[0.2em] mb-2">SCROLL</span>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>
           </div>
