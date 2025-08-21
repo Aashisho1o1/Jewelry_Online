@@ -285,7 +285,7 @@ export default function Home() {
       </section>
 
       {/* Call to Action - Elegant Finish */}
-      <section id="contact" className="py-32 bg-black text-white relative overflow-hidden">
+      <section className="py-32 bg-black text-white relative overflow-hidden">
         {/* Subtle Pattern Background */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute inset-0" style={{

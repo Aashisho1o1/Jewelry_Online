@@ -7,7 +7,7 @@ export default function Footer() {
   const { contact } = aboutContent;
 
   return (
-    <footer className="bg-gray-50 border-t border-gray-200">
+    <footer id="contact" className="bg-gray-50 border-t border-gray-200">
       <div className="max-w-7xl mx-auto px-6">
         {/* Main Footer Content */}
         <div className="py-16 grid grid-cols-1 md:grid-cols-4 gap-12">
