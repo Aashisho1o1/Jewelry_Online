@@ -5,14 +5,14 @@ backend:
   base_url: https://www.aashish.website
   auth_endpoint: auth
 
-media_folder: "public/images/jewelry"
-public_folder: "/images/jewelry"
+media_folder: "client/public/images"
+public_folder: "/images"
 
-# Enable media library for easy image/video uploads
-media_library:
-  name: uploadcare
-  config:
-    publicKey: "demopublickey"
+# Use local media storage instead of external CDN
+# media_library:
+#   name: uploadcare
+#   config:
+#     publicKey: "demopublickey"
 
 # Global settings for the CMS
 local_backend: false
