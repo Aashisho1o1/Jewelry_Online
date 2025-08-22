@@ -2,7 +2,7 @@ backend:
   name: github
   repo: Aashisho1o1/Jewelry_Online
   branch: main
-  base_url: https://jewelry-online.vercel.app
+  base_url: https://www.aashish.website
   auth_endpoint: auth
 
 media_folder: "public/images/jewelry"
@@ -16,7 +16,7 @@ media_library:
 
 # Global settings for the CMS
 local_backend: false
-display_url: https://jewelry-online.vercel.app
+display_url: https://www.aashish.website
 
 collections:
   # Jewelry Products Management - Individual Product Files
