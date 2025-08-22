@@ -8,8 +8,8 @@ export default async (req, res) => {
   console.log('🔍 STEP 3: Request headers:', JSON.stringify(req.headers, null, 2));
   
   const { code, state, error } = req.query;
-  const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
-  const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
+  const GITHUB_CLIENT_ID = process.env.OAUTH_GITHUB_CLIENT_ID || process.env.GITHUB_CLIENT_ID;
+  const GITHUB_CLIENT_SECRET = process.env.OAUTH_GITHUB_CLIENT_SECRET || process.env.GITHUB_CLIENT_SECRET;
 
   console.log('🔍 STEP 3: OAuth callback parameters:');
   console.log('🔍 STEP 3: Code received:', code ? 'YES' : 'NO');

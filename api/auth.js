@@ -5,7 +5,7 @@ export default (req, res) => {
   console.log('🔍 STEP 2: Request headers:', JSON.stringify(req.headers, null, 2));
   console.log('🔍 STEP 2: Query parameters:', JSON.stringify(req.query, null, 2));
   
-  const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
+  const GITHUB_CLIENT_ID = process.env.OAUTH_GITHUB_CLIENT_ID || process.env.GITHUB_CLIENT_ID;
   const { site_id } = req.query;
   
   console.log('🔍 STEP 2: Environment check:');
