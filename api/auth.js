@@ -24,11 +24,11 @@ export default (req, res) => {
     return;
   }
 
-  console.log('✅ STEP 2: Environment variables validated');
+  console.log('✅ STEP 2: Environment variables validated - OAuth ready');
 
-  // Build the GitHub OAuth URL with proper parameters
+  // Build the GitHub OAuth URL with proper parameters - ensure no trailing slash
   const baseUrl = req.headers.host ? `https://${req.headers.host}` : 'https://jewelry-online.vercel.app';
-  const redirectUri = `${baseUrl}/callback`;
+  const redirectUri = `${baseUrl}/api/callback`;
   
   console.log('🔍 STEP 2: Building OAuth URL:');
   console.log('🔍 STEP 2: Base URL:', baseUrl);
