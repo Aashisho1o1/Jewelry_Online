@@ -18,8 +18,12 @@ export default async (req, res) => {
   console.log('🔍 STEP 3: Error received:', error || 'NONE');
   
   console.log('🔍 STEP 3: Environment variables:');
-  console.log('🔍 STEP 3: GITHUB_CLIENT_ID exists:', !!GITHUB_CLIENT_ID);
-  console.log('🔍 STEP 3: GITHUB_CLIENT_SECRET exists:', !!GITHUB_CLIENT_SECRET);
+  console.log('🔍 STEP 3: OAUTH_GITHUB_CLIENT_ID exists:', !!process.env.OAUTH_GITHUB_CLIENT_ID);
+  console.log('🔍 STEP 3: OAUTH_GITHUB_CLIENT_SECRET exists:', !!process.env.OAUTH_GITHUB_CLIENT_SECRET);
+  console.log('🔍 STEP 3: Legacy GITHUB_CLIENT_ID exists:', !!process.env.GITHUB_CLIENT_ID);
+  console.log('🔍 STEP 3: Legacy GITHUB_CLIENT_SECRET exists:', !!process.env.GITHUB_CLIENT_SECRET);
+  console.log('🔍 STEP 3: Final GITHUB_CLIENT_ID exists:', !!GITHUB_CLIENT_ID);
+  console.log('🔍 STEP 3: Final GITHUB_CLIENT_SECRET exists:', !!GITHUB_CLIENT_SECRET);
   console.log('🔍 STEP 3: CLIENT_ID value:', GITHUB_CLIENT_ID ? `${GITHUB_CLIENT_ID.substring(0, 8)}...` : 'MISSING');
   console.log('🔍 STEP 3: CLIENT_SECRET value:', GITHUB_CLIENT_SECRET ? `${GITHUB_CLIENT_SECRET.substring(0, 8)}...` : 'MISSING');
 

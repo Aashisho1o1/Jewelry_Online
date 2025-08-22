@@ -9,7 +9,9 @@ export default (req, res) => {
   const { site_id } = req.query;
   
   console.log('🔍 STEP 2: Environment check:');
-  console.log('🔍 STEP 2: GITHUB_CLIENT_ID exists:', !!GITHUB_CLIENT_ID);
+  console.log('🔍 STEP 2: OAUTH_GITHUB_CLIENT_ID exists:', !!process.env.OAUTH_GITHUB_CLIENT_ID);
+  console.log('🔍 STEP 2: Legacy GITHUB_CLIENT_ID exists:', !!process.env.GITHUB_CLIENT_ID);
+  console.log('🔍 STEP 2: Final GITHUB_CLIENT_ID exists:', !!GITHUB_CLIENT_ID);
   console.log('🔍 STEP 2: GITHUB_CLIENT_ID value:', GITHUB_CLIENT_ID ? `${GITHUB_CLIENT_ID.substring(0, 8)}...` : 'MISSING');
   console.log('🔍 STEP 2: Site ID from query:', site_id);
   
