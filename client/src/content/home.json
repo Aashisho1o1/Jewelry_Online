@@ -5,7 +5,7 @@
     "description": "Discover unique jewelry designs and exquisite craftsmanship in elegant handmade jewelry today!",
     "ctaText": "SHOP NOW FOR BEAUTIFUL JEWELRY",
     "ctaLink": "/about",
-    "heroImage": "https://1s4oyld5dc.ucarecd.net/50245ce8-d1c5-4f76-827c-aba8ad89049b/"
+    "heroImage": "/images/hero-image.jpg"
   },
   "brand": {
     "name": "AASHISH JEWELLERS",
@@ -28,7 +28,7 @@
       "icon": "heart"
     }
   ],
-  "imageUrl": "https://1s4oyld5dc.ucarecd.net/a2c92471-9a4b-44e9-b908-4e719bf0ea30/",
+  "imageUrl": "/images/hero-image.jpg",
   "subtitle": "Elegant blend of Nepali heritage and modern trends",
   "title": "Classic"
 }

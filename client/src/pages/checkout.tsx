@@ -25,7 +25,7 @@ export default function Checkout() {
       landmark: '',
     },
   });
-  const [paymentMethod, setPaymentMethod] = useState<'esewa' | 'khalti' | 'cod' | 'whatsapp'>('esewa');
+  const [paymentMethod, setPaymentMethod] = useState<'esewa' | 'khalti' | 'cod' | 'whatsapp'>('whatsapp');
 
   // Redirect if cart is empty
   if (items.length === 0) {
@@ -375,6 +375,8 @@ Please confirm this order and let me know the estimated delivery time. Thank you
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
+                  {/* TEMPORARILY HIDDEN - eSewa/Khalti not working yet */}
+                  {/* 
                   <label className="flex items-center space-x-3 cursor-pointer">
                     <input
                       type="radio"
@@ -399,6 +401,7 @@ Please confirm this order and let me know the estimated delivery time. Thank you
                     <img src="/images/khalti-logo.png" alt="Khalti" className="h-8" />
                     <span>Khalti</span>
                   </label>
+                  */}
                   <label className="flex items-center space-x-3 cursor-pointer">
                     <input
                       type="radio"
