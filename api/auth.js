@@ -1,22 +1,22 @@
+import logger from '../lib/logger.js';
+
 export default (req, res) => {
-  console.log('🔍 STEP 2: Auth endpoint called');
-  console.log('🔍 STEP 2: Request method:', req.method);
-  console.log('🔍 STEP 2: Request URL:', req.url);
-  console.log('🔍 STEP 2: Request headers:', JSON.stringify(req.headers, null, 2));
-  console.log('🔍 STEP 2: Query parameters:', JSON.stringify(req.query, null, 2));
+  logger.log('🔍 Auth endpoint called');
+  logger.log('Request method:', req.method);
+  // Don't log headers - they contain sensitive auth info!
   
   const GITHUB_CLIENT_ID = process.env.OAUTH_GITHUB_CLIENT_ID || process.env.GITHUB_CLIENT_ID;
   const { site_id } = req.query;
   
-  console.log('🔍 STEP 2: Environment check:');
-  console.log('🔍 STEP 2: OAUTH_GITHUB_CLIENT_ID exists:', !!process.env.OAUTH_GITHUB_CLIENT_ID);
-  console.log('🔍 STEP 2: Legacy GITHUB_CLIENT_ID exists:', !!process.env.GITHUB_CLIENT_ID);
-  console.log('🔍 STEP 2: Final GITHUB_CLIENT_ID exists:', !!GITHUB_CLIENT_ID);
-  console.log('🔍 STEP 2: GITHUB_CLIENT_ID value:', GITHUB_CLIENT_ID ? `${GITHUB_CLIENT_ID.substring(0, 8)}...` : 'MISSING');
-  console.log('🔍 STEP 2: Site ID from query:', site_id);
+  logger.log('Environment check');
+  logger.log('OAUTH_GITHUB_CLIENT_ID exists:', !!process.env.OAUTH_GITHUB_CLIENT_ID);
+  logger.log('Legacy GITHUB_CLIENT_ID exists:', !!process.env.GITHUB_CLIENT_ID);
+  logger.log('Final GITHUB_CLIENT_ID exists:', !!GITHUB_CLIENT_ID);
+  // Never log actual client IDs!
+  logger.log('Site ID provided:', !!site_id);
   
   if (!GITHUB_CLIENT_ID) {
-    console.error('❌ STEP 2: GITHUB_CLIENT_ID is not configured');
+    logger.error('GITHUB_CLIENT_ID is not configured');
     res.status(500).json({ 
       error: 'GITHUB_CLIENT_ID is not configured',
       message: 'Please check your environment variables in Vercel dashboard'
@@ -24,18 +24,18 @@ export default (req, res) => {
     return;
   }
 
-  console.log('✅ STEP 2: Environment variables validated - OAuth ready');
+  logger.log('Environment variables validated');
 
   // Build the GitHub OAuth URL with proper parameters - ensure no trailing slash
   const baseUrl = req.headers.host ? `https://${req.headers.host}` : 'https://jewelry-online.vercel.app';
   const redirectUri = `${baseUrl}/api/callback`;
   
-  console.log('🔍 STEP 2: Building OAuth URL:');
-  console.log('🔍 STEP 2: Base URL:', baseUrl);
-  console.log('🔍 STEP 2: Redirect URI:', redirectUri);
-  console.log('🔍 STEP 2: Client ID:', GITHUB_CLIENT_ID ? `${GITHUB_CLIENT_ID.substring(0, 8)}...` : 'MISSING');
-  console.log('🔍 STEP 2: Scope:', 'repo,user,read:user,user:email');
-  console.log('🔍 STEP 2: State:', site_id || 'default');
+  logger.log('Building OAuth URL');
+  logger.log('Base URL ready');
+  logger.log('Redirect URI configured');
+  // Don't log client ID
+  logger.log('OAuth scope configured');
+  // Don't log state parameter
   
   const params = new URLSearchParams({
     client_id: GITHUB_CLIENT_ID,
@@ -45,8 +45,8 @@ export default (req, res) => {
   });
 
   const redirectUrl = `https://github.com/login/oauth/authorize?${params.toString()}`;
-  console.log('🔍 STEP 2: Final GitHub OAuth URL:', redirectUrl);
-  console.log('✅ STEP 2: Redirecting to GitHub OAuth...');
+  // Never log full OAuth URLs - they contain sensitive params
+  logger.log('Redirecting to GitHub OAuth');
   
   res.redirect(302, redirectUrl);
 }; 

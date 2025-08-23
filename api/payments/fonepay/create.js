@@ -1,23 +1,31 @@
+import { validateOrder } from '../../../lib/validator.js';
+import logger from '../../../lib/logger.js';
+import { paymentRateLimit } from '../../../lib/rate-limiter.js';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Apply rate limiting
+  const allowed = await paymentRateLimit(req, res);
+  if (!allowed) return; // Response already sent by rate limiter
+
   try {
-    console.log('🏦 FonePay payment request received');
-    const { items, customer, total } = req.body;
-
-    // Validate required fields
-    if (!items || !customer || !total) {
-      console.error('❌ Missing required fields in FonePay request');
-      return res.status(400).json({ error: 'Missing required fields' });
+    logger.log('FonePay payment request received');
+    
+    // Validate and sanitize order data
+    const validation = validateOrder(req.body);
+    if (!validation.valid) {
+      logger.warn('Invalid order data:', validation.errors);
+      return res.status(400).json({ 
+        error: 'Invalid order data',
+        details: validation.errors 
+      });
     }
-
-    // Validate customer info
-    if (!customer.name || !customer.phone || !customer.address?.street || !customer.address?.district) {
-      console.error('❌ Incomplete customer information');
-      return res.status(400).json({ error: 'Incomplete customer information' });
-    }
+    
+    // Use sanitized data
+    const { customer, total, items } = validation.sanitizedData;
 
     // Generate order ID with FonePay prefix for easy identification
     const orderId = `FNP-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
@@ -41,7 +49,7 @@ export default async function handler(req, res) {
       }
     });
 
-    console.log('✅ FonePay order created:', orderId);
+    logger.log('FonePay order created:', orderId);
 
     // In a real implementation, you might:
     // 1. Generate dynamic QR code with order details
@@ -69,7 +77,7 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('❌ FonePay payment creation error:', error);
+    logger.error('FonePay payment creation error:', error);
     return res.status(500).json({ 
       error: 'Internal server error',
       message: 'Failed to create FonePay payment. Please try again.'
