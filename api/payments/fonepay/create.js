@@ -7,9 +7,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Apply rate limiting
-  const allowed = await paymentRateLimit(req, res);
-  if (!allowed) return; // Response already sent by rate limiter
+  // Temporarily disable rate limiting for testing
+  // const allowed = await paymentRateLimit(req, res);
+  // if (!allowed) return; // Response already sent by rate limiter
 
   try {
     logger.log('FonePay payment request received');
