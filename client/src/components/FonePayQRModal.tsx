@@ -69,11 +69,12 @@ export default function FonePayQRModal({
                 <div className="text-sm text-blue-800">
                   <p className="font-medium mb-1">Payment Instructions:</p>
                   <ol className="list-decimal list-inside space-y-1 text-xs">
-                    <li>Scan the QR code with your FonePay app</li>
-                    <li>Enter amount: NPR {orderTotal.toLocaleString()}</li>
-                    <li>Use Order ID as reference: {orderId}</li>
-                    <li>Complete payment in your FonePay app</li>
-                    <li>Click "I've Paid" button below</li>
+                    <li>Open your FonePay mobile banking app</li>
+                    <li>Scan the QR code below</li>
+                    <li>Verify amount: <span className="font-semibold">NPR {orderTotal.toLocaleString()}</span></li>
+                    <li>Enter Order ID in remarks: <span className="font-semibold">{orderId}</span></li>
+                    <li>Complete payment and click "I've Paid" below</li>
+                    <li>We'll verify payment and confirm your jewelry order</li>
                   </ol>
                 </div>
               </div>
@@ -82,26 +83,36 @@ export default function FonePayQRModal({
 
           {/* QR Code Section */}
           <div className="text-center space-y-4">
-            <div className="bg-white p-6 rounded-lg border-2 border-gray-200 inline-block">
-              {/* Placeholder for QR Code - you'll replace this with actual QR image */}
-              <div className="w-48 h-48 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+            <div className="bg-white p-4 rounded-lg border-2 border-gray-200 inline-block shadow-lg">
+              {/* Real FonePay QR Code */}
+              <img 
+                src="/images/fonepay-qr-code.jpg" 
+                alt="FonePay QR Code - Aashish Jewellers" 
+                className="w-64 h-auto object-contain rounded-md"
+                onError={(e) => {
+                  // Fallback if image fails to load
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+              {/* Fallback placeholder (hidden by default) */}
+              <div className="w-48 h-48 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hidden">
                 <div className="text-center text-gray-500">
                   <div className="text-4xl mb-2">📱</div>
                   <p className="text-sm font-medium">FonePay QR Code</p>
-                  <p className="text-xs">Will be added here</p>
+                  <p className="text-xs">Image loading...</p>
                 </div>
               </div>
-              {/* When you have the QR image, replace above div with: */}
-              {/* <img 
-                src="/images/fonepay-qr.png" 
-                alt="FonePay QR Code" 
-                className="w-48 h-48 object-contain"
-              /> */}
             </div>
             
-            <p className="text-sm text-gray-600">
-              Scan with FonePay app to pay NPR {orderTotal.toLocaleString()}
-            </p>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-gray-800">
+                Scan with FonePay app to pay NPR {orderTotal.toLocaleString()}
+              </p>
+              <p className="text-xs text-gray-500">
+                Terminal: 22220200139903575 • Aashish Jewellers, Butawal
+              </p>
+            </div>
           </div>
 
           {/* Order Details */}
