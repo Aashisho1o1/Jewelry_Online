@@ -1,9 +1,9 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Dialog, DialogContent } from './ui/dialog';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Separator } from './ui/separator';
-import { CheckCircle, Copy, Clock, AlertCircle } from 'lucide-react';
+import { CheckCircle, Copy, QrCode, X } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
 interface FonePayQRModalProps {
@@ -29,7 +29,7 @@ export default function FonePayQRModal({
     navigator.clipboard.writeText(orderId);
     toast({
       title: "Order ID Copied!",
-      description: "You can use this for payment reference.",
+      description: "Use this in your FonePay payment remarks.",
     });
   };
 
@@ -44,143 +44,148 @@ export default function FonePayQRModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-center">
-            <img 
-              src="/images/fonepay-logo.png" 
-              alt="FonePay" 
-              className="h-8 w-auto"
-              onError={(e) => {
-                // Fallback if logo not available yet
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-            <span>FonePay Payment</span>
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="max-w-sm mx-auto max-h-[95vh] overflow-y-auto p-0 gap-0 sm:max-w-md">
+        {/* Mobile-First Header */}
+        <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between z-10">
+          <div className="text-center flex-1">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <QrCode className="w-5 h-5 text-blue-600" />
+              <span className="font-semibold text-gray-900">FonePay Payment</span>
+            </div>
+            <div className="text-xl font-bold text-blue-700">
+              NPR {orderTotal.toLocaleString()}
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="h-8 w-8 p-0 flex-shrink-0"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
 
-        <div className="space-y-6">
-          {/* Payment Instructions */}
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
-                <div className="text-sm text-blue-800">
-                  <p className="font-medium mb-1">Payment Instructions:</p>
-                  <ol className="list-decimal list-inside space-y-1 text-xs">
-                    <li>Open your FonePay mobile banking app</li>
-                    <li>Scan the QR code below</li>
-                    <li>Verify amount: <span className="font-semibold">NPR {orderTotal.toLocaleString()}</span></li>
-                    <li>Enter Order ID in remarks: <span className="font-semibold">{orderId}</span></li>
-                    <li>Complete payment and click "I've Paid" below</li>
-                    <li>We'll verify payment and confirm your jewelry order</li>
-                  </ol>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* QR Code Section */}
-          <div className="text-center space-y-4">
-            <div className="bg-white p-4 rounded-lg border-2 border-gray-200 inline-block shadow-lg">
-              {/* Real FonePay QR Code */}
+        <div className="p-4 space-y-4">
+          {/* Crystal Clear QR Code - Mobile Optimized */}
+          <div className="text-center">
+            <div className="bg-white p-3 rounded-xl border-2 border-blue-200 shadow-lg inline-block">
               <img 
                 src="/images/fonepay-qr-code.jpg" 
                 alt="FonePay QR Code - Aashish Jewellers" 
-                className="w-64 h-auto object-contain rounded-md"
+                className="w-72 h-auto object-contain rounded-lg max-w-full sm:w-80"
+                style={{ maxHeight: '300px' }}
                 onError={(e) => {
-                  // Fallback if image fails to load
+                  // Graceful fallback
                   e.currentTarget.style.display = 'none';
                   e.currentTarget.nextElementSibling?.classList.remove('hidden');
                 }}
               />
-              {/* Fallback placeholder (hidden by default) */}
-              <div className="w-48 h-48 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hidden">
+              {/* Fallback placeholder */}
+              <div className="w-64 h-64 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hidden">
                 <div className="text-center text-gray-500">
-                  <div className="text-4xl mb-2">📱</div>
+                  <QrCode className="w-12 h-12 mx-auto mb-2" />
                   <p className="text-sm font-medium">FonePay QR Code</p>
-                  <p className="text-xs">Image loading...</p>
+                  <p className="text-xs">Loading...</p>
                 </div>
               </div>
             </div>
             
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-800">
-                Scan with FonePay app to pay NPR {orderTotal.toLocaleString()}
+            <div className="mt-3 space-y-1">
+              <p className="text-base font-semibold text-gray-800">
+                Scan with FonePay app
               </p>
-              <p className="text-xs text-gray-500">
-                Terminal: 22220200139903575 • Aashish Jewellers, Butawal
+              <p className="text-sm text-gray-600">
+                Terminal: 22220200139903575 • Butawal
               </p>
             </div>
           </div>
 
-          {/* Order Details */}
+          {/* Simplified 4-Step Instructions - Mobile Optimized */}
+          <Card className="border-blue-200 bg-blue-50">
+            <CardContent className="p-3">
+              <div className="text-sm text-blue-800">
+                <p className="font-semibold text-center mb-3">Quick Steps:</p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
+                    <span>Open FonePay app & scan QR</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">2</span>
+                    <span>Amount: <strong>NPR {orderTotal.toLocaleString()}</strong></span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">3</span>
+                    <span>Add Order ID in remarks</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">4</span>
+                    <span>Complete payment</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Order Details - Compact & Touch-Friendly */}
           <Card>
-            <CardContent className="p-4 space-y-3">
+            <CardContent className="p-3 space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Customer:</span>
-                <span className="font-medium">{customerName}</span>
+                <span className="text-sm font-medium">{customerName}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Order ID:</span>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-sm">{orderId}</span>
+              
+              <Separator />
+              
+              {/* Order ID with large copy button */}
+              <div className="space-y-2">
+                <span className="text-sm text-gray-600">Order ID (for remarks):</span>
+                <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg">
+                  <code className="text-sm font-mono flex-1 break-all">{orderId}</code>
                   <Button
-                    variant="ghost"
-                    size="sm"
+                    variant="outline"
                     onClick={copyOrderId}
-                    className="h-6 w-6 p-0"
+                    className="h-10 px-3 flex-shrink-0 min-w-[44px]"
                   >
-                    <Copy className="w-3 h-3" />
+                    <Copy className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
+              
               <Separator />
-              <div className="flex justify-between items-center font-bold">
+              
+              <div className="flex justify-between items-center font-semibold">
                 <span>Total Amount:</span>
-                <span className="text-lg">NPR {orderTotal.toLocaleString()}</span>
+                <span className="text-xl text-blue-700">NPR {orderTotal.toLocaleString()}</span>
               </div>
             </CardContent>
           </Card>
 
-          {/* Payment Status Notice */}
-          <Card className="border-amber-200 bg-amber-50">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <Clock className="w-5 h-5 text-amber-600 mt-0.5" />
-                <div className="text-sm text-amber-800">
-                  <p className="font-medium mb-1">Payment Verification:</p>
-                  <p className="text-xs">
-                    After payment, we'll manually verify your transaction and update your order status. 
-                    You'll receive confirmation via WhatsApp/SMS.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Action Buttons */}
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
+          {/* Touch-Friendly Action Buttons */}
+          <div className="space-y-3 pt-2">
+            <Button 
+              onClick={handlePaymentComplete}
+              className="w-full h-14 text-lg font-semibold bg-green-600 hover:bg-green-700 min-h-[56px]"
+            >
+              <CheckCircle className="w-6 h-6 mr-2" />
+              I&apos;ve Completed Payment
+            </Button>
+            
+            <Button 
+              variant="outline" 
               onClick={onClose}
-              className="flex-1"
+              className="w-full h-12 min-h-[48px]"
             >
               Cancel
             </Button>
-            <Button
-              onClick={handlePaymentComplete}
-              className="flex-1 bg-green-600 hover:bg-green-700"
-            >
-              <CheckCircle className="w-4 h-4 mr-2" />
-              I've Paid
-            </Button>
           </div>
 
-          <p className="text-xs text-center text-gray-500">
-            🔒 Secure payment powered by FonePay
-          </p>
+          {/* Trust indicator */}
+          <div className="text-center pt-2 border-t">
+            <p className="text-xs text-gray-500">
+              🔒 Secure payment • We&apos;ll verify and confirm your order
+            </p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
