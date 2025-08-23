@@ -1,0 +1,78 @@
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    console.log('🏦 FonePay payment request received');
+    const { items, customer, total } = req.body;
+
+    // Validate required fields
+    if (!items || !customer || !total) {
+      console.error('❌ Missing required fields in FonePay request');
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Validate customer info
+    if (!customer.name || !customer.phone || !customer.address?.street || !customer.address?.district) {
+      console.error('❌ Incomplete customer information');
+      return res.status(400).json({ error: 'Incomplete customer information' });
+    }
+
+    // Generate order ID with FonePay prefix for easy identification
+    const orderId = `FNP-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+    // Import order store
+    const { createOrder } = await import('../../../lib/db-store.js');
+    
+    // Create order in our store with FonePay-specific details
+    const order = await createOrder({
+      id: orderId,
+      items,
+      customer,
+      total: parseFloat(total),
+      paymentMethod: 'fonepay',
+      status: 'pending', // Will be updated to 'confirmed' after manual verification
+      paymentDetails: {
+        provider: 'fonepay',
+        qrDisplayed: true,
+        awaitingVerification: true,
+        createdAt: new Date().toISOString()
+      }
+    });
+
+    console.log('✅ FonePay order created:', orderId);
+
+    // In a real implementation, you might:
+    // 1. Generate dynamic QR code with order details
+    // 2. Set up webhook for automatic payment verification
+    // 3. Send SMS/email with payment instructions
+
+    return res.status(200).json({
+      success: true,
+      orderId: order.id,
+      qrCodeUrl: '/images/fonepay-qr.png', // Static QR for now
+      paymentInstructions: {
+        amount: parseFloat(total),
+        reference: orderId,
+        merchantName: 'Aashish Jewellers',
+        instructions: [
+          'Open your FonePay mobile app',
+          'Scan the QR code displayed',
+          `Enter amount: NPR ${parseFloat(total).toLocaleString()}`,
+          `Use reference: ${orderId}`,
+          'Complete the payment',
+          'Click "I\'ve Paid" to notify us'
+        ]
+      },
+      message: 'FonePay QR code generated. Please scan and pay.',
+    });
+
+  } catch (error) {
+    console.error('❌ FonePay payment creation error:', error);
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      message: 'Failed to create FonePay payment. Please try again.'
+    });
+  }
+}

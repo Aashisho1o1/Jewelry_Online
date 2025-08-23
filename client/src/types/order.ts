@@ -21,7 +21,7 @@ export interface Order {
   }>;
   customer: CustomerInfo;
   total: number;
-  paymentMethod: 'esewa' | 'khalti' | 'cod' | 'whatsapp';
+  paymentMethod: 'esewa' | 'khalti' | 'cod' | 'whatsapp' | 'fonepay';
   status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   createdAt: string;
 }

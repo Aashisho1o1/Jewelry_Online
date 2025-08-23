@@ -6,9 +6,10 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Separator } from '../components/ui/separator';
-import { MapPin, Phone, CreditCard, Truck, MessageCircle } from 'lucide-react';
+import { MapPin, Phone, CreditCard, Truck, MessageCircle, QrCode } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { Link } from 'wouter';
+import FonePayQRModal from '../components/FonePayQRModal';
 
 export default function Checkout() {
   const { items, total, clearCart } = useCartContext();
@@ -25,7 +26,9 @@ export default function Checkout() {
       landmark: '',
     },
   });
-  const [paymentMethod, setPaymentMethod] = useState<'esewa' | 'khalti' | 'cod' | 'whatsapp'>('whatsapp');
+  const [paymentMethod, setPaymentMethod] = useState<'esewa' | 'khalti' | 'cod' | 'whatsapp' | 'fonepay'>('whatsapp');
+  const [showFonePayModal, setShowFonePayModal] = useState(false);
+  const [fonePayOrderId, setFonePayOrderId] = useState('');
 
   // Redirect if cart is empty
   if (items.length === 0) {
@@ -206,6 +209,33 @@ Please confirm this order and let me know the estimated delivery time. Thank you
         setTimeout(() => {
           window.location.href = `/order-success?method=whatsapp&total=${finalTotal}`;
         }, 1000);
+      } else if (paymentMethod === 'fonepay') {
+        // Handle FonePay QR payment
+        const response = await fetch('/api/payments/fonepay/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(order),
+        });
+
+        if (response.ok) {
+          const { orderId, qrCodeUrl, paymentInstructions } = await response.json();
+          
+          // Store order ID for QR modal
+          setFonePayOrderId(orderId);
+          
+          // Show toast notification
+          toast({ 
+            title: "FonePay QR Generated", 
+            description: "Scan the QR code to complete payment" 
+          });
+          
+          // Show QR modal
+          setShowFonePayModal(true);
+        } else {
+          const errorData = await response.json();
+          console.error('FonePay payment error:', errorData);
+          throw new Error(errorData.error || 'Failed to generate FonePay QR code');
+        }
       }
     } catch (error) {
       console.error('Order placement error:', error);
@@ -406,6 +436,19 @@ Please confirm this order and let me know the estimated delivery time. Thank you
                     <input
                       type="radio"
                       name="payment"
+                      value="fonepay"
+                      checked={paymentMethod === 'fonepay'}
+                      onChange={(e) => setPaymentMethod(e.target.value as 'fonepay')}
+                      className="w-4 h-4"
+                    />
+                    <QrCode className="w-6 h-6 text-blue-600" />
+                    <span>FonePay QR</span>
+                    <span className="text-xs text-gray-500">(Instant)</span>
+                  </label>
+                  <label className="flex items-center space-x-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="payment"
                       value="whatsapp"
                       checked={paymentMethod === 'whatsapp'}
                       onChange={(e) => setPaymentMethod(e.target.value as 'whatsapp')}
@@ -506,6 +549,19 @@ Please confirm this order and let me know the estimated delivery time. Thank you
           </div>
         </div>
       </div>
+
+      {/* FonePay QR Modal */}
+      <FonePayQRModal
+        isOpen={showFonePayModal}
+        onClose={() => setShowFonePayModal(false)}
+        orderTotal={finalTotal}
+        orderId={fonePayOrderId}
+        customerName={customerInfo.name}
+        onPaymentComplete={() => {
+          clearCart();
+          window.location.href = `/order-success?id=${fonePayOrderId}&method=fonepay`;
+        }}
+      />
     </div>
   );
 }
