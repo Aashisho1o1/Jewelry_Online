@@ -5,8 +5,9 @@ backend:
   base_url: https://www.aashish.website
   auth_endpoint: auth
 
-media_folder: "client/public/images"
-public_folder: "/images"
+# CRITICAL FIX: Store images in public directory and commit to GitHub
+media_folder: "public/images/jewelry"
+public_folder: "/images/jewelry"
 
 # Use local media storage instead of external CDN
 # media_library:

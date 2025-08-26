@@ -57,6 +57,24 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // CRITICAL FIX: Never cache images to prevent stale image URLs
+  if (event.request.url.includes('/images/') || 
+      event.request.url.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+    console.log('SW: Bypassing cache for image:', event.request.url);
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          console.log('SW: Image fetch failed, returning placeholder');
+          // Return a generic "image not found" response instead of cached stale image
+          return new Response('Image not available', { 
+            status: 404,
+            statusText: 'Image not found'
+          });
+        })
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((cachedResponse) => {
@@ -76,11 +94,13 @@ self.addEventListener('fetch', (event) => {
             // Clone the response
             const responseToCache = response.clone();
 
-            // Add to cache for future use
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
+            // Add to cache for future use (but not images)
+            if (!event.request.url.includes('/images/')) {
+              caches.open(CACHE_NAME)
+                .then((cache) => {
+                  cache.put(event.request, responseToCache);
+                });
+            }
 
             return response;
           })

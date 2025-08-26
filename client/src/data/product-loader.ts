@@ -67,13 +67,30 @@ function transformCMSProduct(cmsProduct: CMSProduct): JewelryProduct {
 
 // Simple transform function for our CMS frontmatter format
 function transformFrontmatterProduct(attributes: Record<string, any>): JewelryProduct {
+  // CRITICAL FIX: Ensure image paths are correctly resolved
+  let imageUrl = attributes.image || '/images/jewelry/placeholder.jpg';
+  
+  // Normalize image paths to ensure consistency
+  if (imageUrl && !imageUrl.startsWith('/')) {
+    imageUrl = `/images/jewelry/${imageUrl}`;
+  }
+  
+  // Validate image URL format
+  if (!imageUrl.includes('/images/jewelry/')) {
+    console.warn(`⚠️ PRODUCT LOADER: Image path may be incorrect: ${imageUrl}`);
+    // Fix common path issues
+    if (imageUrl.startsWith('/images/') && !imageUrl.includes('/jewelry/')) {
+      imageUrl = imageUrl.replace('/images/', '/images/jewelry/');
+    }
+  }
+  
   return {
     id: attributes.id || 'unknown',
     name: attributes.name || 'Unnamed Product',
     description: attributes.description || '',
     price: attributes.price || 0,
     originalPrice: attributes.originalPrice,
-    image: attributes.image || '/images/jewelry/placeholder.jpg',
+    image: imageUrl,
     category: attributes.category || 'rings',
     material: attributes.material || '925_silver',
     inStock: attributes.inStock !== false, // Default to true

@@ -84,13 +84,26 @@ export default async function handler(req, res) {
         console.log(`🔍 API: Parsed attributes for ${file}:`, attributes);
         
         if (attributes.name && attributes.id) {
+          // CRITICAL FIX: Normalize image paths for consistency
+          let imageUrl = attributes.image || '/images/jewelry/placeholder.jpg';
+          
+          // Ensure image path is correctly formatted
+          if (imageUrl && !imageUrl.startsWith('/')) {
+            imageUrl = `/images/jewelry/${imageUrl}`;
+          }
+          
+          // Fix common path mismatches
+          if (imageUrl.startsWith('/images/') && !imageUrl.includes('/jewelry/')) {
+            imageUrl = imageUrl.replace('/images/', '/images/jewelry/');
+          }
+          
           const product = {
             id: String(attributes.id),
             name: String(attributes.name),
             description: String(attributes.description || ''),
             price: Number(attributes.price) || 0,
             originalPrice: attributes.originalPrice ? Number(attributes.originalPrice) : undefined,
-            image: String(attributes.image || '/images/jewelry/placeholder.jpg'),
+            image: imageUrl,
             category: String(attributes.category || 'rings'),
             material: String(attributes.material || '925_silver'),
             inStock: attributes.inStock !== false,
