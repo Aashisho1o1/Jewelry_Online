@@ -13,3 +13,4 @@ vite.config.ts.*
 # Uploads directory
 /uploads/*
 !uploads/.gitkeep
+# Connectivity test comment (harmless) - can be removed
