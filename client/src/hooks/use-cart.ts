@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { CartItem } from '../types/cart';
 import { JewelryProduct } from '../types/jewelry';
 
@@ -70,9 +70,16 @@ export function useCart() {
     setItems([]);
   };
 
-  // Computed values
-  const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const count = items.reduce((sum, item) => sum + item.quantity, 0);
+  // Memoized computed values - only recalculate when items change
+  const total = useMemo(
+    () => items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+    [items]
+  );
+  
+  const count = useMemo(
+    () => items.reduce((sum, item) => sum + item.quantity, 0),
+    [items]
+  );
 
   return {
     items,
