@@ -1,50 +1,50 @@
-import fs from 'fs';
+import fs from 'fs/promises';
+import { existsSync } from 'fs';
 import path from 'path';
 
-// Robust frontmatter parser
+// Optimized frontmatter parser with single-pass algorithm
 function parseFrontmatter(content) {
-  const lines = content.split('\n');
-  
-  if (lines[0] !== '---') {
+  // Quick check for frontmatter delimiter
+  if (!content.startsWith('---\n')) {
     return { attributes: {}, body: content };
   }
   
-  let endIndex = -1;
-  for (let i = 1; i < lines.length; i++) {
-    if (lines[i] === '---') {
-      endIndex = i;
-      break;
-    }
-  }
+  // Find end of frontmatter in a single pass
+  const endMarker = '\n---\n';
+  const endIndex = content.indexOf(endMarker, 4);
   
   if (endIndex === -1) {
     return { attributes: {}, body: content };
   }
   
-  const frontmatterLines = lines.slice(1, endIndex);
-  const attributes = {};
+  // Extract frontmatter and body sections
+  const frontmatterText = content.substring(4, endIndex);
+  const body = content.substring(endIndex + endMarker.length).trim();
   
-  for (const line of frontmatterLines) {
+  // Parse attributes efficiently
+  const attributes = {};
+  const lines = frontmatterText.split('\n');
+  
+  for (const line of lines) {
     const colonIndex = line.indexOf(':');
-    if (colonIndex > 0) {
-      const key = line.substring(0, colonIndex).trim();
-      const value = line.substring(colonIndex + 1).trim();
-      
-      // Type conversion with validation
-      if (value === 'true') {
-        attributes[key] = true;
-      } else if (value === 'false') {
-        attributes[key] = false;
-      } else if (!isNaN(Number(value)) && value !== '') {
-        attributes[key] = Number(value);
-      } else {
-        // Remove quotes if present
-        attributes[key] = value.replace(/^["']|["']$/g, '');
-      }
+    if (colonIndex <= 0) continue;
+    
+    const key = line.substring(0, colonIndex).trim();
+    const rawValue = line.substring(colonIndex + 1).trim();
+    
+    // Type conversion with validation - optimized order (most common first)
+    if (rawValue.startsWith('"') || rawValue.startsWith("'")) {
+      // String with quotes - remove them
+      attributes[key] = rawValue.slice(1, -1);
+    } else if (rawValue === 'true' || rawValue === 'false') {
+      attributes[key] = rawValue === 'true';
+    } else {
+      // Try number conversion, fallback to string
+      const numValue = Number(rawValue);
+      attributes[key] = !isNaN(numValue) && rawValue !== '' ? numValue : rawValue;
     }
   }
   
-  const body = lines.slice(endIndex + 1).join('\n').trim();
   return { attributes, body };
 }
 
@@ -62,22 +62,24 @@ export default async function handler(req, res) {
     const contentDir = path.join(process.cwd(), 'content', 'jewelry');
     console.log('🔍 API: Content directory path:', contentDir);
     
-    // Check if content directory exists
-    if (!fs.existsSync(contentDir)) {
+    // Check if content directory exists (using sync for initial check only)
+    if (!existsSync(contentDir)) {
       console.log('❌ API: Content directory does not exist');
       return res.status(200).json([]);
     }
     
-    // Read all .md files from content/jewelry
-    const files = fs.readdirSync(contentDir).filter(file => file.endsWith('.md'));
+    // Read all .md files from content/jewelry (async)
+    const allFiles = await fs.readdir(contentDir);
+    const files = allFiles.filter(file => file.endsWith('.md'));
     console.log('🔍 API: Found markdown files:', files);
     
     const products = [];
     
-    for (const file of files) {
+    // Process files in parallel for better performance
+    const productPromises = files.map(async (file) => {
       try {
         const filePath = path.join(contentDir, file);
-        const content = fs.readFileSync(filePath, 'utf-8');
+        const content = await fs.readFile(filePath, 'utf-8');
         console.log(`🔍 API: Processing file ${file}`);
         
         const { attributes } = parseFrontmatter(content);
@@ -111,15 +113,21 @@ export default async function handler(req, res) {
             isNew: Boolean(attributes.isNew),
           };
           
-          products.push(product);
           console.log(`✅ API: Successfully loaded product: ${product.name} (ID: ${product.id})`);
+          return product;
         } else {
           console.log(`⚠️ API: Skipping ${file} - missing required fields (name or id)`);
+          return null;
         }
       } catch (error) {
         console.error(`❌ API: Error processing file ${file}:`, error.message);
+        return null;
       }
-    }
+    });
+    
+    // Wait for all file processing to complete and filter out nulls
+    const allProducts = await Promise.all(productPromises);
+    const products = allProducts.filter(p => p !== null);
     
     console.log(`✅ API: Returning ${products.length} products total`);
     

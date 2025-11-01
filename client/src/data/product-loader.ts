@@ -111,7 +111,15 @@ async function loadProducts(): Promise<JewelryProduct[]> {
   try {
     console.log('🔍 PRODUCT LOADER: Loading products from CMS API...');
     
-    const response = await fetch('/api/products');
+    // Add timeout to prevent hanging requests
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
+    const response = await fetch('/api/products', {
+      signal: controller.signal,
+    });
+    
+    clearTimeout(timeoutId);
     
     if (!response.ok) {
       throw new Error(`API request failed with status: ${response.status}`);
@@ -142,7 +150,12 @@ async function loadProducts(): Promise<JewelryProduct[]> {
     return validProducts; // Return empty array if no products - this is honest!
     
   } catch (error) {
-    console.error('❌ PRODUCT LOADER: Failed to load products from CMS:', error);
+    // Handle abort errors specifically
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.error('❌ PRODUCT LOADER: Request timeout after 10 seconds');
+    } else {
+      console.error('❌ PRODUCT LOADER: Failed to load products from CMS:', error);
+    }
     
     // Return empty array instead of fake products
     // The UI should handle empty state gracefully

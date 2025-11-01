@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     };
 
     // Save order to store
-    const order = createOrder(orderData);
+    const order = await createOrder(orderData);
     console.log('✅ New order created:', order.id);
 
     // You could also send an email/SMS notification here

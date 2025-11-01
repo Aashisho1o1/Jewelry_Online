@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ShoppingBag, Heart, Truck, Diamond } from "lucide-react";
 import { JewelryProduct } from "../types/jewelry";
 import { getProducts } from "../data/product-loader";
@@ -38,9 +38,30 @@ export default function Home() {
     loadProducts();
   }, []);
 
-  // Helper functions for product filtering
-  const getFeaturedProducts = () => products.filter(product => product.featured);
-  const getProductsByCategory = (category: string) => products.filter(product => product.category === category);
+  // Memoized product filtering to avoid recalculation on every render
+  const { featuredProducts, productsByCategory, categoryCounts } = useMemo(() => {
+    const featured = products.filter(product => product.featured);
+    
+    const byCategory: Record<string, JewelryProduct[]> = {
+      all: products,
+      rings: products.filter(p => p.category === 'rings'),
+      necklaces: products.filter(p => p.category === 'necklaces'),
+      earrings: products.filter(p => p.category === 'earrings'),
+      bracelets: products.filter(p => p.category === 'bracelets'),
+      sets: products.filter(p => p.category === 'sets'),
+    };
+    
+    const counts = {
+      all: products.length,
+      rings: byCategory.rings.length,
+      necklaces: byCategory.necklaces.length,
+      earrings: byCategory.earrings.length,
+      bracelets: byCategory.bracelets.length,
+      sets: byCategory.sets.length,
+    };
+    
+    return { featuredProducts: featured, productsByCategory: byCategory, categoryCounts: counts };
+  }, [products]);
 
   const handleAddToCart = (product: JewelryProduct) => {
     if (!product.inStock) {
@@ -70,20 +91,18 @@ export default function Home() {
     // TODO: Implement actual wishlist functionality
   };
 
-  const categories = [
-    { id: 'all', name: 'All', count: products.length },
-    { id: 'rings', name: 'Rings', count: getProductsByCategory('rings').length },
-    { id: 'necklaces', name: 'Necklaces', count: getProductsByCategory('necklaces').length },
-    { id: 'earrings', name: 'Earrings', count: getProductsByCategory('earrings').length },
-    { id: 'bracelets', name: 'Bracelets', count: getProductsByCategory('bracelets').length },
-    { id: 'sets', name: 'Sets', count: getProductsByCategory('sets').length },
-  ];
+  // Use memoized counts instead of recalculating
+  const categories = useMemo(() => [
+    { id: 'all', name: 'All', count: categoryCounts.all },
+    { id: 'rings', name: 'Rings', count: categoryCounts.rings },
+    { id: 'necklaces', name: 'Necklaces', count: categoryCounts.necklaces },
+    { id: 'earrings', name: 'Earrings', count: categoryCounts.earrings },
+    { id: 'bracelets', name: 'Bracelets', count: categoryCounts.bracelets },
+    { id: 'sets', name: 'Sets', count: categoryCounts.sets },
+  ], [categoryCounts]);
 
-  const displayProducts = activeCategory === 'all' 
-    ? products 
-    : getProductsByCategory(activeCategory);
-
-  const featuredProducts = getFeaturedProducts();
+  // Use pre-filtered products from memoized cache
+  const displayProducts = productsByCategory[activeCategory] || [];
 
   return (
     <div className="min-h-screen bg-white">
