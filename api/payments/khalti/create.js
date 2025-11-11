@@ -97,11 +97,21 @@ export default async function handler(req, res) {
       }
     });
 
+    // Validate Khalti credentials
+    const khaltiSecretKey = process.env.KHALTI_SECRET_KEY;
+    if (!khaltiSecretKey) {
+      console.error('Khalti configuration missing');
+      return res.status(500).json({
+        error: 'Payment gateway not configured',
+        message: 'Khalti payment is temporarily unavailable. Please try another payment method.'
+      });
+    }
+
     try {
       const khaltiResponse = await fetch('https://a.khalti.com/api/v2/epayment/initiate/', {
         method: 'POST',
         headers: {
-          'Authorization': `Key ${process.env.KHALTI_SECRET_KEY || 'test_secret_key_f59e8b7d18b4499ca40f68195a846e9b'}`,
+          'Authorization': `Key ${khaltiSecretKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(khaltiPayload),

@@ -82,8 +82,16 @@ export default async function handler(req, res) {
     }
     
     // eSewa v2 configuration
-    const productCode = process.env.ESEWA_PRODUCT_CODE || 'EPAYTEST'; // Test product code
-    const secretKey = process.env.ESEWA_SECRET_KEY || '8gBm/:&EnhH.1/q'; // Test secret key
+    const productCode = process.env.ESEWA_PRODUCT_CODE;
+    const secretKey = process.env.ESEWA_SECRET_KEY;
+
+    if (!productCode || !secretKey) {
+      console.error('eSewa configuration missing');
+      return res.status(500).json({
+        error: 'Payment gateway not configured',
+        message: 'eSewa payment is temporarily unavailable. Please try another payment method.'
+      });
+    }
     
     // Success/failure URLs - these are where eSewa will redirect after payment
     // FIXED: Properly handle VERCEL_URL which doesn't include protocol

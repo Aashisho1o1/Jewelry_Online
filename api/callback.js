@@ -3,29 +3,17 @@ import fetch from "node-fetch";
 export default async (req, res) => {
   console.log('🔍 STEP 3: Callback endpoint called');
   console.log('🔍 STEP 3: Request method:', req.method);
-  console.log('🔍 STEP 3: Request URL:', req.url);
-  console.log('🔍 STEP 3: Query parameters:', JSON.stringify(req.query, null, 2));
-  console.log('🔍 STEP 3: Request headers:', JSON.stringify(req.headers, null, 2));
-  
+
   const { code, state, error } = req.query;
   const GITHUB_CLIENT_ID = process.env.OAUTH_GITHUB_CLIENT_ID || process.env.GITHUB_CLIENT_ID;
   const GITHUB_CLIENT_SECRET = process.env.OAUTH_GITHUB_CLIENT_SECRET || process.env.GITHUB_CLIENT_SECRET;
 
   console.log('🔍 STEP 3: OAuth callback parameters:');
   console.log('🔍 STEP 3: Code received:', code ? 'YES' : 'NO');
-  console.log('🔍 STEP 3: Code value:', code ? `${code.substring(0, 10)}...` : 'MISSING');
   console.log('🔍 STEP 3: State received:', state || 'NONE');
   console.log('🔍 STEP 3: Error received:', error || 'NONE');
-  
-  console.log('🔍 STEP 3: Environment variables:');
-  console.log('🔍 STEP 3: OAUTH_GITHUB_CLIENT_ID exists:', !!process.env.OAUTH_GITHUB_CLIENT_ID);
-  console.log('🔍 STEP 3: OAUTH_GITHUB_CLIENT_SECRET exists:', !!process.env.OAUTH_GITHUB_CLIENT_SECRET);
-  console.log('🔍 STEP 3: Legacy GITHUB_CLIENT_ID exists:', !!process.env.GITHUB_CLIENT_ID);
-  console.log('🔍 STEP 3: Legacy GITHUB_CLIENT_SECRET exists:', !!process.env.GITHUB_CLIENT_SECRET);
-  console.log('🔍 STEP 3: Final GITHUB_CLIENT_ID exists:', !!GITHUB_CLIENT_ID);
-  console.log('🔍 STEP 3: Final GITHUB_CLIENT_SECRET exists:', !!GITHUB_CLIENT_SECRET);
-  console.log('🔍 STEP 3: CLIENT_ID value:', GITHUB_CLIENT_ID ? `${GITHUB_CLIENT_ID.substring(0, 8)}...` : 'MISSING');
-  console.log('🔍 STEP 3: CLIENT_SECRET value:', GITHUB_CLIENT_SECRET ? `${GITHUB_CLIENT_SECRET.substring(0, 8)}...` : 'MISSING');
+
+  console.log('🔍 STEP 3: Environment variables configured:', !!GITHUB_CLIENT_ID && !!GITHUB_CLIENT_SECRET);
 
   if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET) {
     console.error('❌ STEP 3: Missing GitHub OAuth credentials');
@@ -49,19 +37,12 @@ export default async (req, res) => {
 
   try {
     console.log('🔍 STEP 3: Exchanging authorization code for access token...');
-    console.log('🔍 STEP 3: Making request to GitHub token endpoint');
-    
+
     const tokenRequest = {
       client_id: GITHUB_CLIENT_ID,
       client_secret: GITHUB_CLIENT_SECRET,
       code: code
     };
-    
-    console.log('🔍 STEP 3: Token request payload:', {
-      client_id: GITHUB_CLIENT_ID ? `${GITHUB_CLIENT_ID.substring(0, 8)}...` : 'MISSING',
-      client_secret: GITHUB_CLIENT_SECRET ? `${GITHUB_CLIENT_SECRET.substring(0, 8)}...` : 'MISSING',
-      code: code ? `${code.substring(0, 10)}...` : 'MISSING'
-    });
     
     const response = await fetch("https://github.com/login/oauth/access_token", {
       method: "POST",
@@ -73,14 +54,11 @@ export default async (req, res) => {
     });
 
     console.log('🔍 STEP 3: GitHub token response status:', response.status);
-    console.log('🔍 STEP 3: GitHub token response headers:', Object.fromEntries(response.headers.entries()));
 
     const data = await response.json();
-    console.log('🔍 STEP 3: GitHub token response data:', data);
-    
+
     if (data.error) {
-      console.error('❌ STEP 3: GitHub token exchange failed:', data.error);
-      console.error('❌ STEP 3: Error description:', data.error_description);
+      console.error('❌ STEP 3: GitHub token exchange failed');
     } else {
       console.log('✅ STEP 3: GitHub token exchange successful');
     }
@@ -93,8 +71,6 @@ export default async (req, res) => {
 
     const { access_token } = data;
     console.log('🔍 STEP 3: Access token extracted:', !!access_token);
-    console.log('🔍 STEP 3: Access token value:', access_token ? `${access_token.substring(0, 10)}...` : 'MISSING');
-
     console.log('✅ STEP 3: Preparing success response with postMessage');
 
     // Return the success page with the correct postMessage format
@@ -121,14 +97,11 @@ export default async (req, res) => {
           </div>
           <script>
             console.log('🔍 STEP 4: Callback popup script starting...');
-            console.log('🔍 STEP 4: Window location:', window.location.href);
-            console.log('🔍 STEP 4: Window origin:', window.location.origin);
-            
+
             const token = '${access_token}';
             const hasOpener = !!window.opener;
-            
+
             console.log('🔍 STEP 4: Token received:', token ? 'YES' : 'NO');
-            console.log('🔍 STEP 4: Token value:', token ? token.substring(0, 10) + '...' : 'MISSING');
             console.log('🔍 STEP 4: Window opener available:', hasOpener);
             
             document.getElementById('opener-status').textContent = hasOpener ? 'Available' : 'Not available';
@@ -137,8 +110,7 @@ export default async (req, res) => {
             if (hasOpener) {
               try {
                 console.log('🔍 STEP 4: Implementing two-way OAuth handshake');
-                console.log('🔍 STEP 4: Parent window origin:', window.opener.location.origin);
-                
+
                 // STEP 4A: Initiate handshake - tell CMS we're starting authorization
                 console.log('🔍 STEP 4A: Sending authorization initiation message');
                 window.opener.postMessage("authorizing:github", "*");
