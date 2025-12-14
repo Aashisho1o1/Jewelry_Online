@@ -431,7 +431,7 @@ Please confirm this order and let me know the estimated delivery time. Thank you
                     <img src="/images/khalti-logo.png" alt="Khalti" className="h-8" />
                     <span>Khalti</span>
                   </label>
-                  */}
+                
                   <label className="flex items-center space-x-3 cursor-pointer">
                     <input
                       type="radio"
@@ -445,6 +445,7 @@ Please confirm this order and let me know the estimated delivery time. Thank you
                     <span>FonePay QR</span>
                     <span className="text-xs text-gray-500">(Instant)</span>
                   </label>
+                    */}
                   <label className="flex items-center space-x-3 cursor-pointer">
                     <input
                       type="radio"
