@@ -31,7 +31,11 @@ export default async function handler(req, res) {
     };
 
     // Save order to store
-    const order = createOrder(orderData);
+    const order = await createOrder(orderData);
+    if (!order || !order.id) {
+      console.error('❌ Order creation failed or missing order ID');
+      return res.status(500).json({ error: 'Order creation failed' });
+    }
     console.log('✅ New order created:', order.id);
 
     // You could also send an email/SMS notification here

@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import process from "process";
 
 export default async (req, res) => {
   console.log('🔍 STEP 3: Callback endpoint called');

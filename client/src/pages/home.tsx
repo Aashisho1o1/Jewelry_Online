@@ -107,7 +107,7 @@ export default function Home() {
             {/* Logo/Brand Mark */}
             <div className="mb-8">
               <div className="inline-block">
-                <div className="text-white/80 text-xs tracking-[0.3em] font-light mb-2">
+                <div className="text-white/80 text-xl md:text-2xl tracking-[0.3em] font-light mb-2">
                   {homeContent.hero.welcomeText}
                 </div>
                 <div className="w-24 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent mx-auto" />

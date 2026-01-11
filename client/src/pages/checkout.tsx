@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, JSX } from 'react';
 import { useCartContext } from '../contexts/CartContext';
 import { CustomerInfo, Order } from '../types/order';
 import { Button } from '../components/ui/button';
@@ -125,7 +125,7 @@ export default function Checkout() {
           const input = document.createElement('input');
           input.type = 'hidden';
           input.name = key;
-          input.value = typeof value === 'object' ? JSON.stringify(value) : value;
+          input.value = typeof value === 'object' ? JSON.stringify(value) : String(value);
           form.appendChild(input);
         });
         
@@ -218,7 +218,7 @@ Please confirm this order and let me know the estimated delivery time. Thank you
         });
 
         if (response.ok) {
-          const { orderId, qrCodeUrl, paymentInstructions } = await response.json();
+          const { orderId } = await response.json();
           
           // Store order ID for QR modal
           setFonePayOrderId(orderId);
@@ -270,6 +270,7 @@ Please confirm this order and let me know the estimated delivery time. Thank you
                 }
               }));
             }
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           } catch (error) {
             toast({
               title: "Location error",
@@ -278,7 +279,7 @@ Please confirm this order and let me know the estimated delivery time. Thank you
             });
           }
         },
-        (error) => {
+        () => {
           toast({
             title: "Location access denied",
             description: "Please enter your address manually.",

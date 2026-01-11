@@ -1,4 +1,4 @@
-import { getRecentOrders, getOrderStats } from '../../lib/db-store';
+import { getRecentOrders } from '../../lib/db-store';
 
 export default async function handler(req, res) {
   // Only allow GET requests
