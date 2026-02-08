@@ -1,10 +1,13 @@
 import { getRecentOrders } from '../../lib/db-store';
+import { requireAdminAuth } from '../../lib/admin-auth';
 
 export default async function handler(req, res) {
   // Only allow GET requests
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  if (!requireAdminAuth(req, res)) return;
 
   try {
     const { limit = 20 } = req.query;

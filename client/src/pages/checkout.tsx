@@ -108,7 +108,7 @@ export default function Checkout() {
           const { orderId } = await response.json();
           clearCart();
           toast({ title: "Order placed successfully!", description: "We'll call you to confirm your order." });
-          window.location.href = `/order-success?id=${orderId}`;
+          window.location.href = `/order-success?id=${orderId}&payment=cod&amount=${finalTotal}`;
         } else {
           throw new Error('Failed to create order');
         }
@@ -192,22 +192,31 @@ Please confirm this order and let me know the estimated delivery time. Thank you
 
         // WhatsApp business number
         const whatsappNumber = '9779811469486'; // Nepal: +977 981-1469486
-        
+
         const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
-        
-        // Clear cart and redirect to WhatsApp
-        clearCart();
-        toast({ 
-          title: "Redirecting to WhatsApp", 
-          description: "Your order details will be sent via WhatsApp" 
+
+        // Create server-side order record before redirecting
+        const response = await fetch('/api/orders/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...order, paymentMethod: 'whatsapp' }),
         });
-        
+
+        const orderData = response.ok ? await response.json() : null;
+
+        clearCart();
+        toast({
+          title: "Redirecting to WhatsApp",
+          description: "Your order details will be sent via WhatsApp"
+        });
+
         // Open WhatsApp in new tab
         window.open(whatsappUrl, '_blank');
-        
+
         // Redirect to success page
+        const orderId = orderData?.orderId || '';
         setTimeout(() => {
-          window.location.href = `/order-success?method=whatsapp&total=${finalTotal}`;
+          window.location.href = `/order-success?id=${orderId}&payment=whatsapp&amount=${finalTotal}`;
         }, 1000);
       } else if (paymentMethod === 'fonepay') {
         // Handle FonePay QR payment

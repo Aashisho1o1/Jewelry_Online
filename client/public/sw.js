@@ -3,10 +3,7 @@ const CACHE_NAME = 'aashish-jewellers-v1';
 const STATIC_CACHE_URLS = [
   '/',
   '/index.html',
-  '/client/src/main.tsx',
-  '/client/src/App.tsx',
   '/manifest.json',
-  // Add more static assets as needed
 ];
 
 // Install event - cache static assets

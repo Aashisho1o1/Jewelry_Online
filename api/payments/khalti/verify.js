@@ -16,11 +16,16 @@ export default async function handler(req, res) {
     // This is more secure than trusting the status parameter in the URL
     try {
       console.log(`🔄 Verifying Khalti payment with pidx: ${pidx}`);
-      
+
+      if (!process.env.KHALTI_SECRET_KEY) {
+        console.error('KHALTI_SECRET_KEY not configured — cannot verify payment');
+        return res.redirect(`/checkout?status=failed&error=gateway_not_configured&order=${purchase_order_id}`);
+      }
+
       const verificationResponse = await fetch('https://a.khalti.com/api/v2/epayment/lookup/', {
         method: 'POST',
         headers: {
-          'Authorization': `Key ${process.env.KHALTI_SECRET_KEY || 'test_secret_key_f59e8b7d18b4499ca40f68195a846e9b'}`,
+          'Authorization': `Key ${process.env.KHALTI_SECRET_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ pidx }),

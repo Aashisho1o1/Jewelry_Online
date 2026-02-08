@@ -1,10 +1,13 @@
 import { updateOrderStatus, getOrderById } from '../../lib/db-store';
+import { requireAdminAuth } from '../../lib/admin-auth';
 
 export default async function handler(req, res) {
   // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  if (!requireAdminAuth(req, res)) return;
 
   try {
     const { id, status } = req.body;
@@ -17,20 +20,20 @@ export default async function handler(req, res) {
     // Validate status
     const validStatuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'failed'];
     if (!validStatuses.includes(status)) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Invalid status',
         validStatuses
       });
     }
 
     // Check if order exists
-    const existingOrder = getOrderById(id);
+    const existingOrder = await getOrderById(id);
     if (!existingOrder) {
       return res.status(404).json({ error: 'Order not found' });
     }
 
     // Update order status
-    const updatedOrder = updateOrderStatus(id, status);
+    const updatedOrder = await updateOrderStatus(id, status);
 
     // Return updated order
     return res.status(200).json({

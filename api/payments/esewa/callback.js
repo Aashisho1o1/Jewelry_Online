@@ -41,7 +41,11 @@ export default async function handler(req, res) {
 
     // Verify signature (CRITICAL for security)
     try {
-      const secretKey = process.env.ESEWA_SECRET_KEY || '8gBm/:&EnhH.1/q';
+      const secretKey = process.env.ESEWA_SECRET_KEY;
+      if (!secretKey) {
+        console.error('ESEWA_SECRET_KEY not configured — cannot verify payment');
+        return res.redirect('/checkout?status=failed&error=gateway_not_configured');
+      }
 
       // Validate that signed_field_names exists
       if (!parsedData.signed_field_names) {

@@ -7,9 +7,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Temporarily disable rate limiting for testing
-  // const allowed = await paymentRateLimit(req, res);
-  // if (!allowed) return; // Response already sent by rate limiter
+  const allowed = await paymentRateLimit(req, res);
+  if (!allowed) return;
 
   try {
     logger.log('FonePay payment request received');
@@ -59,7 +58,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       orderId: order.id,
-      qrCodeUrl: '/images/fonepay-qr.png', // Static QR for now
+      qrCodeUrl: '/images/fonepay-qr-code.jpg', // Static QR for now
       paymentInstructions: {
         amount: parseFloat(total),
         reference: orderId,
