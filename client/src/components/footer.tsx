@@ -1,7 +1,7 @@
 import settingsContent from "@/content/settings.json";
 import aboutContent from "@/content/about.json";
-import { Instagram, Facebook, Mail, Phone, MapPin } from "lucide-react";
-import { Music } from "lucide-react"; // Using Music icon for TikTok
+import { Mail, Phone, MapPin } from "lucide-react";
+import { SiInstagram, SiFacebook, SiTiktok } from "react-icons/si";
 
 export default function Footer() {
   const { social, footer } = settingsContent;
@@ -81,7 +81,7 @@ export default function Footer() {
                   className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center hover:scale-110 transition-transform text-white"
                   aria-label="Instagram"
                 >
-                  <Instagram className="w-4 h-4" strokeWidth={1} />
+                  <SiInstagram className="w-4 h-4" />
                 </a>
               )}
               {social?.facebook && (
@@ -92,7 +92,7 @@ export default function Footer() {
                   className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center hover:scale-110 transition-transform text-white"
                   aria-label="Facebook"
                 >
-                  <Facebook className="w-4 h-4" strokeWidth={1} />
+                  <SiFacebook className="w-4 h-4" />
                 </a>
               )}
               {social?.tiktok && (
@@ -103,7 +103,7 @@ export default function Footer() {
                   className="w-10 h-10 bg-black rounded-full flex items-center justify-center hover:scale-110 transition-transform text-white"
                   aria-label="TikTok"
                 >
-                  <Music className="w-4 h-4" strokeWidth={1} />
+                  <SiTiktok className="w-4 h-4" />
                 </a>
               )}
             </div>
