@@ -5,13 +5,19 @@
       "name": "Babita Gautam",
       "title": "Co-Founder & Customers' Friend",
       "description": "With over 10 years of experience in jewelry design and customer satisfaction, Babita brings a passion for creating beautiful and personalized jewelry.",
-      "imageUrl": "https://1s4oyld5dc.ucarecd.net/1b1cfcd0-f22a-466d-8741-9c65ff140a73/"
+      "imageUrl": "/images/jewelry/mom.jpg"
     },
     {
       "name": "Mohan Sunar",
       "title": "Co-Founder & Operations Manager",
       "description": "Mohan ensures that every customer's vision and orders run smoothly from start to finish, with a focus on quality and client satisfaction. He has 30 years of experience in making jewelry.",
-      "imageUrl": "https://1s4oyld5dc.ucarecd.net/c5d7f568-60b6-41ec-89ec-ed6e1707c3d6/"
+      "imageUrl": "/images/jewelry/dad.jpg"
+    },
+    {
+      "name": "Aadarsh Gautam",
+      "title": "Co-Founder & CEO",
+      "description": "Meet Aadarsh, our co-founder, with four years of experience running operations and e-commerce, he's building AI-powered tools and agentic workflows that bring centuries-old craftsmanship into the modern age. He's proof that you can honor tradition while writing code at 2 AM—and that Gen Z actually wants what their great-grandparents loved, just with better UX and customer service.",
+      "imageUrl": "/images/jewelry/aadu.jpg"
     }
   ],
   "story": {
