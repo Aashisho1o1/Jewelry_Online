@@ -1,6 +1,22 @@
 import fs from 'fs';
 import path from 'path';
 
+function normalizeImagePath(imagePath) {
+  if (!imagePath || typeof imagePath !== 'string') return '';
+
+  let normalized = imagePath.trim().replace(/^["']|["']$/g, '');
+  if (!normalized) return '';
+  if (/^(https?:)?\/\//.test(normalized) || normalized.startsWith('data:')) return normalized;
+
+  if (!normalized.startsWith('/')) normalized = `/${normalized}`;
+  if (!normalized.startsWith('/images/')) normalized = `/images/jewelry/${normalized.replace(/^\/+/, '')}`;
+  if (normalized.startsWith('/images/') && !normalized.startsWith('/images/jewelry/')) {
+    normalized = normalized.replace('/images/', '/images/jewelry/');
+  }
+
+  return normalized.replace(/\/{2,}/g, '/');
+}
+
 // Robust frontmatter parser
 function parseFrontmatter(content) {
   const lines = content.split('\n');
@@ -24,11 +40,32 @@ function parseFrontmatter(content) {
   const frontmatterLines = lines.slice(1, endIndex);
   const attributes = {};
   
+  let currentListKey = null;
+
   for (const line of frontmatterLines) {
+    const trimmedLine = line.trim();
+    if (!trimmedLine) continue;
+
+    // Minimal list parsing for:
+    // images:
+    //   - /images/jewelry/img-1.jpg
+    if (currentListKey && trimmedLine.startsWith('- ')) {
+      attributes[currentListKey].push(trimmedLine.substring(2).trim().replace(/^["']|["']$/g, ''));
+      continue;
+    }
+
     const colonIndex = line.indexOf(':');
     if (colonIndex > 0) {
       const key = line.substring(0, colonIndex).trim();
       const value = line.substring(colonIndex + 1).trim();
+
+      currentListKey = null;
+
+      if (key === 'images' && value === '') {
+        attributes.images = [];
+        currentListKey = 'images';
+        continue;
+      }
       
       // Type conversion with validation
       if (value === 'true') {
@@ -84,18 +121,11 @@ export default async function handler(req, res) {
         console.log(`🔍 API: Parsed attributes for ${file}:`, attributes);
         
         if (attributes.name && attributes.id) {
-          // CRITICAL FIX: Normalize image paths for consistency
-          let imageUrl = attributes.image || '/images/jewelry/placeholder.jpg';
-          
-          // Ensure image path is correctly formatted
-          if (imageUrl && !imageUrl.startsWith('/')) {
-            imageUrl = `/images/jewelry/${imageUrl}`;
-          }
-          
-          // Fix common path mismatches
-          if (imageUrl.startsWith('/images/') && !imageUrl.includes('/jewelry/')) {
-            imageUrl = imageUrl.replace('/images/', '/images/jewelry/');
-          }
+          const parsedImages = Array.isArray(attributes.images)
+            ? attributes.images.map(normalizeImagePath).filter(Boolean)
+            : [];
+          const imageUrl = normalizeImagePath(attributes.image) || parsedImages[0] || '/images/jewelry/placeholder.svg';
+          const images = [...new Set([imageUrl, ...parsedImages].filter(Boolean))];
           
           const product = {
             id: String(attributes.id),
@@ -104,11 +134,16 @@ export default async function handler(req, res) {
             price: Number(attributes.price) || 0,
             originalPrice: attributes.originalPrice ? Number(attributes.originalPrice) : undefined,
             image: imageUrl,
+            images,
             category: String(attributes.category || 'rings'),
             material: String(attributes.material || '925_silver'),
             inStock: attributes.inStock !== false,
             featured: Boolean(attributes.featured),
             isNew: Boolean(attributes.isNew),
+            weight: attributes.weight ? String(attributes.weight) : undefined,
+            dimensions: attributes.dimensions ? String(attributes.dimensions) : undefined,
+            stoneType: attributes.stoneType ? String(attributes.stoneType) : undefined,
+            occasion: attributes.occasion ? String(attributes.occasion) : undefined,
           };
           
           products.push(product);

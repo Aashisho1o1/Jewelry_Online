@@ -7,6 +7,36 @@ import { useCartContext } from "../contexts/CartContext";
 import { useToast } from "../hooks/use-toast";
 import homeContent from "../content/home.json";
 
+const PREFERRED_CATEGORY_ORDER = [
+  'rings',
+  'necklaces',
+  'earrings',
+  'bracelets',
+  'sets',
+  'tilahari',
+  'mangalsutra',
+  'sikri',
+  'baala',
+  'bulaki',
+  'pote',
+  'pauju',
+  'maang-tika',
+  'haar',
+  'dhungri',
+];
+
+const CATEGORY_LABELS: Record<string, string> = {
+  'maang-tika': 'Maang Tika',
+};
+
+function formatCategoryName(category: string) {
+  if (CATEGORY_LABELS[category]) return CATEGORY_LABELS[category];
+  return category
+    .split(/[-_]/g)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [products, setProducts] = useState<JewelryProduct[]>([]);
@@ -40,7 +70,8 @@ export default function Home() {
 
   // Helper functions for product filtering
   const getFeaturedProducts = () => products.filter(product => product.featured);
-  const getProductsByCategory = (category: string) => products.filter(product => product.category === category);
+  const getProductsByCategory = (category: string) =>
+    products.filter(product => product.category?.toLowerCase() === category.toLowerCase());
 
   const handleAddToCart = (product: JewelryProduct) => {
     if (!product.inStock) {
@@ -70,14 +101,41 @@ export default function Home() {
     // TODO: Implement actual wishlist functionality
   };
 
+  const categoryCounts = products.reduce((counts, product) => {
+    const key = String(product.category || '').trim().toLowerCase();
+    if (!key) return counts;
+    counts[key] = (counts[key] || 0) + 1;
+    return counts;
+  }, {} as Record<string, number>);
+
+  const knownCategories = PREFERRED_CATEGORY_ORDER
+    .filter(category => categoryCounts[category] > 0)
+    .map(category => ({
+      id: category,
+      name: formatCategoryName(category),
+      count: categoryCounts[category],
+    }));
+
+  const unknownCategories = Object.keys(categoryCounts)
+    .filter(category => !PREFERRED_CATEGORY_ORDER.includes(category))
+    .sort()
+    .map(category => ({
+      id: category,
+      name: formatCategoryName(category),
+      count: categoryCounts[category],
+    }));
+
   const categories = [
     { id: 'all', name: 'All', count: products.length },
-    { id: 'rings', name: 'Rings', count: getProductsByCategory('rings').length },
-    { id: 'necklaces', name: 'Necklaces', count: getProductsByCategory('necklaces').length },
-    { id: 'earrings', name: 'Earrings', count: getProductsByCategory('earrings').length },
-    { id: 'bracelets', name: 'Bracelets', count: getProductsByCategory('bracelets').length },
-    { id: 'sets', name: 'Sets', count: getProductsByCategory('sets').length },
+    ...knownCategories,
+    ...unknownCategories,
   ];
+
+  useEffect(() => {
+    if (activeCategory !== 'all' && !categories.some(category => category.id === activeCategory)) {
+      setActiveCategory('all');
+    }
+  }, [activeCategory, categories]);
 
   const displayProducts = activeCategory === 'all' 
     ? products 
@@ -164,7 +222,7 @@ export default function Home() {
           </div>
 
           {/* Category Filters - Minimal Design */}
-          <div className="flex flex-wrap justify-center gap-3 mb-16">
+          <div className="flex gap-3 mb-16 overflow-x-auto pb-2 sm:flex-wrap sm:justify-center">
             {categories.map((category) => (
               <button
                 key={category.id}

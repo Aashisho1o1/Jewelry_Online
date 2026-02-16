@@ -1,16 +1,21 @@
-// Minimal Jewelry Types - Just what Aashish Jewellers actually needs
+// Jewelry product model loaded from CMS markdown files.
 export interface JewelryProduct {
   id: string;
   name: string;
   description: string;
-  price: number; // Just the current price in NPR
-  originalPrice?: number; // Only if there's a discount
-  image: string; // Just one main image
-  category: 'rings' | 'necklaces' | 'earrings' | 'bracelets' | 'sets';
-  material: '925_silver' | 'gold_plated' | 'rose_gold_plated';
+  price: number; // Current price in NPR
+  originalPrice?: number; // Optional compare-at price
+  image: string; // Primary image used in cards
+  images?: string[]; // Optional gallery images
+  category: string; // Category slugs are CMS-driven
+  material: string; // Material slugs are CMS-driven
   inStock: boolean;
   featured?: boolean;
   isNew?: boolean;
+  weight?: string;
+  dimensions?: string;
+  stoneType?: string;
+  occasion?: string;
 }
 
 // Simple category type

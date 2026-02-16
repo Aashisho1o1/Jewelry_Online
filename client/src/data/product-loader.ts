@@ -23,6 +23,7 @@ async function loadProducts(): Promise<JewelryProduct[]> {
       product.id &&
       product.name &&
       typeof product.price === 'number' &&
+      (typeof product.image === 'string' || (Array.isArray(product.images) && product.images.length > 0)) &&
       product.category &&
       product.material
     );

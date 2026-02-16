@@ -9,12 +9,22 @@ interface ProductCardProps {
   onWishlist?: (product: JewelryProduct) => void;
 }
 
+function toDisplayLabel(value: string) {
+  return value
+    .replace(/[_-]+/g, ' ')
+    .split(' ')
+    .filter(Boolean)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   onAddToCart,
   onWishlist,
 }) => {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const primaryImage = product.image || product.images?.[0] || '/images/jewelry/placeholder.svg';
   
   const hasDiscount = product.originalPrice && product.originalPrice > product.price;
   const discountPercent = hasDiscount 
@@ -26,7 +36,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       {/* Product Image - Photo First Design */}
       <div className="aspect-[3/4] bg-gray-50 relative overflow-hidden cursor-pointer" onClick={() => setIsLightboxOpen(true)}>
         <img
-          src={product.image}
+          src={primaryImage}
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           loading="lazy"
@@ -101,7 +111,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <div className="pt-4">
         {/* Category */}
         <p className="text-xs tracking-[0.2em] text-gray-500 mb-2">
-          {product.category?.toUpperCase() || 'JEWELRY'}
+          {toDisplayLabel(product.category || 'jewelry').toUpperCase()}
         </p>
         
         {/* Product Name */}
@@ -124,7 +134,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Material Tag */}
         <div className="mt-3">
           <span className="text-xs text-gray-600 tracking-[0.1em]">
-            {product.material.replace('_', ' ').replace('925-silver', '925 STERLING SILVER').toUpperCase()}
+            {(product.material === '925_silver' || product.material === '925-silver')
+              ? '925 STERLING SILVER'
+              : toDisplayLabel(product.material || 'material').toUpperCase()}
           </span>
         </div>
       </div>
@@ -133,8 +145,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <ImageLightbox
         isOpen={isLightboxOpen}
         onClose={() => setIsLightboxOpen(false)}
-        imageSrc={product.image}
+        imageSrc={primaryImage}
         imageAlt={product.name}
+        images={product.images}
         productName={product.name}
       />
     </div>

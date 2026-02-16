@@ -5,8 +5,8 @@ backend:
   base_url: https://www.aashish.website
   auth_endpoint: auth
 
-# CRITICAL FIX: Store images in public directory and commit to GitHub
-media_folder: "public/images/jewelry"
+# Store uploaded images in Vite's served public directory
+media_folder: "client/public/images/jewelry"
 public_folder: "/images/jewelry"
 
 # Use local media storage instead of external CDN
@@ -30,11 +30,55 @@ collections:
       - { label: "Product ID", name: "id", widget: "string", hint: "Unique code like NS001, ER002, etc." }
       - { label: "Product Name", name: "name", widget: "string", hint: "e.g., Timeless Elegance Silver Necklace" }
       - { label: "Description", name: "description", widget: "text", hint: "Detailed product description for customers" }
-      - { label: "Price (NPR)", name: "price", widget: "number", value_type: "int", min: 500, max: 50000 }
-      - { label: "Original Price (NPR)", name: "originalPrice", widget: "number", value_type: "int", min: 500, max: 50000, required: false }
+      - { label: "Price (NPR)", name: "price", widget: "number", value_type: "int", min: 500, max: 500000 }
+      - { label: "Original Price (NPR)", name: "originalPrice", widget: "number", value_type: "int", min: 500, max: 500000, required: false }
       - { label: "Main Product Image", name: "image", widget: "image", hint: "Primary product photo" }
-      - { label: "Category", name: "category", widget: "select", options: ["rings", "necklaces", "earrings", "bracelets", "sets"] }
-      - { label: "Material", name: "material", widget: "select", options: ["925_silver", "rose_gold_plated", "gold_plated"], default: "925_silver" }
+      - label: "Gallery Images (optional)"
+        name: "images"
+        widget: "list"
+        required: false
+        hint: "Add multiple photos for product gallery and close-up views."
+        field:
+          label: "Image"
+          name: "image"
+          widget: "image"
+      - label: "Category"
+        name: "category"
+        widget: "select"
+        options:
+          - "rings"
+          - "necklaces"
+          - "earrings"
+          - "bracelets"
+          - "sets"
+          - "tilahari"
+          - "mangalsutra"
+          - "sikri"
+          - "baala"
+          - "bulaki"
+          - "pote"
+          - "pauju"
+          - "maang-tika"
+          - "haar"
+          - "dhungri"
+      - label: "Material"
+        name: "material"
+        widget: "select"
+        default: "925_silver"
+        options:
+          - "925_silver"
+          - "gold_plated"
+          - "rose_gold_plated"
+          - "gold_18k"
+          - "gold_22k"
+          - "gold_24k"
+          - "stone_studded"
+          - "mixed_metals"
+          - "beaded"
+      - { label: "Weight (optional)", name: "weight", widget: "string", required: false, hint: "Example: 12.5g" }
+      - { label: "Dimensions (optional)", name: "dimensions", widget: "string", required: false, hint: "Example: 18 in chain length" }
+      - { label: "Stone Type (optional)", name: "stoneType", widget: "string", required: false, hint: "Example: Ruby, Emerald, CZ" }
+      - { label: "Occasion (optional)", name: "occasion", widget: "string", required: false, hint: "Example: Wedding, Daily Wear, Festive" }
       - { label: "In Stock", name: "inStock", widget: "boolean", default: true }
       - { label: "Featured Product", name: "featured", widget: "boolean", default: false }
       - { label: "New Arrival", name: "isNew", widget: "boolean", default: false }
@@ -140,7 +184,7 @@ collections:
   # Media Library (for jewelry photos)
   - name: "media"
     label: "📸 Jewelry Photos"
-    folder: "public/images/jewelry"
+    folder: "client/public/images/jewelry"
     create: true
     fields:
       - { label: "Photo Title", name: "title", widget: "string" }
