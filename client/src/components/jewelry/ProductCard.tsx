@@ -98,6 +98,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                setIsDetailsOpen(true);
+              }}
+              className="px-3 bg-white text-black text-xs tracking-[0.1em] font-light hover:bg-black hover:text-white transition-all duration-300"
+              aria-label="View product details"
+            >
+              DETAILS
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 onWishlist?.(product);
               }}
               className="p-3 bg-white hover:bg-black hover:text-white transition-all duration-300"
@@ -152,14 +163,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             {materialLabel}
           </span>
         </div>
-
-        {/* Details Button */}
-        <button
-          onClick={() => setIsDetailsOpen(true)}
-          className="mt-3 text-xs tracking-[0.15em] text-gray-700 hover:text-black underline underline-offset-4 transition-colors"
-        >
-          VIEW DETAILS
-        </button>
       </div>
 
       {/* Image Lightbox */}
