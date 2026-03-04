@@ -1,5 +1,5 @@
 // Service Worker for Aashish Jewellers PWA
-const CACHE_NAME = 'aashish-jewellers-v1';
+const CACHE_NAME = 'aashish-jewellers-v2';
 const STATIC_CACHE_URLS = [
   '/',
   '/index.html',

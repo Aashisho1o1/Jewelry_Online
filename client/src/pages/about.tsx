@@ -1,46 +1,45 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import aboutContent from "@/content/about.json";
+import SiteMeta from "@/components/SiteMeta";
 
 const { title, team, story, craftsmanship, contact } = aboutContent;
 
 export default function About() {
   return (
     <div className="container py-12">
+      <SiteMeta
+        title="Our Story"
+        description="Learn about Aashish Jewellers, a family-run silver jewelry business from Butwal creating giftable and wearable pieces for everyday life and special occasions."
+      />
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-bold mb-8">{title}</h1>
 
         <div className="grid md:grid-cols-2 gap-8 mb-12">
           {team.map((member) => (
             <Card key={member.name}>
-            <CardContent className="p-6">
-              <AspectRatio ratio={1}>
-                <img
+              <CardContent className="p-6">
+                <AspectRatio ratio={1}>
+                  <img
                     src={member.imageUrl}
                     alt={member.name}
-                  className="object-cover w-full h-full rounded-lg"
-                />
-              </AspectRatio>
-              <div className="mt-4">
-                  <h2 className="text-2xl font-semibold mb-2">
-                    {member.name}
-                  </h2>
-                  <h3 className="text-lg text-muted-foreground mb-4">
-                    {member.title}
-                  </h3>
+                    className="object-cover w-full h-full rounded-lg"
+                  />
+                </AspectRatio>
+                <div className="mt-4">
+                  <h2 className="text-2xl font-semibold mb-2">{member.name}</h2>
+                  <h3 className="text-lg text-muted-foreground mb-4">{member.title}</h3>
                   <p className="text-muted-foreground">{member.description}</p>
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
 
         <Card className="mb-12">
           <CardContent className="p-6">
             <h2 className="text-2xl font-semibold mb-4">{story.title}</h2>
-            <p className="text-muted-foreground whitespace-pre-wrap">
-              {story.content}
-            </p>
+            <p className="text-muted-foreground whitespace-pre-wrap">{story.content}</p>
           </CardContent>
         </Card>
 
@@ -61,25 +60,24 @@ export default function About() {
           </CardContent>
         </Card>
 
-        {/* Contact Information Section */}
         <Card>
           <CardContent className="p-6">
-            <h2 className="text-2xl font-semibold mb-4">Contact Information</h2>
+            <h2 className="text-2xl font-semibold mb-4">Contact</h2>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <span className="font-medium">Email:</span>
-                <a 
+                <a
                   href={`mailto:${contact.email}`}
-                  className="text-blue-600 hover:text-blue-800 underline"
+                  className="text-stone-700 underline underline-offset-4 hover:text-stone-900"
                 >
                   {contact.email}
                 </a>
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-medium">Phone:</span>
-                <a 
-                  href={`tel:${contact.phone.replace(/\s/g, '')}`}
-                  className="text-blue-600 hover:text-blue-800 underline"
+                <a
+                  href={`tel:${contact.phone.replace(/\s/g, "")}`}
+                  className="text-stone-700 underline underline-offset-4 hover:text-stone-900"
                 >
                   {contact.phone}
                 </a>

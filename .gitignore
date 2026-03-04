@@ -13,3 +13,9 @@ vite.config.ts.*
 # Uploads directory
 /uploads/*
 !uploads/.gitkeep
+.vercel
+
+# Temporary files
+tmp-*.png
+tmp-*.jpg
+audit.json

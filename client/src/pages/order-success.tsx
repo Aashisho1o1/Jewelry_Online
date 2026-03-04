@@ -1,161 +1,178 @@
 import React from 'react';
-import { CheckCircle, Package, Phone, Home } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { CheckCircle2, Package, MessageCircle, Home, Printer } from 'lucide-react';
 import { Link } from 'wouter';
+import SiteMeta from '@/components/SiteMeta';
+
+const PAYMENT_LABELS: Record<string, string> = {
+  esewa: 'eSewa',
+  khalti: 'Khalti',
+  fonepay: 'FonePay',
+  whatsapp: 'WhatsApp Order',
+  cod: 'Cash on Delivery',
+};
 
 export default function OrderSuccess() {
-  // Get order details from URL params
   const urlParams = new URLSearchParams(window.location.search);
-  const orderId = urlParams.get('id');
-  const paymentMethod = urlParams.get('payment');
-  const amount = urlParams.get('amount');
+  const orderId = urlParams.get('id') || 'N/A';
+  const paymentMethod = urlParams.get('payment') || '';
+  const amountParam = urlParams.get('amount');
+  const amount = amountParam && !isNaN(parseFloat(amountParam)) ? amountParam : null;
   const transactionId = urlParams.get('txn');
-  
-  // Clear any pending order from localStorage
+  const customerPhone = urlParams.get('phone') || '';
+
   React.useEffect(() => {
     localStorage.removeItem('pendingOrderId');
   }, []);
 
   return (
-    <div className="container py-12">
-      <div className="max-w-2xl mx-auto text-center">
-        <div className="mb-8">
-          <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Order Placed Successfully!
-          </h1>
-          <p className="text-lg text-gray-600">
-            Thank you for your purchase. Your order has been confirmed.
-          </p>
-        </div>
+    <div className="min-h-screen bg-[#f7f2ea]">
+      <SiteMeta title="Order Placed" noindex={true} />
 
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-center gap-2">
-              <Package className="w-5 h-5" />
-              Order Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-600">Order ID</p>
-              <p className="font-mono text-lg font-semibold">{orderId}</p>
+      <div className="container py-12 md:py-20">
+        <div className="max-w-xl mx-auto">
+
+          {/* Success header */}
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-stone-900 rounded-full mb-6">
+              <CheckCircle2 className="w-8 h-8 text-white" strokeWidth={1.5} />
             </div>
-            
-            {paymentMethod && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600">Payment Method</p>
-                <p className="font-semibold capitalize">
-                  {paymentMethod === 'esewa' ? 'eSewa' : 
-                   paymentMethod === 'khalti' ? 'Khalti' : 
-                   paymentMethod === 'whatsapp' ? 'WhatsApp Order' :
-                   'Cash on Delivery'}
-                </p>
-                
-                {/* Show payment details if available */}
-                {amount && (
-                  <div className="mt-2 text-sm">
-                    <span className="text-gray-600">Amount Paid:</span>
-                    <span className="font-semibold ml-2">NPR {parseFloat(amount).toLocaleString()}</span>
-                  </div>
-                )}
-                
-                {transactionId && (
-                  <div className="mt-1 text-sm">
-                    <span className="text-gray-600">Transaction ID:</span>
-                    <span className="font-mono ml-2">{transactionId}</span>
-                  </div>
-                )}
-                
-                {paymentMethod === 'esewa' && (
-                  <div className="mt-2 text-xs text-green-600">
-                    Payment verified by eSewa
-                  </div>
-                )}
-                
-                {paymentMethod === 'khalti' && (
-                  <div className="mt-2 text-xs text-purple-600">
-                    Payment verified by Khalti
-                  </div>
-                )}
-              </div>
-            )}
+            <h1 className="text-3xl md:text-4xl font-serif font-light text-stone-900 mb-3">
+              Order Placed
+            </h1>
+            <p className="text-stone-500 font-light">
+              Thank you - we&apos;ll call to confirm your order shortly.
+            </p>
+          </div>
 
-            <div className="border-t pt-4">
-              <h3 className="font-semibold mb-3">What happens next?</h3>
-              <div className="space-y-3 text-left">
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
-                    1
-                  </div>
-                  <div>
-                    <p className="font-medium">Order Confirmation</p>
-                    <p className="text-sm text-gray-600">
-                      We'll call you within 2 hours to confirm your order details.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
-                    2
-                  </div>
-                  <div>
-                    <p className="font-medium">Processing</p>
-                    <p className="text-sm text-gray-600">
-                      Your jewelry will be carefully prepared and packaged.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
-                    3
-                  </div>
-                  <div>
-                    <p className="font-medium">Delivery</p>
-                    <p className="text-sm text-gray-600">
-                      Your order will be delivered within 3-5 business days.
-                    </p>
-                  </div>
-                </div>
-              </div>
+          {/* Order details card */}
+          <div className="bg-white border border-stone-200 mb-6">
+            <div className="px-6 py-4 border-b border-stone-100 flex items-center gap-2">
+              <Package className="w-4 h-4 text-stone-600" strokeWidth={1.5} />
+              <span className="text-xs tracking-[0.18em] uppercase text-stone-600">Order Details</span>
             </div>
-          </CardContent>
-        </Card>
+            <div className="px-6 py-5 space-y-4">
+              <div className="flex justify-between items-start">
+                <span className="text-sm text-stone-500">Order ID</span>
+                <span className="font-mono text-sm font-medium text-stone-900">{orderId}</span>
+              </div>
 
-        <div className="bg-blue-50 p-6 rounded-lg mb-8">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Phone className="w-5 h-5 text-blue-600" />
-            <h3 className="font-semibold text-blue-900">Need Help?</h3>
-          </div>
-          <p className="text-blue-800 mb-3">
-            If you have any questions about your order, feel free to contact us:
-          </p>
-          <div className="space-y-1 text-blue-800">
-            <p>📞 Phone: +977 981-1469486</p>
-            <p>📧 Email: aashishsunar.01@gmail.com</p>
-            <p>💬 WhatsApp: +977 981-1469486</p>
-          </div>
-        </div>
+              {paymentMethod && (
+                <div className="flex justify-between items-start">
+                  <span className="text-sm text-stone-500">Payment</span>
+                  <div className="text-right">
+                    <span className="text-sm font-medium text-stone-900">
+                      {PAYMENT_LABELS[paymentMethod] || paymentMethod}
+                    </span>
+                    {(paymentMethod === 'esewa' || paymentMethod === 'khalti' || paymentMethod === 'fonepay') && (
+                      <p className="text-xs text-green-600 mt-0.5">Payment verified</p>
+                    )}
+                  </div>
+                </div>
+              )}
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/">
-            <Button className="flex items-center gap-2">
-              <Home className="w-4 h-4" />
+              {amount && (
+                <div className="flex justify-between items-start">
+                  <span className="text-sm text-stone-500">Amount</span>
+                  <span className="text-sm font-medium text-stone-900">
+                    NPR {parseFloat(amount).toLocaleString()}
+                  </span>
+                </div>
+              )}
+
+              {transactionId && (
+                <div className="flex justify-between items-start">
+                  <span className="text-sm text-stone-500">Transaction</span>
+                  <span className="font-mono text-xs text-stone-600">{transactionId}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Next steps */}
+          <div className="bg-white border border-stone-200 mb-6">
+            <div className="px-6 py-4 border-b border-stone-100">
+              <span className="text-xs tracking-[0.18em] uppercase text-stone-600">What happens next</span>
+            </div>
+            <div className="px-6 py-5 space-y-5">
+              {[
+                {
+                  step: 1,
+                  title: 'Order Confirmation',
+                  desc: "We'll call you within a few hours to confirm your order and delivery details.",
+                },
+                {
+                  step: 2,
+                  title: 'Preparation',
+                  desc: 'Your jewellery is carefully cleaned, polished and packaged for dispatch.',
+                },
+                {
+                  step: 3,
+                  title: 'Delivery',
+                  desc: 'Delivered within 2-4 business days anywhere in Nepal.',
+                },
+              ].map(({ step, title, desc }) => (
+                <div key={step} className="flex gap-4 items-start">
+                  <div className="w-7 h-7 rounded-full bg-stone-900 text-white flex items-center justify-center text-xs font-medium shrink-0">
+                    {step}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-stone-800">{title}</p>
+                    <p className="text-sm text-stone-500 mt-0.5 leading-relaxed">{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Contact / help */}
+          <div className="bg-white border border-stone-200 mb-8">
+            <div className="px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-stone-800">Need help with your order?</p>
+                <p className="text-sm text-stone-500 mt-0.5">Our team replies on WhatsApp within minutes.</p>
+              </div>
+              <a
+                href={`https://wa.me/9779811469486?text=${encodeURIComponent(`Hi, I need help with my order ${orderId}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-[#25D366] text-white px-5 py-2.5 text-sm font-medium hover:bg-[#1ebe5d] transition-colors shrink-0"
+              >
+                <MessageCircle className="w-4 h-4" strokeWidth={1.5} />
+                WhatsApp Us
+              </a>
+            </div>
+          </div>
+
+          {/* CTA buttons */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link
+              href="/"
+              className="flex-1 inline-flex items-center justify-center gap-2 bg-stone-900 text-white px-6 py-3.5 text-sm tracking-[0.15em] uppercase hover:bg-stone-700 transition-colors"
+            >
+              <Home className="w-4 h-4" strokeWidth={1.5} />
               Continue Shopping
-            </Button>
-          </Link>
-          <Button variant="outline" onClick={() => window.print()}>
-            Print Order Details
-          </Button>
-        </div>
+            </Link>
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="flex-1 inline-flex items-center justify-center gap-2 border border-stone-300 text-stone-700 px-6 py-3.5 text-sm tracking-[0.15em] uppercase hover:border-stone-900 hover:text-stone-900 transition-colors"
+            >
+              <Printer className="w-4 h-4" strokeWidth={1.5} />
+              Print Receipt
+            </button>
+          </div>
 
-        <div className="mt-8 text-sm text-gray-500">
-          <p>
-            You will receive an SMS confirmation shortly with your order details.
-          </p>
+          {customerPhone && (
+            <div className="mt-4 text-center">
+              <Link
+                href={`/my-orders?phone=${encodeURIComponent(customerPhone)}`}
+                className="text-xs text-stone-400 hover:text-stone-900 transition-colors"
+              >
+                View all your orders {'->'}
+              </Link>
+            </div>
+          )}
+
         </div>
       </div>
     </div>

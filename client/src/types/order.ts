@@ -1,3 +1,13 @@
+export interface GiftOptions {
+  isGift: boolean;
+  giftWrap: boolean;
+  giftNote: string;
+  giftCard: boolean;
+  recipient: string;
+  occasion: string;
+  specialInstructions: string;
+}
+
 export interface CustomerInfo {
   name: string;
   phone: string;
@@ -8,6 +18,7 @@ export interface CustomerInfo {
     zone: string;
     landmark?: string;
   };
+  giftOptions?: GiftOptions;
 }
 
 export interface Order {
@@ -24,6 +35,8 @@ export interface Order {
   paymentMethod: 'esewa' | 'khalti' | 'cod' | 'whatsapp' | 'fonepay';
   status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   createdAt: string;
+  promoCode?: string;
+  discountAmount?: number;
 }
 
 export interface PaymentResponse {

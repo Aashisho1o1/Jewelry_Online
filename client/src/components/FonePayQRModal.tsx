@@ -95,7 +95,7 @@ export default function FonePayQRModal({
                 Scan with FonePay app
               </p>
               <p className="text-sm text-gray-600">
-                Terminal: 22220200139903575 • Butawal
+                Terminal: 22220200139903575 - Butawal
               </p>
             </div>
           </div>
@@ -183,7 +183,7 @@ export default function FonePayQRModal({
           {/* Trust indicator */}
           <div className="text-center pt-2 border-t">
             <p className="text-xs text-gray-500">
-              🔒 Secure payment • We&apos;ll verify and confirm your order
+              Secure payment - We&apos;ll verify and confirm your order
             </p>
           </div>
         </div>

@@ -24,6 +24,13 @@
   }
 }
 
+@layer utilities {
+  .bg-dot-pattern {
+    background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+}
+
 @layer components {
   .container {
     @apply px-6 md:px-8 max-w-7xl mx-auto;

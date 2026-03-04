@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin-dashboard
+Disallow: /admin
+Disallow: /checkout
+Disallow: /order-success
+Disallow: /orders/
+Disallow: /my-orders
+Disallow: /wishlist
+Disallow: /api/
+
+Sitemap: https://www.aashish.website/sitemap.xml

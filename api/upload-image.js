@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  console.log('🔍 IMAGE UPLOAD: Upload request received');
+  console.log('[image-upload] Upload request received');
   
   try {
     const { image, filename, productId } = req.body;
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     const githubToken = process.env.GITHUB_TOKEN || req.headers.authorization?.replace('Bearer ', '');
     
     if (!githubToken) {
-      console.error('❌ IMAGE UPLOAD: No GitHub token available');
+      console.error('[image-upload] No GitHub token available');
       return res.status(401).json({ error: 'GitHub authentication required' });
     }
 
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     const safeFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
     const imagePath = `public/images/jewelry/${safeFilename}`;
 
-    console.log('🔍 IMAGE UPLOAD: Uploading to path:', imagePath);
+    console.log('[image-upload] Uploading to path:', imagePath);
 
     // Convert base64 image to buffer if needed
     let imageContent;
@@ -59,12 +59,12 @@ export default async function handler(req, res) {
           ref: branch
         });
         sha = existingFile.data.sha;
-        console.log('🔍 IMAGE UPLOAD: File exists, will update with SHA:', sha);
+        console.log('[image-upload] File exists, will update with SHA:', sha);
       } catch (error) {
         if (error.status !== 404) {
           throw error;
         }
-        console.log('🔍 IMAGE UPLOAD: New file, no existing SHA');
+        console.log('[image-upload] New file, no existing SHA');
       }
 
       // Upload/update file to GitHub
@@ -78,7 +78,7 @@ export default async function handler(req, res) {
         ...(sha && { sha }) // Include SHA only if file exists
       });
 
-      console.log('✅ IMAGE UPLOAD: Successfully uploaded to GitHub');
+      console.log('[image-upload] Successfully uploaded to GitHub');
 
       // Return the public URL
       const publicUrl = `/images/jewelry/${safeFilename}`;
@@ -92,7 +92,7 @@ export default async function handler(req, res) {
       });
 
     } catch (githubError) {
-      console.error('❌ IMAGE UPLOAD: GitHub API error:', githubError.message);
+      console.error('[image-upload] GitHub API error:', githubError.message);
       return res.status(500).json({ 
         error: 'Failed to upload to GitHub',
         message: githubError.message 
@@ -100,7 +100,7 @@ export default async function handler(req, res) {
     }
 
   } catch (error) {
-    console.error('❌ IMAGE UPLOAD: General error:', error);
+    console.error('[image-upload] General error:', error);
     return res.status(500).json({ 
       error: 'Image upload failed',
       message: error.message 

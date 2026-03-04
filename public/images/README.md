@@ -2,13 +2,13 @@
 
 This folder contains all images used on the website.
 
-## 📁 Directory Structure
+## Directory Structure
 
 - `projects/` - Project photos and before/after images
 - `team/` - Team member photos and company images  
 - `hero/` - Hero/banner background images
 
-## 🔗 How to Reference Images
+## How to Reference Images
 
 In your JSON content files, reference images like this:
 
@@ -20,6 +20,6 @@ In your JSON content files, reference images like this:
 
 The path always starts with `/images/` followed by the subfolder and filename.
 
-## 📸 Upload Instructions
+## Upload Instructions
 
 See `IMAGE_UPLOAD_GUIDE.md` in the root directory for detailed instructions on uploading new images. 

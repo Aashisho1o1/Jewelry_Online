@@ -1,32 +1,55 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Heart, Truck, Diamond } from "lucide-react";
-import { JewelryProduct } from "../types/jewelry";
-import { getProducts } from "../data/product-loader";
-import ProductCard from "../components/jewelry/ProductCard";
-import { useCartContext } from "../contexts/CartContext";
-import { useToast } from "../hooks/use-toast";
-import homeContent from "../content/home.json";
+import React, { useEffect, useState } from 'react';
+import { ArrowRight, Gift, MessageCircle, ShieldCheck, Star, Truck } from 'lucide-react';
+import { Link } from 'wouter';
+import { JewelryProduct } from '../types/jewelry';
+import { getProducts } from '../data/product-loader';
+import ProductCard from '../components/jewelry/ProductCard';
+import { useCartContext } from '../contexts/CartContext';
+import { useToast } from '../hooks/use-toast';
+import homeContent from '../content/home.json';
+import TrustStrip from '../components/TrustStrip';
+import StoreRateStrip from '../components/StoreRateStrip';
+import FlashSaleBanner from '../components/FlashSaleBanner';
+import { getFacetOptions } from '@/lib/product-taxonomy';
+import SiteMeta from '@/components/SiteMeta';
+
+const ORG_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'JewelryStore',
+  name: 'Aashish Jewellers',
+  url: 'https://www.aashish.website',
+  image: 'https://www.aashish.website/icons/icon-512.png',
+  description: 'Premium 925 silver jewelry handcrafted in Nepal - rings, necklaces, earrings, bracelets and traditional sets.',
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Butwal',
+    addressCountry: 'NP',
+  },
+  contactPoint: {
+    '@type': 'ContactPoint',
+    contactType: 'customer service',
+    telephone: '+977-981-1469486',
+    availableLanguage: ['Nepali', 'English'],
+  },
+  sameAs: ['https://www.facebook.com/aashishjewellery'],
+};
 
 const PREFERRED_CATEGORY_ORDER = [
-  'rings',
-  'necklaces',
-  'earrings',
-  'bracelets',
-  'sets',
-  'tilahari',
-  'mangalsutra',
-  'sikri',
-  'baala',
-  'bulaki',
-  'pote',
-  'pauju',
-  'maang-tika',
-  'haar',
-  'dhungri',
+  'rings', 'necklaces', 'earrings', 'bracelets', 'sets',
+  'tilahari', 'mangalsutra', 'sikri', 'baala', 'bulaki',
+  'pote', 'pauju', 'maang-tika', 'haar', 'dhungri',
 ];
 
 const CATEGORY_LABELS: Record<string, string> = {
   'maang-tika': 'Maang Tika',
+};
+
+const CATEGORY_COPY: Record<string, string> = {
+  rings: 'Easy everyday pieces and gift-friendly styles.',
+  necklaces: 'Layering chains and simple statement looks.',
+  earrings: 'Fast gifting options with strong visual appeal.',
+  bracelets: 'Light, wearable pieces for daily styling.',
+  sets: 'Ready-made combinations for bigger occasions.',
 };
 
 function formatCategoryName(category: string) {
@@ -45,60 +68,34 @@ export default function Home() {
   const { addItem, openCart } = useCartContext();
   const { toast } = useToast();
 
-  // Load products from CMS on component mount
   useEffect(() => {
     const loadProducts = async () => {
       try {
         setError(null);
         const cmsProducts = await getProducts();
         setProducts(cmsProducts);
-        console.log(`✅ Loaded ${cmsProducts.length} products from CMS`);
-        
-        if (cmsProducts.length === 0) {
-          console.log('ℹ️ No products found in CMS - this is normal for a new store');
-        }
-      } catch (error) {
-        console.error('❌ Failed to load CMS products:', error);
+      } catch (loadError) {
+        console.error('Failed to load products:', loadError);
         setError('Unable to load products. Please try again later.');
       } finally {
         setLoading(false);
       }
     };
-
     loadProducts();
   }, []);
 
-  // Helper functions for product filtering
-  const getFeaturedProducts = () => products.filter(product => product.featured);
-  const getProductsByCategory = (category: string) =>
-    products.filter(product => product.category?.toLowerCase() === category.toLowerCase());
-
   const handleAddToCart = (product: JewelryProduct) => {
     if (!product.inStock) {
-      toast({
-        title: "Out of Stock",
-        description: "This item is currently out of stock.",
-        variant: "destructive",
-      });
+      toast({ title: 'Out of Stock', description: 'This item is currently out of stock.', variant: 'destructive' });
       return;
     }
-    
     addItem(product);
-    toast({
-      title: "Added to cart!",
-      description: `${product.name} has been added to your cart.`,
-    });
-    
-    // Auto-open cart after adding item
+    toast({ title: 'Added to bag', description: `${product.name} added to your cart.` });
     setTimeout(() => openCart(), 500);
   };
 
-  const handleWishlist = (product: JewelryProduct) => {
-    toast({
-      title: "Added to wishlist!",
-      description: `${product.name} has been added to your wishlist.`,
-    });
-    // TODO: Implement actual wishlist functionality
+  const scrollToSection = (sectionId: string) => {
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const categoryCounts = products.reduce((counts, product) => {
@@ -109,289 +106,431 @@ export default function Home() {
   }, {} as Record<string, number>);
 
   const knownCategories = PREFERRED_CATEGORY_ORDER
-    .filter(category => categoryCounts[category] > 0)
-    .map(category => ({
-      id: category,
-      name: formatCategoryName(category),
-      count: categoryCounts[category],
-    }));
+    .filter(c => categoryCounts[c] > 0)
+    .map(c => ({ id: c, name: formatCategoryName(c), count: categoryCounts[c] }));
 
   const unknownCategories = Object.keys(categoryCounts)
-    .filter(category => !PREFERRED_CATEGORY_ORDER.includes(category))
+    .filter(c => !PREFERRED_CATEGORY_ORDER.includes(c))
     .sort()
-    .map(category => ({
-      id: category,
-      name: formatCategoryName(category),
-      count: categoryCounts[category],
-    }));
+    .map(c => ({ id: c, name: formatCategoryName(c), count: categoryCounts[c] }));
 
-  const categories = [
-    { id: 'all', name: 'All', count: products.length },
-    ...knownCategories,
-    ...unknownCategories,
-  ];
+  const allCategories = [...knownCategories, ...unknownCategories];
+  const categories = [{ id: 'all', name: 'All', count: products.length }, ...allCategories];
 
   useEffect(() => {
-    if (activeCategory !== 'all' && !categories.some(category => category.id === activeCategory)) {
+    if (activeCategory !== 'all' && !categories.some(c => c.id === activeCategory)) {
       setActiveCategory('all');
     }
   }, [activeCategory, categories]);
 
-  const displayProducts = activeCategory === 'all' 
-    ? products 
-    : getProductsByCategory(activeCategory);
+  const displayProducts = activeCategory === 'all'
+    ? products
+    : products.filter(p => p.category?.toLowerCase() === activeCategory.toLowerCase());
 
-  const featuredProducts = getFeaturedProducts();
+  const bestSellerProducts = (products.filter(p => p.featured).length > 0
+    ? products.filter(p => p.featured)
+    : products).slice(0, 4);
+
+  const spotlightProduct = bestSellerProducts[0];
+  const spotlightImages = spotlightProduct
+    ? [spotlightProduct.image, ...(spotlightProduct.images || [])].filter(Boolean)
+    : [];
+  const spotlightAccentImage = spotlightImages.find(img => img !== spotlightImages[0]);
+
+  const silverCount = products.filter(p => p.material.toLowerCase().includes('silver')).length;
+  const occasionOptions = getFacetOptions(products, 'occasion', 3);
+  const recipientOptions = getFacetOptions(products, 'recipient', 3);
+  const priceOptions = getFacetOptions(products, 'price', 3);
+
+  const categoryHighlights = allCategories.slice(0, 4).map(category => {
+    const leadProduct = products.find(p => p.category?.toLowerCase() === category.id);
+    const gallery = leadProduct ? [leadProduct.image, ...(leadProduct.images || [])].filter(Boolean) : [];
+    return {
+      ...category,
+      image: gallery[0] || homeContent.hero.heroImage || homeContent.imageUrl,
+      copy: CATEGORY_COPY[category.id] || 'Simple, giftable pieces.',
+    };
+  });
+
+  const customerQuotes = products
+    .flatMap(p => (p.reviews || []).map(r => ({ ...r, productName: p.name })))
+    .slice(0, 3);
+
+  const quickGuides = [
+    {
+      title: 'By occasion',
+      links: occasionOptions.map(o => ({ label: o.label, href: `/shop-by/occasion/${o.slug}` })),
+    },
+    {
+      title: 'By recipient',
+      links: recipientOptions.map(o => ({ label: o.label, href: `/shop-by/recipient/${o.slug}` })),
+    },
+    {
+      title: 'By budget',
+      links: priceOptions.map(o => ({ label: o.label, href: `/shop-by/price/${o.slug}` })),
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero Section - Luxury Full Screen */}
-      <section className="relative h-screen w-full overflow-hidden -mt-20">
-        {/* Background Image with Overlay */}
-        <div className="absolute inset-0">
-          <img 
-            src={homeContent.hero.heroImage || homeContent.imageUrl}
-            alt="Luxury Jewelry Collection"
-            className="w-full h-full object-cover"
-            loading="eager"
-          />
-          {/* Enhanced gradient overlay for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/20" />
-        </div>
-        
-        {/* Content Overlay */}
-        <div className="relative h-full flex items-center justify-center">
-          <div className="max-w-4xl mx-auto px-6 text-center">
-            {/* Logo/Brand Mark */}
-            <div className="mb-8">
-              <div className="inline-block">
-                <div className="text-white/80 text-2xl md:text-4xl lg:text-5xl tracking-[0.3em] font-light mb-2">
-                  {homeContent.hero.welcomeText}
-                </div>
-                <div className="w-24 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent mx-auto" />
+    <div className="min-h-screen bg-[#faf8f5] pt-16 md:pt-[72px]">
+      <SiteMeta
+        title="Aashish Jewellers | Premium Silver Jewelry from Nepal"
+        description="Discover handcrafted 925 silver rings, necklaces, earrings and bracelets. Free delivery in Butwal and Bhairahawa. Shop the collection now."
+        jsonLd={ORG_JSON_LD}
+      />
+
+      {/* ── Hero ── */}
+      <section className="border-b border-stone-200 bg-white">
+        <div className="container py-12 md:py-16">
+          <div className="grid gap-10 lg:grid-cols-[1fr_0.95fr] lg:items-center">
+            <div className="max-w-xl">
+              <p className="text-[11px] uppercase tracking-[0.24em] text-stone-400">{homeContent.brand.name}</p>
+              <h1 className="mt-4 text-4xl font-serif font-light leading-tight text-stone-950 md:text-6xl">
+                {homeContent.hero.mainTitle || homeContent.title}
+              </h1>
+              <p className="mt-5 text-lg leading-relaxed text-stone-500 font-light">
+                {homeContent.hero.description}
+              </p>
+
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => scrollToSection('catalog')}
+                  className="inline-flex items-center justify-center gap-2 bg-stone-950 px-7 py-3.5 text-xs uppercase tracking-[0.18em] text-white transition-colors hover:bg-stone-800"
+                >
+                  Shop collection
+                  <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
+                </button>
+                <Link
+                  href="/shop-by"
+                  className="inline-flex items-center justify-center border border-stone-300 px-7 py-3.5 text-xs uppercase tracking-[0.18em] text-stone-800 transition-colors hover:border-stone-900"
+                >
+                  Gift guide
+                </Link>
               </div>
+
+              {/* Trust row */}
+              <div className="mt-8 flex flex-wrap gap-5 text-sm text-stone-500">
+                <span className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-stone-400" strokeWidth={1.5} />
+                  925 certified silver
+                </span>
+                <span className="flex items-center gap-2">
+                  <Gift className="h-4 w-4 text-stone-400" strokeWidth={1.5} />
+                  Gift-ready packaging
+                </span>
+                <span className="flex items-center gap-2">
+                  <Truck className="h-4 w-4 text-stone-400" strokeWidth={1.5} />
+                  Delivery across Nepal
+                </span>
+              </div>
+
+              {silverCount > 0 && (
+                <p className="mt-5 text-sm text-stone-400">{silverCount}+ handcrafted pieces available</p>
+              )}
             </div>
-            
-            {/* Main Title with Luxury Typography */}
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif font-light text-white mb-6 tracking-wide">
-              <span className="block font-thin italic">{homeContent.hero.mainTitle || homeContent.title}</span>
-            </h1>
-            
-            {/* Tagline */}
-            <p className="text-white/90 text-lg md:text-xl font-light tracking-wide mb-12 max-w-2xl mx-auto">
-              {homeContent.hero.description}
-            </p>
-            
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button 
-                onClick={() => document.getElementById('collections')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                className="group relative px-10 py-4 overflow-hidden border border-white/80 text-white hover:text-black transition-all duration-500"
-              >
-                <span className="relative z-10 text-sm tracking-[0.2em] font-light">EXPLORE COLLECTION</span>
-                <div className="absolute inset-0 bg-white transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
-              </button>
-              <button 
-                onClick={() => window.location.href = '/about'}
-                className="px-10 py-4 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-all duration-300 text-sm tracking-[0.2em] font-light"
-              >
-                OUR STORY
-              </button>
+
+            {/* Hero image + spotlight */}
+            <div className="flex flex-col gap-4">
+              <img
+                src={homeContent.hero.heroImage || homeContent.imageUrl}
+                alt="Aashish Jewellers featured collection"
+                className="aspect-[3/2] w-full object-cover md:aspect-[4/5]"
+                loading="eager"
+                fetchPriority="high"
+              />
+              {spotlightProduct && (
+                <div className="hidden items-center gap-4 border border-stone-200 bg-white px-4 py-4 md:flex">
+                  <img
+                    src={spotlightAccentImage || spotlightProduct.image}
+                    alt={spotlightProduct.name}
+                    className="h-14 w-14 shrink-0 object-cover"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-serif text-base text-stone-900">{spotlightProduct.name}</p>
+                    <p className="text-sm text-stone-500">NPR {spotlightProduct.price.toLocaleString()}</p>
+                  </div>
+                  <Link
+                    href={`/products/${encodeURIComponent(spotlightProduct.id)}`}
+                    className="shrink-0 border border-stone-300 px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-stone-700 transition-colors hover:border-stone-900"
+                  >
+                    View
+                  </Link>
+                </div>
+              )}
             </div>
-          </div>
-        </div>
-        
-        {/* Scroll Indicator - Perfectly Centered */}
-        <div className="absolute bottom-8 left-0 right-0 flex justify-center text-white/60 animate-bounce">
-          <div className="flex flex-col items-center">
-            <span className="text-xs tracking-[0.2em] mb-2">SCROLL</span>
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-            </svg>
           </div>
         </div>
       </section>
 
-      {/* Product Categories - Luxury Gallery */}
-      <section id="collections" className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-20">
-            <h2 className="text-xs tracking-[0.3em] text-gray-500 mb-4">EXPLORE</h2>
-            <h3 className="text-4xl md:text-5xl font-serif font-light text-gray-900 mb-6">Our Collections</h3>
-            <p className="text-lg text-gray-600 font-light max-w-2xl mx-auto">Each piece tells a story of craftsmanship and elegance</p>
+      <FlashSaleBanner />
+      <StoreRateStrip />
+
+      <TrustStrip />
+
+      {/* ── Collections ── */}
+      <section id="collections" className="scroll-mt-32 py-16">
+        <div className="container">
+          <div className="mb-8">
+            <p className="text-xs uppercase tracking-[0.22em] text-stone-400">Collections</p>
+            <h2 className="mt-2 text-3xl font-serif font-light text-stone-950 md:text-4xl">Shop by category</h2>
           </div>
 
-          {/* Category Filters - Minimal Design */}
-          <div className="flex gap-3 mb-16 overflow-x-auto pb-2 sm:flex-wrap sm:justify-center">
-            {categories.map((category) => (
+          {categoryHighlights.length > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {categoryHighlights.map(category => (
+                <button
+                  key={category.id}
+                  type="button"
+                  onClick={() => { setActiveCategory(category.id); scrollToSection('catalog'); }}
+                  className="group overflow-hidden border border-stone-200 bg-white text-left transition-shadow hover:shadow-sm"
+                >
+                  <div className="overflow-hidden">
+                    <img
+                      src={category.image}
+                      alt={category.name}
+                      className="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <p className="font-serif text-lg font-light text-stone-950">{category.name}</p>
+                    <p className="mt-1 text-sm text-stone-500">{category.copy}</p>
+                    <p className="mt-3 text-[10px] uppercase tracking-[0.14em] text-stone-400">{category.count} pieces</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="border border-dashed border-stone-300 bg-white px-6 py-10 text-center text-stone-500">
+              Categories will appear as products are added.
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── Bestsellers ── */}
+      <section id="bestsellers" className="scroll-mt-32 border-y border-stone-200 bg-white py-16">
+        <div className="container">
+          <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.22em] text-stone-400">Best sellers</p>
+              <h2 className="mt-2 text-3xl font-serif font-light text-stone-950 md:text-4xl">Most loved pieces</h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => scrollToSection('catalog')}
+              className="inline-flex items-center gap-2 text-sm text-stone-600 underline underline-offset-4 hover:text-stone-900"
+            >
+              Browse all
+              <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
+            </button>
+          </div>
+
+          {bestSellerProducts.length > 0 ? (
+            <div className="grid grid-cols-2 gap-4 md:gap-6 xl:grid-cols-4">
+              {bestSellerProducts.map(product => (
+                <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
+              ))}
+            </div>
+          ) : (
+            <div className="border border-dashed border-stone-300 bg-stone-50 px-6 py-10 text-center text-stone-500">
+              Best sellers will appear here once products are available.
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── Gift guide strip ── */}
+      <section className="py-16">
+        <div className="container grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
+          <div className="border border-stone-200 bg-white p-6">
+            <p className="text-xs uppercase tracking-[0.22em] text-stone-400">Gift guide</p>
+            <h2 className="mt-3 text-2xl font-serif font-light text-stone-950">
+              Know the occasion — not the product?
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-stone-500">
+              Start with who you&apos;re buying for or what budget you have.
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
+              <Link
+                href="/shop-by"
+                className="inline-flex items-center justify-center bg-stone-950 px-6 py-3 text-xs uppercase tracking-[0.18em] text-white transition-colors hover:bg-stone-800"
+              >
+                Open gift guide
+              </Link>
+              <a
+                href="https://wa.me/9779811469486?text=Hi%2C%20I%20need%20help%20choosing%20a%20gift."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center border border-stone-300 px-6 py-3 text-xs uppercase tracking-[0.18em] text-stone-800 transition-colors hover:border-stone-900"
+              >
+                Ask on WhatsApp
+              </a>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            {quickGuides.map(guide => (
+              <div key={guide.title} className="border border-stone-200 bg-white p-5">
+                <p className="text-xs uppercase tracking-[0.18em] text-stone-400 mb-4">{guide.title}</p>
+                <div className="flex flex-col gap-2">
+                  {guide.links.length > 0 ? (
+                    guide.links.map(link => (
+                      <Link
+                        key={`${guide.title}-${link.label}`}
+                        href={link.href}
+                        className="text-sm text-stone-700 hover:text-stone-950 transition-colors"
+                      >
+                        {link.label} →
+                      </Link>
+                    ))
+                  ) : (
+                    <Link href="/shop-by" className="text-sm text-stone-700 hover:text-stone-950">
+                      Browse →
+                    </Link>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Full catalog ── */}
+      <section id="catalog" className="scroll-mt-32 border-y border-stone-200 bg-white py-16">
+        <div className="container">
+          <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.22em] text-stone-400">Catalog</p>
+              <h2 className="mt-2 text-3xl font-serif font-light text-stone-950 md:text-4xl">Full collection</h2>
+            </div>
+            <p className="text-sm text-stone-400">
+              {displayProducts.length} of {products.length} pieces
+            </p>
+          </div>
+
+          {/* Category filters */}
+          <div className="mb-8 flex gap-2 overflow-x-auto pb-2 sm:flex-wrap">
+            {categories.map(category => (
               <button
                 key={category.id}
+                type="button"
                 onClick={() => setActiveCategory(category.id)}
-                className={`px-8 py-3 text-sm tracking-[0.15em] font-light transition-all duration-300 ${
+                className={`shrink-0 border px-4 py-2 text-xs uppercase tracking-[0.14em] transition-colors ${
                   activeCategory === category.id
-                    ? 'text-white bg-black'
-                    : 'text-gray-700 bg-transparent border border-gray-300 hover:border-black'
+                    ? 'border-stone-950 bg-stone-950 text-white'
+                    : 'border-stone-300 bg-white text-stone-600 hover:border-stone-950 hover:text-stone-950'
                 }`}
               >
-                {category.name.toUpperCase()}
-                <span className="ml-2 text-xs opacity-60">({category.count})</span>
+                {category.name}
+                <span className="ml-1.5 opacity-60">({category.count})</span>
               </button>
             ))}
           </div>
 
-          {/* Product Grid */}
           {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading products...</p>
-              </div>
+            <div className="flex items-center justify-center py-24">
+              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-stone-900" />
             </div>
           ) : error ? (
-            <div className="text-center py-12">
-              <div className="text-red-500 mb-4">⚠️ {error}</div>
-              <button 
-                onClick={() => window.location.reload()} 
-                className="bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+            <div className="border border-red-200 bg-red-50 px-6 py-10 text-center">
+              <p className="text-red-600">{error}</p>
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="mt-5 inline-flex bg-stone-950 px-6 py-3 text-xs uppercase tracking-[0.16em] text-white"
               >
                 Retry
               </button>
             </div>
           ) : displayProducts.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-gray-500 mb-4">
-                {products.length === 0 
-                  ? "🏪 We're preparing our collection. Check back soon!" 
-                  : `No products found in ${activeCategory === 'all' ? 'any category' : activeCategory}.`
-                }
-              </div>
+            <div className="border border-dashed border-stone-300 bg-stone-50 px-6 py-10 text-center text-stone-500">
+              <p>
+                {products.length === 0
+                  ? 'The collection is being prepared. Please check back soon.'
+                  : `No products in "${activeCategory}".`}
+              </p>
               {activeCategory !== 'all' && (
-                <button 
-                  onClick={() => setActiveCategory('all')} 
-                  className="text-gray-900 hover:underline"
+                <button
+                  type="button"
+                  onClick={() => setActiveCategory('all')}
+                  className="mt-4 text-xs uppercase tracking-[0.14em] text-stone-900 underline underline-offset-4"
                 >
-                  View all products
+                  View all
                 </button>
               )}
             </div>
           ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {displayProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={handleAddToCart}
-                onWishlist={handleWishlist}
-              />
-            ))}
-          </div>
+            <div className="grid grid-cols-2 gap-4 md:gap-6 lg:grid-cols-3 xl:grid-cols-4">
+              {displayProducts.map((product: JewelryProduct) => (
+                <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
+              ))}
+            </div>
           )}
         </div>
       </section>
 
-      {/* Featured Products - Only show if we have featured products */}
-      {!loading && featuredProducts.length > 0 && (
-      <section className="py-16 bg-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Featured Products</h2>
-            <p className="text-xl text-gray-600">Our handpicked collection of bestsellers</p>
-          </div>
+      {/* ── Reviews ── */}
+      {customerQuotes.length > 0 && (
+        <section className="py-16">
+          <div className="container">
+            <div className="mb-8">
+              <p className="text-xs uppercase tracking-[0.22em] text-stone-400">Reviews</p>
+              <h2 className="mt-2 text-3xl font-serif font-light text-stone-950 md:text-4xl">What customers say</h2>
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={handleAddToCart}
-                onWishlist={handleWishlist}
-              />
-            ))}
+            <div className="grid gap-4 lg:grid-cols-3">
+              {customerQuotes.map((quote, index) => (
+                <div key={`${quote.author}-${index}`} className="border border-stone-200 bg-white p-6">
+                  <div className="flex items-center gap-1 text-amber-400">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-3.5 w-3.5 ${i < Math.round(quote.rating) ? 'fill-current' : ''}`}
+                        strokeWidth={1}
+                      />
+                    ))}
+                  </div>
+                  {quote.title && <p className="mt-4 font-medium text-stone-900">{quote.title}</p>}
+                  <p className="mt-3 text-sm leading-relaxed text-stone-600">{quote.text}</p>
+                  <div className="mt-5 border-t border-stone-100 pt-4">
+                    <p className="text-xs uppercase tracking-[0.14em] text-stone-700">{quote.author}</p>
+                    <p className="mt-0.5 text-xs text-stone-400">{quote.productName}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
       )}
 
-      {/* Features Section - What Sets Us Apart */}
-      <section id="about" className="py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-serif font-light text-gray-900 mb-4">What Sets Us Apart</h2>
-            <div className="w-16 h-px bg-gray-300 mx-auto" />
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-12">
-            <div className="text-center group">
-              <div className="mb-8 transform group-hover:scale-110 transition-transform duration-300">
-                <Diamond className="w-12 h-12 mx-auto text-gray-700" strokeWidth={1} />
-              </div>
-              <h3 className="text-lg font-light tracking-[0.1em] mb-4">HIGH QUALITY SILVER</h3>
-              <p className="text-gray-600 font-light leading-relaxed">Certified pure silver with lasting brilliance and timeless appeal</p>
+      {/* ── Help CTA ── */}
+      <section className="border-t border-stone-200 bg-stone-900 py-16">
+        <div className="container">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h2 className="text-3xl font-serif font-light text-white md:text-4xl">Need help choosing?</h2>
+              <p className="mt-3 text-stone-400 font-light">
+                Questions about sizing, gifting, or delivery? We reply on WhatsApp within minutes.
+              </p>
             </div>
-            
-            <div className="text-center group">
-              <div className="mb-8 transform group-hover:scale-110 transition-transform duration-300">
-                <Truck className="w-12 h-12 mx-auto text-gray-700" strokeWidth={1} />
-              </div>
-              <h3 className="text-lg font-light tracking-[0.1em] mb-4">COMPLIMENTARY DELIVERY</h3>
-              <p className="text-gray-600 font-light leading-relaxed">Secure shipping inside Butwal and Bhairahawa with elegant packaging</p>
-            </div>
-            
-            <div className="text-center group">
-              <div className="mb-8 transform group-hover:scale-110 transition-transform duration-300">
-                <Heart className="w-12 h-12 mx-auto text-gray-700" strokeWidth={1} />
-              </div>
-              <h3 className="text-lg font-light tracking-[0.1em] mb-4">SKIN SAFE</h3>
-              <p className="text-gray-600 font-light leading-relaxed">Hypoallergenic materials crafted for sensitive skin comfort</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Call to Action - Elegant Finish */}
-      <section className="py-32 bg-black text-white relative overflow-hidden">
-        {/* Subtle Pattern Background */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 1px)`,
-            backgroundSize: '40px 40px'
-          }} />
-        </div>
-        
-        <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-          <h2 className="text-4xl md:text-6xl font-serif font-light mb-8 tracking-wide">
-            Begin Your Journey
-          </h2>
-          <p className="text-lg font-light opacity-80 mb-12 max-w-2xl mx-auto leading-relaxed">
-            Discover timeless elegance in every piece, crafted with passion for those who appreciate beauty
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-20">
-            <button className="group relative px-10 py-4 overflow-hidden border border-white/80 text-white hover:text-black transition-all duration-500">
-              <span className="relative z-10 text-sm tracking-[0.2em] font-light flex items-center gap-3">
-                <ShoppingBag className="w-4 h-4" strokeWidth={1} />
-                SHOP NOW
-              </span>
-              <div className="absolute inset-0 bg-white transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
-            </button>
-            <button className="px-10 py-4 text-white/80 hover:text-white transition-colors text-sm tracking-[0.2em] font-light">
-              OUR HERITAGE
-            </button>
-          </div>
-
-          {/* Social Proof - Elegant Display */}
-          <div className="flex justify-center gap-12 text-center">
-            <div className="group">
-              <div className="text-3xl font-light mb-1 group-hover:scale-110 transition-transform">1000+</div>
-              <div className="text-xs tracking-[0.2em] opacity-60">HAPPY CLIENTS</div>
-            </div>
-            <div className="group">
-              <div className="text-3xl font-light mb-1 group-hover:scale-110 transition-transform">4.8★</div>
-              <div className="text-xs tracking-[0.2em] opacity-60">RATING</div>
-            </div>
-            <div className="group">
-              <div className="text-3xl font-light mb-1 group-hover:scale-110 transition-transform">50+</div>
-              <div className="text-xs tracking-[0.2em] opacity-60">DESIGNS</div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <a
+                href="https://wa.me/9779811469486?text=Hi%2C%20I%20need%20help%20choosing%20jewelry."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 bg-white px-6 py-3.5 text-xs uppercase tracking-[0.18em] text-stone-900 transition-colors hover:bg-stone-100"
+              >
+                <MessageCircle className="h-4 w-4" strokeWidth={1.5} />
+                Chat on WhatsApp
+              </a>
+              <Link
+                href="/about"
+                className="inline-flex items-center justify-center border border-white/20 px-6 py-3.5 text-xs uppercase tracking-[0.18em] text-white transition-colors hover:border-white/60"
+              >
+                Our story
+              </Link>
             </div>
           </div>
         </div>

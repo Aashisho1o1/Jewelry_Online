@@ -1,97 +1,127 @@
 import React from 'react';
-import { X, Plus, Minus, ShoppingBag, Trash2 } from 'lucide-react';
+import { Plus, Minus, X } from 'lucide-react';
 import { useCartContext } from '../../contexts/CartContext';
 import { Link } from 'wouter';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '../ui/sheet';
-import { Button } from '../ui/button';
+import { Sheet, SheetContent } from '../ui/sheet';
 
 export function CartSheet() {
   const { items, total, count, isOpen, closeCart, updateQuantity, removeItem } = useCartContext();
 
+  const deliveryFee = total >= 5000 ? 0 : 150;
+  const finalTotal = total + deliveryFee;
+  const amountToFree = 5000 - total;
+
   return (
     <Sheet open={isOpen} onOpenChange={closeCart}>
-      <SheetContent side="right" className="w-full sm:max-w-md flex flex-col">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <ShoppingBag className="w-5 h-5" />
-            Shopping Cart ({count})
-          </SheetTitle>
-        </SheetHeader>
+      <SheetContent
+        side="right"
+        className="flex w-full flex-col gap-0 p-0 sm:max-w-[400px] bg-white border-l border-stone-200 [&>button]:hidden"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-stone-200 px-6 py-5">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.22em] text-stone-400">Your bag</p>
+            {count > 0 && (
+              <p className="mt-0.5 font-serif text-lg font-light text-stone-900">
+                {count} {count === 1 ? 'item' : 'items'}
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={closeCart}
+            className="flex h-9 w-9 items-center justify-center text-stone-500 transition-colors hover:text-stone-900"
+            aria-label="Close cart"
+          >
+            <X className="h-4 w-4" strokeWidth={1.5} />
+          </button>
+        </div>
 
-        {/* Cart Items */}
-        <div className="flex-1 overflow-y-auto py-4">
+        {/* Items */}
+        <div className="flex-1 overflow-y-auto">
           {items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center py-8">
-              <ShoppingBag className="w-16 h-16 text-gray-300 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Your cart is empty</h3>
-              <p className="text-gray-500 mb-4">Add some beautiful jewelry to get started</p>
-              <Button onClick={closeCart} variant="outline">
-                Continue Shopping
-              </Button>
+            <div className="flex flex-col items-center justify-center px-6 py-20 text-center">
+              <p className="font-serif text-xl font-light text-stone-900">Your bag is empty</p>
+              <p className="mt-2 text-sm text-stone-400">Add a piece to get started.</p>
+              <button
+                type="button"
+                onClick={closeCart}
+                className="mt-7 border border-stone-300 px-6 py-2.5 text-xs uppercase tracking-[0.18em] text-stone-700 transition-colors hover:border-stone-900"
+              >
+                Browse collection
+              </button>
             </div>
           ) : (
-            <div className="space-y-4">
-              {items.map((item) => (
-                <div key={item.id} className="flex gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-16 h-16 bg-white rounded-lg overflow-hidden flex-shrink-0">
+            <div className="divide-y divide-stone-100">
+              {items.map(item => (
+                <div key={item.id} className="flex gap-4 px-6 py-5">
+                  {/* Image */}
+                  <div className="h-20 w-20 shrink-0 overflow-hidden bg-[#f0ebe3]">
                     <img
                       src={item.image}
                       alt={item.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23f3f4f6"/><text x="100" y="100" text-anchor="middle" dy=".3em" fill="%236b7280">No Image</text></svg>';
-                      }}
+                      className="h-full w-full object-cover"
+                      onError={e => { e.currentTarget.style.display = 'none'; }}
                     />
                   </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-sm text-gray-900 truncate">
-                      {item.name}
-                    </h3>
-                    <p className="text-xs text-gray-500 mb-2">
-                      {item.material.replace('_', ' ').replace('925 silver', '925 Silver')}
-                    </p>
-                    
-                    {/* Quantity Controls */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8 w-8 p-0"
+
+                  {/* Info */}
+                  <div className="flex min-w-0 flex-1 flex-col justify-between">
+                    <div>
+                      <p className="font-serif text-sm font-light leading-snug text-stone-900">
+                        {item.name}
+                      </p>
+                      <p className="mt-0.5 text-[11px] uppercase tracking-[0.12em] text-stone-400">
+                        {item.material.replace(/_/g, ' ').replace('925 silver', '925 Silver')}
+                      </p>
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between">
+                      {/* Qty controls */}
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          className="flex h-7 w-7 items-center justify-center border border-stone-200 text-stone-600 transition-colors hover:border-stone-900 hover:text-stone-900"
+                          aria-label="Decrease quantity"
                         >
-                          <Minus className="w-3 h-3" />
-                        </Button>
-                        <span className="text-sm font-medium w-8 text-center">
+                          <Minus className="h-3 w-3" strokeWidth={1.5} />
+                        </button>
+                        <span className="min-w-[1.25rem] text-center text-sm text-stone-800">
                           {item.quantity}
                         </span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8 w-8 p-0"
+                        <button
+                          type="button"
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
                           disabled={item.quantity >= 10}
+                          className="flex h-7 w-7 items-center justify-center border border-stone-200 text-stone-600 transition-colors hover:border-stone-900 hover:text-stone-900 disabled:opacity-30"
+                          aria-label="Increase quantity"
                         >
-                          <Plus className="w-3 h-3" />
-                        </Button>
+                          <Plus className="h-3 w-3" strokeWidth={1.5} />
+                        </button>
                       </div>
-                      
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+
+                      {/* Remove */}
+                      <button
+                        type="button"
                         onClick={() => removeItem(item.id)}
+                        className="text-[11px] uppercase tracking-[0.12em] text-stone-400 transition-colors hover:text-stone-900"
                       >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
+                        Remove
+                      </button>
                     </div>
                   </div>
-                  
-                  <div className="text-right">
-                    <p className="font-semibold text-sm">
+
+                  {/* Price */}
+                  <div className="shrink-0 text-right">
+                    <p className="text-sm text-stone-900">
                       NPR {(item.price * item.quantity).toLocaleString()}
                     </p>
+                    {item.quantity > 1 && (
+                      <p className="mt-0.5 text-[11px] text-stone-400">
+                        NPR {item.price.toLocaleString()} each
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -101,37 +131,49 @@ export function CartSheet() {
 
         {/* Footer */}
         {items.length > 0 && (
-          <div className="border-t pt-4 space-y-4">
-            {/* Total */}
-            <div className="flex justify-between items-center">
-              <span className="text-lg font-semibold">Total:</span>
-              <span className="text-xl font-bold">NPR {total.toLocaleString()}</span>
-            </div>
-            
-            {/* Free Delivery Message */}
-            {total < 5000 && (
-              <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-                Add NPR {(5000 - total).toLocaleString()} more for free delivery! 🚚
-              </div>
+          <div className="border-t border-stone-200 bg-white px-6 py-5 space-y-4">
+            {/* Free delivery progress */}
+            {amountToFree > 0 && (
+              <p className="text-xs text-stone-500">
+                Add <span className="text-stone-800">NPR {amountToFree.toLocaleString()}</span> more for free delivery
+              </p>
             )}
-            
-            {/* Checkout Button */}
-            <Link href="/checkout">
-              <Button 
-                className="w-full h-12 text-base font-medium"
-                onClick={closeCart}
+
+            {/* Order summary */}
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between text-stone-500">
+                <span>Subtotal</span>
+                <span className="text-stone-800">NPR {total.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-stone-500">
+                <span>Delivery</span>
+                <span className={deliveryFee === 0 ? 'text-emerald-700' : 'text-stone-800'}>
+                  {deliveryFee === 0 ? 'Free' : `NPR ${deliveryFee}`}
+                </span>
+              </div>
+              <div className="flex justify-between border-t border-stone-100 pt-2 font-medium text-stone-900">
+                <span>Total</span>
+                <span>NPR {finalTotal.toLocaleString()}</span>
+              </div>
+            </div>
+
+            {/* Checkout */}
+            <Link href="/checkout" onClick={closeCart}>
+              <button
+                type="button"
+                className="w-full bg-stone-900 py-3.5 text-xs uppercase tracking-[0.2em] text-white transition-colors hover:bg-stone-700"
               >
-                Proceed to Checkout
-              </Button>
+                Checkout
+              </button>
             </Link>
-            
-            <Button 
-              variant="outline" 
-              className="w-full"
+
+            <button
+              type="button"
               onClick={closeCart}
+              className="w-full text-xs uppercase tracking-[0.18em] text-stone-400 transition-colors hover:text-stone-900"
             >
-              Continue Shopping
-            </Button>
+              Continue shopping
+            </button>
           </div>
         )}
       </SheetContent>

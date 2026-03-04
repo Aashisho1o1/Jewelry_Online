@@ -1,47 +1,47 @@
 {
-  "title": "Our Family Legacy & Craftsmanship",
+  "title": "A Family of Makers",
   "team": [
     {
       "name": "Babita Gautam",
-      "title": "Co-Founder & Customers' Friend",
-      "description": "With over 10 years of experience in jewelry design and customer satisfaction, Babita brings a passion for creating beautiful and personalized jewelry.",
+      "title": "Co-Founder, Customer Experience",
+      "description": "Babita helps customers choose pieces for gifting and daily wear, with a careful eye for design, presentation, and comfort.",
       "imageUrl": "/images/jewelry/mom.jpg"
     },
     {
       "name": "Mohan Sunar",
-      "title": "Co-Founder & Operations Manager",
-      "description": "Mohan ensures that every customer's vision and orders run smoothly from start to finish, with a focus on quality and client satisfaction. He has 30 years of experience in making jewelry.",
+      "title": "Co-Founder, Master Craftsman",
+      "description": "With more than 30 years of jewelry-making experience, Mohan oversees bench work, finishing, and the quality checks behind every piece.",
       "imageUrl": "/images/jewelry/dad.jpg"
     },
     {
       "name": "Aadarsh Gautam",
-      "title": "Co-Founder & CEO",
-      "description": "Meet Aadarsh, our co-founder, with four years of experience running operations and e-commerce, he's building AI-powered tools and agentic workflows that bring centuries-old craftsmanship into the modern age. He's proof that you can honor tradition while writing code at 2 AM—and that Gen Z actually wants what their great-grandparents loved, just with better UX and customer service.",
+      "title": "Co-Founder, Online Experience",
+      "description": "Aadarsh leads the storefront, merchandising, and service experience so traditional craftsmanship feels easy to discover and buy online.",
       "imageUrl": "/images/jewelry/aadu.jpg"
     }
   ],
   "story": {
     "title": "Our Story",
-    "content": "**Founded in 2023, our jewelry brand was born from a deep family legacy and a shared love for Nepalese culture and craftsmanship.** For generations, our family has celebrated the artistry of gold, silver, and precious stones, passing down stories, traditions, and skills that reflect the beauty of our heritage.\n\nWe are inspired by the vibrant spirit of young people who value both tradition and modern style. Our mission is to blend timeless Nepalese designs with contemporary trends, making jewelry that feels meaningful, stylish, and uniquely yours.\n\nFrom intricate, culturally inspired pieces to sleek modern designs, each creation is crafted with care and passion. And with our online platform, we bring the elegance of Nepalese artistry to customers everywhere—making heritage accessible in a modern, connected world."
+    "content": "Aashish Jewellers grew from a family tradition of making and selling jewelry with care. We work from Butwal and focus on pieces that feel giftable, wearable, and rooted in craftsmanship.\n\nOur collection balances classic silver styling with cleaner, modern presentation so customers can find pieces that suit daily wear, celebrations, and thoughtful gifting.\n\nEvery piece is chosen with finish, comfort, and long-term wear in mind. The goal is simple: make traditional craftsmanship feel trustworthy, clear, and easy to buy online."
   },
   "craftsmanship": {
     "title": "Our Craftsmanship Process",
     "steps": [
       {
         "title": "Design Inspiration",
-        "description": "We draw inspiration from traditional Nepalese motifs, cultural symbols, and modern aesthetics to create unique designs that resonate with young people while honoring our heritage."
+        "description": "We start with silhouettes customers actually want to wear, then shape the details around classic forms, gifting moments, and long-term comfort."
       },
       {
         "title": "Silver Selection",
-        "description": "We use only the finest 925 sterling silver, ensuring each piece meets international quality standards while maintaining the traditional purity our ancestors valued."
+        "description": "We focus on dependable silver quality and finishes that hold up well in daily wear, gifting, and occasional dressing."
       },
       {
         "title": "Handcrafting",
-        "description": "Our skilled artisans combine time-honored techniques passed down through generations with modern tools to create jewelry that is both authentic and contemporary."
+        "description": "Our makers finish, set, and polish each piece with close attention to proportion, shine, and how it sits when worn."
       },
       {
         "title": "Quality Assurance",
-        "description": "Every piece undergoes rigorous quality checks to ensure it meets our family's standards for excellence, durability, and beauty before reaching our customers."
+        "description": "Before a piece reaches the storefront, we review its finish, comfort, and presentation so the customer gets something that feels ready to wear or gift."
       }
     ]
   },

@@ -1,62 +1,82 @@
+import {
+  assertSubmittedTotal,
+  normalizeAndPriceOrderItems,
+  OrderValidationError,
+} from '../../../lib/order-pricing.js';
+import { paymentRateLimit } from '../../../lib/rate-limiter.js';
+
+function buildBaseUrl() {
+  if (process.env.APP_URL) return process.env.APP_URL;
+
+  const vercelUrl = process.env.VERCEL_URL;
+  if (vercelUrl && !vercelUrl.startsWith('http')) return `https://${vercelUrl}`;
+  if (vercelUrl) return vercelUrl;
+
+  return 'http://localhost:5000';
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  if (!paymentRateLimit(req, res)) return;
+
   try {
     const { items, customer, total } = req.body;
 
-    // Validate required fields
-    if (!items || !customer || !total) {
+    if (!items || !customer) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Generate order ID
-    const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    if (!customer.name || !customer.phone) {
+      return res.status(400).json({ error: 'Incomplete customer information' });
+    }
 
-    // Import order store
+    const pricing = await normalizeAndPriceOrderItems(items);
+    assertSubmittedTotal(total, pricing.total);
+
+    const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const { createOrder } = await import('../../../lib/db-store.js');
-    
-    // Create order in our store
-    const order = await createOrder({
+
+    await createOrder({
       id: orderId,
-      items,
+      items: pricing.items,
       customer,
-      total,
+      total: pricing.total,
       paymentMethod: 'khalti',
       status: 'pending',
       paymentDetails: {
-        provider: 'khalti'
-      }
+        provider: 'khalti',
+      },
     });
 
-    console.log('✅ Khalti order created:', orderId);
+    const khaltiSecretKey = process.env.KHALTI_SECRET_KEY;
+    if (!khaltiSecretKey) {
+      return res.status(500).json({
+        error: 'Payment gateway not configured',
+        message: 'Khalti payment is temporarily unavailable. Please try another payment method.',
+      });
+    }
 
-    // Build base URL with proper protocol
-    const buildBaseUrl = () => {
-      const vercelUrl = process.env.VERCEL_URL;
-      
-      // If VERCEL_URL exists but doesn't start with http, add https://
-      if (vercelUrl && !vercelUrl.startsWith('http')) {
-        return `https://${vercelUrl}`;
-      }
-      
-      // If VERCEL_URL already has protocol, use as-is
-      if (vercelUrl) {
-        return vercelUrl;
-      }
-      
-      // Fallback to hardcoded URL
-      return 'https://jewelry-online.vercel.app';
-    };
+    const amountBreakdown = [
+      {
+        label: 'Jewelry Items',
+        amount: Math.round(pricing.subtotal * 100),
+      },
+    ];
 
-    const baseUrl = buildBaseUrl();
-    
-    // Khalti payment initiation with proper URLs
+    if (pricing.deliveryFee > 0) {
+      amountBreakdown.push({
+        label: 'Delivery',
+        amount: Math.round(pricing.deliveryFee * 100),
+      });
+    }
+
     const khaltiPayload = {
-      return_url: `${baseUrl}/api/payments/khalti/verify`,
-      website_url: baseUrl,
-      amount: Math.round(total * 100), // Khalti expects amount in paisa (1 NPR = 100 paisa)
+      return_url: `${buildBaseUrl()}/api/payments/khalti/verify`,
+      website_url: buildBaseUrl(),
+      amount: Math.round(pricing.total * 100),
       purchase_order_id: orderId,
       purchase_order_name: `Aashish Jewellers - Order ${orderId}`,
       customer_info: {
@@ -64,105 +84,56 @@ export default async function handler(req, res) {
         email: customer.email || `customer-${orderId}@example.com`,
         phone: customer.phone,
       },
-      amount_breakdown: [
-        {
-          label: "Jewelry Items",
-          amount: Math.round(total * 100)
-        }
-      ],
-      product_details: items.map(item => ({
+      amount_breakdown: amountBreakdown,
+      product_details: pricing.items.map(item => ({
         identity: item.id,
         name: item.name,
         total_price: Math.round(item.price * item.quantity * 100),
         quantity: item.quantity,
-        unit_price: Math.round(item.price * 100)
-      }))
+        unit_price: Math.round(item.price * 100),
+      })),
     };
 
-    // Log the request for debugging
-    console.log('Khalti API request payload:', {
-      url: 'https://a.khalti.com/api/v2/epayment/initiate/',
+    const khaltiResponse = await fetch('https://a.khalti.com/api/v2/epayment/initiate/', {
       method: 'POST',
       headers: {
-        'Authorization': 'Key ********', // Masked for security
+        Authorization: `Key ${khaltiSecretKey}`,
         'Content-Type': 'application/json',
       },
-      payload: {
-        ...khaltiPayload,
-        // Mask sensitive data
-        customer_info: {
-          ...khaltiPayload.customer_info,
-          phone: '******' + khaltiPayload.customer_info.phone.slice(-4),
-        }
-      }
+      body: JSON.stringify(khaltiPayload),
     });
 
-    // Validate Khalti credentials
-    const khaltiSecretKey = process.env.KHALTI_SECRET_KEY;
-    if (!khaltiSecretKey) {
-      console.error('Khalti configuration missing');
-      return res.status(500).json({
-        error: 'Payment gateway not configured',
-        message: 'Khalti payment is temporarily unavailable. Please try another payment method.'
+    const khaltiData = await khaltiResponse.json();
+
+    if (khaltiResponse.ok && khaltiData.payment_url) {
+      return res.status(200).json({
+        success: true,
+        orderId,
+        paymentUrl: khaltiData.payment_url,
+        paymentToken: khaltiData.pidx,
+        total: pricing.total,
+        message: 'Redirecting to Khalti...',
       });
     }
 
-    try {
-      const khaltiResponse = await fetch('https://a.khalti.com/api/v2/epayment/initiate/', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Key ${khaltiSecretKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(khaltiPayload),
-      });
+    console.error('Khalti payment initiation failed:', khaltiData);
 
-      const khaltiData = await khaltiResponse.json();
-      console.log('Khalti API response:', {
-        status: khaltiResponse.status,
-        statusText: khaltiResponse.statusText,
-        data: khaltiData
-      });
-
-      if (khaltiResponse.ok && khaltiData.payment_url) {
-        console.log(`✅ Khalti payment initiated successfully for order ${orderId}`);
-        
-        // Store order details for later verification
-        // In production, save this to a database
-        // For now, we'll rely on Khalti's verification
-        
-        return res.status(200).json({
-          success: true,
-          orderId,
-          paymentUrl: khaltiData.payment_url,
-          paymentToken: khaltiData.pidx,
-          message: 'Redirecting to Khalti...',
-        });
-      } else {
-        console.error('❌ Khalti payment initiation failed:', khaltiData);
-        
-        // Provide more detailed error information
-        let errorMessage = 'Failed to initiate Khalti payment';
-        if (khaltiData.detail) {
-          errorMessage = khaltiData.detail;
-        } else if (khaltiData.error) {
-          errorMessage = khaltiData.error;
-        }
-        
-        return res.status(400).json({ 
-          error: errorMessage,
-          details: khaltiData 
-        });
-      }
-    } catch (apiError) {
-      console.error('❌ Khalti API request failed:', apiError);
-      return res.status(500).json({ 
-        error: 'Failed to connect to Khalti payment service',
-        message: apiError.message
-      });
+    let errorMessage = 'Failed to initiate Khalti payment';
+    if (khaltiData.detail) {
+      errorMessage = khaltiData.detail;
+    } else if (khaltiData.error) {
+      errorMessage = khaltiData.error;
     }
 
+    return res.status(400).json({ error: errorMessage });
   } catch (error) {
+    if (error instanceof OrderValidationError) {
+      return res.status(400).json({
+        error: error.message,
+        ...(error.details ? { details: error.details } : {}),
+      });
+    }
+
     console.error('Khalti payment creation error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }

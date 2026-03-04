@@ -4,131 +4,59 @@ export default async function handler(req, res) {
   try {
     const { data, pid, status } = req.query;
 
-    // Handle failure callback
     if (status === 'failed' || (!data && pid)) {
-      console.log(`eSewa payment failed for order: ${pid}`);
       return res.redirect('/checkout?status=failed&error=payment_cancelled&order=' + (pid || ''));
     }
 
-    // Handle success callback
-    console.log('eSewa success callback received');
-    console.log('Query params:', req.query);
-
     if (!data) {
-      console.error('No data received from eSewa');
       return res.redirect('/checkout?status=failed&error=no_data');
     }
 
-    // Decode the base64 data from eSewa
-    let decodedData, parsedData;
+    let parsedData;
     try {
-      decodedData = Buffer.from(data, 'base64').toString('utf-8');
-      parsedData = JSON.parse(decodedData);
-
-      console.log('eSewa response data:', parsedData);
-      console.log('Verifying signature...');
-    } catch (parseError) {
-      console.error('❌ Failed to decode or parse eSewa data:', parseError);
-      console.error('Raw data received:', data);
+      parsedData = JSON.parse(Buffer.from(data, 'base64').toString('utf-8'));
+    } catch {
       return res.redirect('/checkout?status=failed&error=invalid_response_format');
     }
 
-    // Validate required fields in the response
     if (!parsedData.transaction_uuid || !parsedData.status || !parsedData.signature) {
-      console.error('❌ Missing required fields in eSewa response:', parsedData);
       return res.redirect('/checkout?status=failed&error=incomplete_response');
     }
 
-    // Verify signature (CRITICAL for security)
-    try {
-      const secretKey = process.env.ESEWA_SECRET_KEY;
-      if (!secretKey) {
-        console.error('ESEWA_SECRET_KEY not configured — cannot verify payment');
-        return res.redirect('/checkout?status=failed&error=gateway_not_configured');
-      }
-
-      // Validate that signed_field_names exists
-      if (!parsedData.signed_field_names) {
-        console.error('❌ Missing signed_field_names in eSewa response');
-        return res.redirect('/checkout?status=failed&error=missing_signature_fields');
-      }
-
-      const signedFields = parsedData.signed_field_names.split(',');
-
-      // Validate that all signed fields exist in the response
-      const missingFields = signedFields.filter(field => parsedData[field] === undefined);
-      if (missingFields.length > 0) {
-        console.error('❌ Missing signed fields in eSewa response:', missingFields);
-        return res.redirect('/checkout?status=failed&error=missing_required_fields');
-      }
-
-      // Build the message for signature verification
-      const message = signedFields.map(field => `${field}=${parsedData[field]}`).join(',');
-
-      // Generate expected signature
-      const expectedSignature = crypto.createHmac('sha256', secretKey)
-                                     .update(message)
-                                     .digest('base64');
-
-      // Compare signatures
-      if (expectedSignature !== parsedData.signature) {
-        console.error('❌ Signature verification failed');
-        console.error('Expected:', expectedSignature);
-        console.error('Received:', parsedData.signature);
-        console.error('Message used for signature:', message);
-        return res.redirect('/checkout?status=failed&error=invalid_signature');
-      }
-
-      console.log('✅ eSewa signature verified successfully');
-    } catch (signatureError) {
-      console.error('❌ Error during signature verification:', signatureError);
-      return res.redirect('/checkout?status=failed&error=signature_verification_error');
+    const secretKey = process.env.ESEWA_SECRET_KEY;
+    if (!secretKey) {
+      return res.redirect('/checkout?status=failed&error=gateway_not_configured');
     }
 
-    // Payment verified successfully
-    const transactionUuid = parsedData.transaction_uuid;
-    const totalAmount = parsedData.total_amount;
-    const transactionCode = parsedData.transaction_code || 'N/A';
-    const paymentStatus = parsedData.status;
+    if (!parsedData.signed_field_names) {
+      return res.redirect('/checkout?status=failed&error=missing_signature_fields');
+    }
 
-    console.log(`✅ eSewa payment verified successfully:`, {
-      transactionUuid,
-      totalAmount,
-      transactionCode,
-      status: paymentStatus
-    });
+    const signedFields = parsedData.signed_field_names.split(',');
+    const message = signedFields.map(f => `${f}=${parsedData[f]}`).join(',');
+    const expectedSignature = crypto.createHmac('sha256', secretKey).update(message).digest('base64');
 
-    // Validate payment status
+    if (expectedSignature !== parsedData.signature) {
+      console.error('[esewa] Signature verification failed');
+      return res.redirect('/checkout?status=failed&error=invalid_signature');
+    }
+
+    const { transaction_uuid: transactionUuid, total_amount: totalAmount, transaction_code: transactionCode = 'N/A', status: paymentStatus } = parsedData;
+
     if (paymentStatus !== 'COMPLETE') {
-      console.error(`❌ eSewa payment status is not COMPLETE: ${paymentStatus}`);
       return res.redirect(`/checkout?status=failed&error=payment_incomplete&code=${paymentStatus}`);
     }
 
-    // Update order status in our store
     const { updateOrderStatus, getOrderById } = await import('../../../lib/db-store.js');
-
-    // Check if order exists
     const existingOrder = await getOrderById(transactionUuid);
     if (existingOrder) {
-      // Update order status
       await updateOrderStatus(transactionUuid, 'confirmed');
-      console.log(`✅ Order status updated to confirmed: ${transactionUuid}`);
-    } else {
-      console.warn(`⚠️ Order not found for transaction: ${transactionUuid}`);
     }
 
-    // In production, send confirmation email/SMS
-    // await sendPaymentConfirmation(transactionUuid);
-
-    // Log successful payment for audit trail
-    console.log(`💰 eSewa payment completed successfully at ${new Date().toISOString()}`);
-
-    // Redirect to success page with all relevant details
     return res.redirect(`/order-success?id=${transactionUuid}&payment=esewa&amount=${totalAmount}&txn=${transactionCode}`);
 
   } catch (error) {
-    console.error('eSewa callback handler error:', error);
-    console.error('Error stack:', error.stack);
+    console.error('[esewa] Callback error:', error.message);
     return res.redirect('/checkout?status=failed&error=processing_error');
   }
 }

@@ -22,7 +22,7 @@ display_url: https://www.aashish.website
 collections:
   # Jewelry Products Management - Individual Product Files
   - name: "jewelry"
-    label: "💍 Jewelry Products"
+    label: "Jewelry Products"
     folder: "content/jewelry"
     create: true
     slug: "{{id}}"
@@ -32,6 +32,15 @@ collections:
       - { label: "Description", name: "description", widget: "text", hint: "Detailed product description for customers" }
       - { label: "Price (NPR)", name: "price", widget: "number", value_type: "int", min: 500, max: 500000 }
       - { label: "Original Price (NPR)", name: "originalPrice", widget: "number", value_type: "int", min: 500, max: 500000, required: false }
+      - label: "Price Mode"
+        name: "priceMode"
+        widget: "select"
+        default: "manual"
+        required: false
+        hint: "Use live metal pricing only for products that should move with the daily silver/gold rate."
+        options:
+          - "manual"
+          - "live_metal"
       - { label: "Main Product Image", name: "image", widget: "image", hint: "Primary product photo" }
       - label: "Gallery Images (optional)"
         name: "images"
@@ -76,16 +85,123 @@ collections:
           - "mixed_metals"
           - "beaded"
       - { label: "Weight (optional)", name: "weight", widget: "string", required: false, hint: "Example: 12.5g" }
+      - label: "Pricing Weight (grams)"
+        name: "pricingWeightGrams"
+        widget: "number"
+        value_type: "float"
+        required: false
+        hint: "Optional override for live pricing. Use metal-only grams if the display weight includes stones."
+      - label: "Metal Rate Key"
+        name: "metalRateKey"
+        widget: "select"
+        required: false
+        hint: "Optional override. Leave blank to infer from material."
+        options:
+          - "silver_925"
+          - "gold_18k"
+          - "gold_22k"
+          - "gold_24k"
+      - { label: "Price Rounding Increment", name: "priceRoundingIncrement", widget: "number", value_type: "int", required: false, hint: "Example: 10 or 50 for live price rounding." }
       - { label: "Dimensions (optional)", name: "dimensions", widget: "string", required: false, hint: "Example: 18 in chain length" }
       - { label: "Stone Type (optional)", name: "stoneType", widget: "string", required: false, hint: "Example: Ruby, Emerald, CZ" }
       - { label: "Occasion (optional)", name: "occasion", widget: "string", required: false, hint: "Example: Wedding, Daily Wear, Festive" }
+      - label: "Occasions"
+        name: "occasions"
+        widget: "list"
+        required: false
+        hint: "Used for Shop By pages. Example: Daily Wear, Birthday Gift, Anniversary"
+        field:
+          label: "Occasion"
+          name: "occasion"
+          widget: "string"
+      - label: "Recipients"
+        name: "recipients"
+        widget: "list"
+        required: false
+        hint: "Example: Her, Mother, Sister"
+        field:
+          label: "Recipient"
+          name: "recipient"
+          widget: "string"
+      - label: "Styles"
+        name: "styles"
+        widget: "list"
+        required: false
+        hint: "Example: Minimal, Statement, Classic"
+        field:
+          label: "Style"
+          name: "style"
+          widget: "string"
+      - label: "Colors"
+        name: "colors"
+        widget: "list"
+        required: false
+        hint: "Example: Silver, Rose Gold, White"
+        field:
+          label: "Color"
+          name: "color"
+          widget: "string"
+      - label: "Tags"
+        name: "tags"
+        widget: "list"
+        required: false
+        hint: "Short merchandising labels like Giftable, Everyday, Signature"
+        field:
+          label: "Tag"
+          name: "tag"
+          widget: "string"
+      - label: "Care Tips"
+        name: "care"
+        widget: "list"
+        required: false
+        hint: "One care instruction per line"
+        field:
+          label: "Care Tip"
+          name: "care_tip"
+          widget: "string"
+      - { label: "Plating / Finish", name: "plating", widget: "string", required: false, hint: "Example: Rose gold plated, High-polish silver finish" }
+      - { label: "Collection", name: "collection", widget: "string", required: false, hint: "Example: Everyday Silver, Signature Rings" }
+      - { label: "Metal Tone", name: "metalTone", widget: "string", required: false, hint: "Example: Silver, Rose Gold" }
+      - { label: "Size Guide Note", name: "sizeGuide", widget: "string", required: false, hint: "Short note for size guidance" }
+      - { label: "Fit Notes", name: "fitNotes", widget: "text", required: false, hint: "Explain how the piece fits or should be styled" }
+      - { label: "Delivery Estimate", name: "deliveryEstimate", widget: "string", required: false, hint: "Example: Dispatch in 2 to 4 business days" }
+      - { label: "Warranty / Support", name: "warranty", widget: "string", required: false, hint: "Example: 30-day return support and finish-care guidance" }
+      - { label: "Gift Wrap Available", name: "giftWrapAvailable", widget: "boolean", default: true, required: false }
+      - { label: "Gift Card Assistance Available", name: "giftCardAvailable", widget: "boolean", default: false, required: false }
+      - label: "Complete The Look Product IDs"
+        name: "bundleIds"
+        widget: "list"
+        required: false
+        hint: "Add matching product IDs like ER002, NS001"
+        field:
+          label: "Product ID"
+          name: "bundle_id"
+          widget: "string"
+      - label: "Review Entries"
+        name: "reviews"
+        widget: "list"
+        required: false
+        hint: "Format each line as Name|5|Review Title|Review text|/images/jewelry/example.jpg"
+        field:
+          label: "Review Entry"
+          name: "review"
+          widget: "string"
+      - label: "Customer Photos"
+        name: "customerPhotos"
+        widget: "list"
+        required: false
+        hint: "Use lifestyle or customer-shot style images for the review gallery"
+        field:
+          label: "Customer Photo"
+          name: "customer_photo"
+          widget: "image"
       - { label: "In Stock", name: "inStock", widget: "boolean", default: true }
       - { label: "Featured Product", name: "featured", widget: "boolean", default: false }
       - { label: "New Arrival", name: "isNew", widget: "boolean", default: false }
 
   # Home Page Content
   - name: "home"
-    label: "🏠 Home Page"
+    label: "Home Page"
     files:
       - name: "home"
         label: "Home Page Content"
@@ -114,7 +230,7 @@ collections:
 
   # About Page Content
   - name: "about"
-    label: "👥 About Us"
+    label: "About Us"
     files:
       - name: "about"
         label: "About Page Content"
@@ -156,7 +272,7 @@ collections:
 
   # Website Settings
   - name: "settings"
-    label: "⚙️ Website Settings"
+    label: "Website Settings"
     files:
       - name: "settings"
         label: "Website Settings"
@@ -183,7 +299,7 @@ collections:
 
   # Media Library (for jewelry photos)
   - name: "media"
-    label: "📸 Jewelry Photos"
+    label: "Jewelry Photos"
     folder: "client/public/images/jewelry"
     create: true
     fields:

@@ -1,4 +1,11 @@
-import { createOrder } from '../../lib/db-store';
+import { createOrder, incrementPromoUsage, decrementStock } from '../../lib/db-store.js';
+import {
+  assertSubmittedTotal,
+  normalizeAndPriceOrderItems,
+  OrderValidationError,
+} from '../../lib/order-pricing.js';
+
+const ALLOWED_PAYMENT_METHODS = new Set(['cod', 'whatsapp', 'esewa', 'khalti', 'fonepay']);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -6,50 +13,66 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log('🛒 Order creation request received');
-    const { items, customer, total, paymentMethod } = req.body;
+    const { items, customer, total, paymentMethod, promoCode } = req.body;
 
-    // Validate required fields
-    if (!items || !customer || !total || !paymentMethod) {
-      console.error('❌ Missing required fields in order request');
+    if (!items || !customer || !paymentMethod) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Validate customer info
+    if (!ALLOWED_PAYMENT_METHODS.has(paymentMethod)) {
+      return res.status(400).json({ error: 'Unsupported payment method' });
+    }
+
     if (!customer.name || !customer.phone || !customer.address?.street || !customer.address?.district) {
-      console.error('❌ Incomplete customer information');
       return res.status(400).json({ error: 'Incomplete customer information' });
     }
 
-    // Create order object
-    const orderData = {
-      items,
+    const pricing = await normalizeAndPriceOrderItems(items, promoCode || null);
+    assertSubmittedTotal(total, pricing.total);
+
+    const order = await createOrder({
+      items: pricing.items,
       customer,
-      total,
+      total: pricing.total,
       paymentMethod,
       status: paymentMethod === 'cod' ? 'confirmed' : 'pending',
-    };
+      promoCode: pricing.appliedPromo || null,
+      discountAmount: pricing.discountAmount || 0,
+    });
 
-    // Save order to store
-    const order = await createOrder(orderData);
     if (!order || !order.id) {
-      console.error('❌ Order creation failed or missing order ID');
       return res.status(500).json({ error: 'Order creation failed' });
     }
-    console.log('✅ New order created:', order.id);
 
-    // You could also send an email/SMS notification here
-    // await sendOrderConfirmation(order);
+    // Fire-and-forget: increment promo usage + decrement stock
+    if (pricing.appliedPromo) {
+      incrementPromoUsage(pricing.appliedPromo).catch(err =>
+        console.error('Failed to increment promo usage:', err)
+      );
+    }
+    for (const item of pricing.items) {
+      decrementStock(item.id, item.quantity).catch(err =>
+        console.error(`Failed to decrement stock for ${item.id}:`, err)
+      );
+    }
 
     return res.status(200).json({
       success: true,
       orderId: order.id,
-      message: paymentMethod === 'cod' 
+      total: pricing.total,
+      discountAmount: pricing.discountAmount,
+      message: paymentMethod === 'cod'
         ? 'Order placed successfully! We will call you to confirm.'
         : 'Order created successfully!',
     });
-
   } catch (error) {
+    if (error instanceof OrderValidationError) {
+      return res.status(400).json({
+        error: error.message,
+        ...(error.details ? { details: error.details } : {}),
+      });
+    }
+
     console.error('Order creation error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }

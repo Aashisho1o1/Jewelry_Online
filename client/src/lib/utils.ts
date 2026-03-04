@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 export async function apiRequest(
   method: string,
   endpoint: string,
-  body?: any
+  body?: unknown
 ): Promise<Response> {
   const options: RequestInit = {
     method,
