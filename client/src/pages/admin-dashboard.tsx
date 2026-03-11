@@ -130,6 +130,15 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+function escapeHtml(value: unknown) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
 function exportOrdersCSV(orders: AdminOrder[]) {
   const headers = ['Order ID','Customer','Phone','Address','Items','Total','Payment','Status','Date','Notes'];
   const rows = orders.map(o => [
@@ -156,7 +165,14 @@ function exportOrdersCSV(orders: AdminOrder[]) {
 function printOrder(order: AdminOrder) {
   const w = window.open('', '_blank', 'width=620,height=900');
   if (!w) return;
-  w.document.write(`<!DOCTYPE html><html><head><title>Order ${order.id}</title><style>
+  const address = [order.customer?.address?.street, order.customer?.address?.landmark, order.customer?.address?.district, order.customer?.address?.zone]
+    .filter(Boolean)
+    .join(', ');
+  const itemRows = (order.items || []).map(i =>
+    `<tr><td>${escapeHtml(i.name)}</td><td>${escapeHtml(i.quantity)}</td><td>NPR ${Number(i.price).toLocaleString()}</td><td>NPR ${(i.price * i.quantity).toLocaleString()}</td></tr>`
+  ).join('');
+  // Escape user-controlled fields before writing printable HTML into the popup.
+  w.document.write(`<!DOCTYPE html><html><head><title>Order ${escapeHtml(order.id)}</title><style>
     body{font-family:monospace;padding:24px;font-size:13px;color:#111}
     h1{font-size:15px;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:12px}
     .row{display:flex;justify-content:space-between;margin:3px 0}
@@ -166,21 +182,22 @@ function printOrder(order: AdminOrder) {
     th{background:#f5f5f5}.total{font-weight:bold;font-size:14px;margin-top:8px}
   </style></head><body>
   <h1>Aashish Jewellers — Order Slip</h1>
-  <div class="row"><span class="label">Order ID</span><span>${order.id}</span></div>
-  <div class="row"><span class="label">Date</span><span>${new Date(order.created_at).toLocaleString()}</span></div>
-  <div class="row"><span class="label">Status</span><span>${order.status.toUpperCase()}</span></div>
-  <div class="row"><span class="label">Payment</span><span>${order.payment_method}</span></div>
+  <div class="row"><span class="label">Order ID</span><span>${escapeHtml(order.id)}</span></div>
+  <div class="row"><span class="label">Date</span><span>${escapeHtml(new Date(order.created_at).toLocaleString())}</span></div>
+  <div class="row"><span class="label">Status</span><span>${escapeHtml(order.status.toUpperCase())}</span></div>
+  <div class="row"><span class="label">Payment</span><span>${escapeHtml(order.payment_method)}</span></div>
   <hr>
-  <div class="row"><span class="label">Name</span><span>${order.customer?.name || '-'}</span></div>
-  <div class="row"><span class="label">Phone</span><span>${order.customer?.phone || '-'}</span></div>
-  <div class="row"><span class="label">Address</span><span>${[order.customer?.address?.street, order.customer?.address?.landmark, order.customer?.address?.district, order.customer?.address?.zone].filter(Boolean).join(', ')}</span></div>
+  <div class="row"><span class="label">Name</span><span>${escapeHtml(order.customer?.name || '-')}</span></div>
+  <div class="row"><span class="label">Phone</span><span>${escapeHtml(order.customer?.phone || '-')}</span></div>
+  <div class="row"><span class="label">Address</span><span>${escapeHtml(address || '-')}</span></div>
   <hr>
   <table><tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Subtotal</th></tr>
-  ${(order.items || []).map(i => `<tr><td>${i.name}</td><td>${i.quantity}</td><td>NPR ${Number(i.price).toLocaleString()}</td><td>NPR ${(i.price * i.quantity).toLocaleString()}</td></tr>`).join('')}
+  ${itemRows}
   </table>
   <div class="total">Total: NPR ${Number(order.total).toLocaleString()}</div>
-  ${order.notes ? `<hr><p><strong>Note:</strong> ${order.notes}</p>` : ''}
+  ${order.notes ? `<hr><p><strong>Note:</strong> ${escapeHtml(order.notes)}</p>` : ''}
   <script>window.print();window.close();</script></body></html>`);
+  w.document.close();
 }
 
 function RevenueChart({ days }: { days: DailyRevenue[] }) {

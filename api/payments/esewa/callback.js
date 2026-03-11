@@ -35,8 +35,13 @@ export default async function handler(req, res) {
     const signedFields = parsedData.signed_field_names.split(',');
     const message = signedFields.map(f => `${f}=${parsedData[f]}`).join(',');
     const expectedSignature = crypto.createHmac('sha256', secretKey).update(message).digest('base64');
+    const expectedBuffer = Buffer.from(expectedSignature);
+    const receivedBuffer = Buffer.from(String(parsedData.signature));
 
-    if (expectedSignature !== parsedData.signature) {
+    if (
+      expectedBuffer.length !== receivedBuffer.length
+      || !crypto.timingSafeEqual(expectedBuffer, receivedBuffer)
+    ) {
       console.error('[esewa] Signature verification failed');
       return res.redirect('/checkout?status=failed&error=invalid_signature');
     }
@@ -47,13 +52,22 @@ export default async function handler(req, res) {
       return res.redirect(`/checkout?status=failed&error=payment_incomplete&code=${paymentStatus}`);
     }
 
-    const { updateOrderStatus, getOrderById } = await import('../../../lib/db-store.js');
+    const { confirmOrder, getOrderById } = await import('../../../lib/db-store.js');
     const existingOrder = await getOrderById(transactionUuid);
-    if (existingOrder) {
-      await updateOrderStatus(transactionUuid, 'confirmed');
+    if (!existingOrder) {
+      return res.redirect('/checkout?status=failed&error=order_not_found');
     }
 
-    return res.redirect(`/order-success?id=${transactionUuid}&payment=esewa&amount=${totalAmount}&txn=${transactionCode}`);
+    await confirmOrder(transactionUuid, {
+      provider: 'esewa',
+      transactionCode,
+      totalAmount,
+    });
+
+    const phoneParam = existingOrder.customer?.phone
+      ? `&phone=${encodeURIComponent(existingOrder.customer.phone)}`
+      : '';
+    return res.redirect(`/order-success?id=${transactionUuid}&payment=esewa&amount=${totalAmount}&txn=${transactionCode}${phoneParam}`);
 
   } catch (error) {
     console.error('[esewa] Callback error:', error.message);

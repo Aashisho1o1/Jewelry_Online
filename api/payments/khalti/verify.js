@@ -22,14 +22,23 @@ export default async function handler(req, res) {
     const verificationData = await verificationResponse.json();
 
     if (verificationResponse.ok && verificationData.status === 'Completed') {
-      const { updateOrderStatus, getOrderById } = await import('../../../lib/db-store.js');
+      const { confirmOrder, getOrderById } = await import('../../../lib/db-store.js');
       const existingOrder = await getOrderById(purchase_order_id);
-      if (existingOrder) {
-        await updateOrderStatus(purchase_order_id, 'confirmed');
+      if (!existingOrder) {
+        return res.redirect('/checkout?status=failed&error=order_not_found');
       }
 
-      const amountNPR = parseInt(amount) / 100;
-      return res.redirect(`/order-success?id=${purchase_order_id}&payment=khalti&amount=${amountNPR}&txn=${verificationData.transaction_id}`);
+      await confirmOrder(purchase_order_id, {
+        provider: 'khalti',
+        pidx,
+        transactionId: verificationData.transaction_id || null,
+      });
+
+      const amountNPR = Number(verificationData.total_amount || amount) / 100;
+      const phoneParam = existingOrder.customer?.phone
+        ? `&phone=${encodeURIComponent(existingOrder.customer.phone)}`
+        : '';
+      return res.redirect(`/order-success?id=${purchase_order_id}&payment=khalti&amount=${amountNPR}&txn=${verificationData.transaction_id}${phoneParam}`);
     }
 
     const errorMessage = verificationData.detail ? encodeURIComponent(verificationData.detail) : 'verification_failed';

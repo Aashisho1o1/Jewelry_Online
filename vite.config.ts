@@ -513,7 +513,7 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: {
             'vendor-react': ['react', 'react-dom'],
-            'vendor-ui': ['wouter', 'react-helmet-async'],
+            'vendor-ui': ['wouter'],
             'vendor-icons': ['lucide-react', 'react-icons'],
           },
         },

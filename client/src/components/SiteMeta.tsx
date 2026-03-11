@@ -1,4 +1,4 @@
-import { Helmet } from 'react-helmet-async';
+import { useEffect } from 'react';
 
 const SITE_NAME = 'Aashish Jewellers';
 const SITE_URL = 'https://www.aashish.website';
@@ -26,32 +26,66 @@ export default function SiteMeta({
   const fullTitle = title.includes('|') ? title : `${title} | ${SITE_NAME}`;
   const imageUrl = image.startsWith('http') ? image : `${SITE_URL}${image}`;
   const canonicalUrl = canonical ? `${SITE_URL}${canonical}` : undefined;
+  const jsonLdString = jsonLd ? JSON.stringify(jsonLd) : null;
 
-  return (
-    <Helmet>
-      <title>{fullTitle}</title>
-      <meta name="description" content={description} />
+  useEffect(() => {
+    const previousTitle = document.title;
+    const created: Element[] = [];
 
-      {noindex && <meta name="robots" content="noindex,nofollow" />}
-      {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+    // Keep page metadata working without a runtime head-management dependency.
+    const append = <T extends Element>(element: T) => {
+      element.setAttribute('data-site-meta', 'true');
+      document.head.appendChild(element);
+      created.push(element);
+      return element;
+    };
 
-      {/* Open Graph */}
-      <meta property="og:title" content={fullTitle} />
-      <meta property="og:description" content={description} />
-      <meta property="og:image" content={imageUrl} />
-      <meta property="og:type" content="website" />
-      <meta property="og:site_name" content={SITE_NAME} />
+    document.querySelectorAll('[data-site-meta="true"]').forEach(element => element.remove());
+    document.title = fullTitle;
 
-      {/* Twitter Card */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content={fullTitle} />
-      <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={imageUrl} />
+    const createMeta = (key: 'name' | 'property', value: string, content: string) => {
+      const meta = document.createElement('meta');
+      meta.setAttribute(key, value);
+      meta.content = content;
+      append(meta);
+    };
 
-      {/* JSON-LD Structured Data */}
-      {jsonLd && (
-        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
-      )}
-    </Helmet>
-  );
+    createMeta('name', 'description', description);
+
+    if (noindex) {
+      createMeta('name', 'robots', 'noindex,nofollow');
+    }
+
+    if (canonicalUrl) {
+      const link = document.createElement('link');
+      link.rel = 'canonical';
+      link.href = canonicalUrl;
+      append(link);
+    }
+
+    createMeta('property', 'og:title', fullTitle);
+    createMeta('property', 'og:description', description);
+    createMeta('property', 'og:image', imageUrl);
+    createMeta('property', 'og:type', 'website');
+    createMeta('property', 'og:site_name', SITE_NAME);
+
+    createMeta('name', 'twitter:card', 'summary_large_image');
+    createMeta('name', 'twitter:title', fullTitle);
+    createMeta('name', 'twitter:description', description);
+    createMeta('name', 'twitter:image', imageUrl);
+
+    if (jsonLdString) {
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.text = jsonLdString;
+      append(script);
+    }
+
+    return () => {
+      document.title = previousTitle;
+      created.forEach(element => element.remove());
+    };
+  }, [canonicalUrl, description, fullTitle, imageUrl, jsonLdString, noindex]);
+
+  return null;
 }

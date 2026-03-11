@@ -1,16 +1,25 @@
-import { createOrder, incrementPromoUsage, decrementStock } from '../../lib/db-store.js';
+import { createOrder } from '../../lib/db-store.js';
 import {
   assertSubmittedTotal,
   normalizeAndPriceOrderItems,
   OrderValidationError,
 } from '../../lib/order-pricing.js';
+import { rateLimit } from '../../lib/rate-limiter.js';
 
 const ALLOWED_PAYMENT_METHODS = new Set(['cod', 'whatsapp', 'esewa', 'khalti', 'fonepay']);
+const createOrderRateLimit = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  message: 'Too many order attempts. Please wait a moment before trying again.',
+});
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  const allowed = await createOrderRateLimit(req, res);
+  if (!allowed) return;
 
   try {
     const { items, customer, total, paymentMethod, promoCode } = req.body;
@@ -35,25 +44,13 @@ export default async function handler(req, res) {
       customer,
       total: pricing.total,
       paymentMethod,
-      status: paymentMethod === 'cod' ? 'confirmed' : 'pending',
+      status: 'pending',
       promoCode: pricing.appliedPromo || null,
       discountAmount: pricing.discountAmount || 0,
     });
 
     if (!order || !order.id) {
       return res.status(500).json({ error: 'Order creation failed' });
-    }
-
-    // Fire-and-forget: increment promo usage + decrement stock
-    if (pricing.appliedPromo) {
-      incrementPromoUsage(pricing.appliedPromo).catch(err =>
-        console.error('Failed to increment promo usage:', err)
-      );
-    }
-    for (const item of pricing.items) {
-      decrementStock(item.id, item.quantity).catch(err =>
-        console.error(`Failed to decrement stock for ${item.id}:`, err)
-      );
     }
 
     return res.status(200).json({

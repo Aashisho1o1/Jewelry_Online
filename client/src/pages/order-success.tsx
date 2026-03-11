@@ -165,10 +165,10 @@ export default function OrderSuccess() {
           {customerPhone && (
             <div className="mt-4 text-center">
               <Link
-                href={`/my-orders?phone=${encodeURIComponent(customerPhone)}`}
+                href={`/my-orders?phone=${encodeURIComponent(customerPhone)}&orderId=${encodeURIComponent(orderId)}`}
                 className="text-xs text-stone-400 hover:text-stone-900 transition-colors"
               >
-                View all your orders {'->'}
+                View this order {'->'}
               </Link>
             </div>
           )}

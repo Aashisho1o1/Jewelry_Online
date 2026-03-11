@@ -20,7 +20,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  if (!paymentRateLimit(req, res)) return;
+  const allowed = await paymentRateLimit(req, res);
+  if (!allowed) return;
 
   try {
     const { items, customer, total } = req.body;
@@ -36,21 +37,6 @@ export default async function handler(req, res) {
     const pricing = await normalizeAndPriceOrderItems(items);
     assertSubmittedTotal(total, pricing.total);
 
-    const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const { createOrder } = await import('../../../lib/db-store.js');
-
-    await createOrder({
-      id: orderId,
-      items: pricing.items,
-      customer,
-      total: pricing.total,
-      paymentMethod: 'khalti',
-      status: 'pending',
-      paymentDetails: {
-        provider: 'khalti',
-      },
-    });
-
     const khaltiSecretKey = process.env.KHALTI_SECRET_KEY;
     if (!khaltiSecretKey) {
       return res.status(500).json({
@@ -58,6 +44,8 @@ export default async function handler(req, res) {
         message: 'Khalti payment is temporarily unavailable. Please try another payment method.',
       });
     }
+
+    const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     const amountBreakdown = [
       {
@@ -106,6 +94,22 @@ export default async function handler(req, res) {
     const khaltiData = await khaltiResponse.json();
 
     if (khaltiResponse.ok && khaltiData.payment_url) {
+      const { createOrder } = await import('../../../lib/db-store.js');
+
+      // Only persist a pending order after the gateway gives us a valid payment session.
+      await createOrder({
+        id: orderId,
+        items: pricing.items,
+        customer,
+        total: pricing.total,
+        paymentMethod: 'khalti',
+        status: 'pending',
+        paymentDetails: {
+          provider: 'khalti',
+          pidx: khaltiData.pidx || null,
+        },
+      });
+
       return res.status(200).json({
         success: true,
         orderId,

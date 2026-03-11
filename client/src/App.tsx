@@ -1,5 +1,4 @@
 import { Switch, Route } from "wouter";
-import { HelmetProvider } from "react-helmet-async";
 import Nav from "@/components/nav";
 import Footer from "@/components/footer";
 import Home from "@/pages/home";
@@ -30,8 +29,7 @@ import { Toaster } from "@/components/ui/toaster";
 
 function App() {
   return (
-    <HelmetProvider>
-      <FlashSaleProvider>
+    <FlashSaleProvider>
       <CartProvider>
         <EngagementProvider>
           <ChatProvider>
@@ -68,8 +66,7 @@ function App() {
           </ChatProvider>
         </EngagementProvider>
       </CartProvider>
-      </FlashSaleProvider>
-    </HelmetProvider>
+    </FlashSaleProvider>
   );
 }
 

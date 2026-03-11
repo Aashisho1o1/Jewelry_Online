@@ -1,5 +1,5 @@
 import { requireAdminAuth } from '../../lib/admin-auth.js';
-import { updateOrderStatus } from '../../lib/db-store.js';
+import { confirmOrder, updateOrderStatus } from '../../lib/db-store.js';
 import { sendWhatsAppMessage } from '../../lib/whatsapp.js';
 
 const ALLOWED_STATUSES = new Set(['pending', 'confirmed', 'processing', 'dispatched', 'delivered']);
@@ -16,7 +16,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    const order = await updateOrderStatus(orderId, status);
+    const order = status === 'confirmed'
+      ? await confirmOrder(orderId)
+      : await updateOrderStatus(orderId, status);
     if (!order) return res.status(404).json({ error: 'Order not found' });
 
     let whatsappSent = false;

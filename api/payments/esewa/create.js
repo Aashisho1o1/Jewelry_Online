@@ -30,7 +30,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  if (!paymentRateLimit(req, res)) return;
+  const allowed = await paymentRateLimit(req, res);
+  if (!allowed) return;
 
   try {
     const { items, customer, total } = req.body;
@@ -102,7 +103,6 @@ export default async function handler(req, res) {
       paymentDetails: {
         provider: 'esewa',
         transactionUuid,
-        signature,
       },
     });
 

@@ -99,22 +99,25 @@ function Timeline({ status }: { status: string }) {
 export default function OrderTrack() {
   const [, params] = useRoute('/orders/:id');
   const urlId = params?.id || '';
+  const urlPhone = new URLSearchParams(window.location.search).get('phone') || '';
 
   const [inputId, setInputId] = useState(urlId);
   const [searchId, setSearchId] = useState(urlId);
+  const [inputPhone, setInputPhone] = useState(urlPhone);
+  const [searchPhone, setSearchPhone] = useState(urlPhone);
   const [order, setOrder] = useState<TrackedOrder | null>(null);
-  const [loading, setLoading] = useState(Boolean(urlId));
+  const [loading, setLoading] = useState(Boolean(urlId && urlPhone));
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!searchId) return;
+    if (!searchId || !searchPhone) return;
 
     let cancelled = false;
     setLoading(true);
     setError('');
     setOrder(null);
 
-    fetch(`/api/orders/lookup?id=${encodeURIComponent(searchId)}`)
+    fetch(`/api/orders/lookup?id=${encodeURIComponent(searchId)}&phone=${encodeURIComponent(searchPhone)}`)
       .then(async r => {
         const data = await r.json();
         if (cancelled) return;
@@ -132,12 +135,22 @@ export default function OrderTrack() {
       });
 
     return () => { cancelled = true; };
-  }, [searchId]);
+  }, [searchId, searchPhone]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = inputId.trim();
-    if (trimmed) setSearchId(trimmed);
+    const trimmedPhone = inputPhone.trim();
+    if (!trimmed) {
+      setError('Please enter your order ID.');
+      return;
+    }
+    if (trimmedPhone.length < 7) {
+      setError('Please enter the phone number you used at checkout.');
+      return;
+    }
+    setSearchId(trimmed);
+    setSearchPhone(trimmedPhone);
   };
 
   return (
@@ -147,17 +160,24 @@ export default function OrderTrack() {
         <p className="text-xs tracking-[0.22em] uppercase text-stone-500 mb-4">Order Status</p>
         <h1 className="text-4xl md:text-5xl font-serif font-light text-stone-900">Track your order</h1>
         <p className="text-stone-600 leading-relaxed mt-4">
-          Enter your order ID from the confirmation message or email to check its status.
+          Enter your order ID and the phone number you used at checkout to check its status.
         </p>
 
         {/* Search form */}
-        <form onSubmit={handleSearch} className="flex gap-3 mt-8">
+        <form onSubmit={handleSearch} className="mt-8 flex flex-col gap-3 sm:flex-row">
           <input
             type="text"
             value={inputId}
             onChange={e => setInputId(e.target.value)}
             placeholder="e.g. ORD-1234567890-abc"
             className="flex-1 border border-stone-300 bg-white px-4 py-3 text-sm text-stone-800 focus:outline-none focus:border-stone-900 transition-colors tracking-[0.05em] font-mono"
+          />
+          <input
+            type="tel"
+            value={inputPhone}
+            onChange={e => setInputPhone(e.target.value)}
+            placeholder="Checkout phone number"
+            className="flex-1 border border-stone-300 bg-white px-4 py-3 text-sm text-stone-800 focus:outline-none focus:border-stone-900 transition-colors"
           />
           <button
             type="submit"

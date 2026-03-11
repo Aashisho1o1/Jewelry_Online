@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'wouter';
+import { Link } from 'wouter';
 import { Package, ChevronRight, Search } from 'lucide-react';
 import SiteMeta from '@/components/SiteMeta';
 
@@ -48,28 +48,33 @@ function formatDate(iso: string) {
 }
 
 export default function MyOrders() {
-  const [, params] = useLocation();
   const urlParams = new URLSearchParams(window.location.search);
   const prefillPhone = urlParams.get('phone') || '';
+  const prefillOrderId = urlParams.get('orderId') || '';
 
   const [phone, setPhone] = useState(prefillPhone);
+  const [orderId, setOrderId] = useState(prefillOrderId);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (prefillPhone && prefillPhone.length >= 7) {
-      fetchOrders(prefillPhone);
+    if (prefillPhone && prefillOrderId) {
+      fetchOrders(prefillPhone, prefillOrderId);
     }
   }, []);
 
-  async function fetchOrders(phoneValue: string) {
+  async function fetchOrders(phoneValue: string, orderIdValue: string) {
     setLoading(true);
     setError('');
     setSearched(false);
     try {
-      const res = await fetch(`/api/orders/history?phone=${encodeURIComponent(phoneValue.trim())}`);
+      const params = new URLSearchParams({
+        phone: phoneValue.trim(),
+        orderId: orderIdValue.trim(),
+      });
+      const res = await fetch(`/api/orders/history?${params.toString()}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to load orders');
       setOrders(data.orders || []);
@@ -83,11 +88,15 @@ export default function MyOrders() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!orderId.trim()) {
+      setError('Please enter your order ID.');
+      return;
+    }
     if (phone.trim().length < 7) {
       setError('Please enter a valid phone number.');
       return;
     }
-    fetchOrders(phone.trim());
+    fetchOrders(phone.trim(), orderId.trim());
   }
 
   return (
@@ -102,13 +111,20 @@ export default function MyOrders() {
             <p className="text-[10px] uppercase tracking-[0.22em] text-stone-400 mb-2">Account</p>
             <h1 className="font-serif text-3xl font-light text-stone-900">My Orders</h1>
             <p className="mt-2 text-sm text-stone-500">
-              Enter the phone number you used at checkout to view your order history.
+              Enter your order ID and checkout phone number to view your order securely.
             </p>
           </div>
 
-          {/* Phone lookup form */}
+          {/* Secure order lookup form */}
           <form onSubmit={handleSubmit} className="mb-8">
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input
+                type="text"
+                value={orderId}
+                onChange={e => setOrderId(e.target.value)}
+                placeholder="e.g. ORD-1234567890-abc"
+                className="flex-1 border border-stone-300 bg-white px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:border-stone-900 focus:outline-none font-mono"
+              />
               <input
                 type="tel"
                 value={phone}
@@ -136,7 +152,7 @@ export default function MyOrders() {
               <Package className="mx-auto mb-4 h-8 w-8 text-stone-300" strokeWidth={1} />
               <p className="font-serif text-lg font-light text-stone-900">No orders found</p>
               <p className="mt-1 text-sm text-stone-400">
-                No orders were found for this phone number.
+                No order matched that order ID and phone number.
               </p>
             </div>
           )}
@@ -150,7 +166,7 @@ export default function MyOrders() {
                 const statusLabel = STATUS_LABELS[order.status] || order.status;
 
                 return (
-                  <Link key={order.id} href={`/orders/${order.id}`}>
+                  <Link key={order.id} href={`/orders/${order.id}?phone=${encodeURIComponent(phone.trim())}`}>
                     <div className="flex items-center gap-4 border border-stone-200 bg-white px-5 py-4 transition-colors hover:border-stone-400 cursor-pointer">
                       {/* Thumbnail */}
                       <div className="h-14 w-14 shrink-0 overflow-hidden bg-[#f0ebe3]">

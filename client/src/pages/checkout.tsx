@@ -842,7 +842,7 @@ Please confirm this order and estimated delivery time.`;
         customerName={customerInfo.name}
         onPaymentComplete={() => {
           clearCart();
-          window.location.href = `/order-success?id=${fonePayOrderId}&method=fonepay`;
+          window.location.href = `/order-success?id=${fonePayOrderId}&payment=fonepay&phone=${encodeURIComponent(customerInfo.phone)}`;
         }}
       />
     </div>
