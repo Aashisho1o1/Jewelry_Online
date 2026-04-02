@@ -1,6 +1,6 @@
-# 📱 FonePay QR Code Setup Instructions
+# FonePay QR Code Setup Instructions
 
-## 🎯 What You Need to Do
+## What You Need to Do
 
 1. **Save the QR Code Image:**
    - Take the FonePay QR code image you shared
@@ -14,7 +14,7 @@
    - Click "Place Order"
    - The modal should now show your real QR code!
 
-## 🔧 Technical Details (For Learning)
+## Technical Details (For Learning)
 
 ### Why This Approach Works:
 - **Static Asset Serving**: Vite serves files from `client/public/` directly
@@ -25,10 +25,10 @@
 ### File Structure:
 ```
 client/public/images/
-├── fonepay-qr-code.jpg  ← Your QR code goes here
-├── hero-image.jpg
-├── esewa-logo.jpeg
-└── khalti-logo.png
+|-- fonepay-qr-code.jpg  <- Your QR code goes here
+|-- hero-image.jpg
+|-- esewa-logo.jpeg
+`-- khalti-logo.png
 ```
 
 ### Security Considerations:
@@ -36,7 +36,7 @@ client/public/images/
 - No sensitive payment data in the image
 - Terminal ID is public information (safe to display)
 
-## 🚀 Next Steps After Setup
+## Next Steps After Setup
 
 1. **Test the Payment Flow:**
    - Use a small test amount
@@ -53,7 +53,7 @@ client/public/images/
    - Generate dynamic QR codes with order details
    - Add SMS notifications for successful payments
 
-## 💡 Pro Tips
+## Pro Tips
 
 - **Image Quality**: Keep the QR code image clear and high-resolution
 - **File Size**: Optimize image size (should be under 500KB)

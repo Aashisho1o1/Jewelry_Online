@@ -1,55 +1,75 @@
-import { createOrder } from '../../lib/db-store';
+import { createOrder } from '../../lib/db-store.js';
+import {
+  assertSubmittedTotal,
+  normalizeAndPriceOrderItems,
+  OrderValidationError,
+} from '../../lib/order-pricing.js';
+import { rateLimit } from '../../lib/rate-limiter.js';
+
+const ALLOWED_PAYMENT_METHODS = new Set(['cod', 'whatsapp', 'esewa', 'khalti', 'fonepay']);
+const createOrderRateLimit = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  message: 'Too many order attempts. Please wait a moment before trying again.',
+});
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  try {
-    console.log('🛒 Order creation request received');
-    const { items, customer, total, paymentMethod } = req.body;
+  const allowed = await createOrderRateLimit(req, res);
+  if (!allowed) return;
 
-    // Validate required fields
-    if (!items || !customer || !total || !paymentMethod) {
-      console.error('❌ Missing required fields in order request');
+  try {
+    const { items, customer, total, paymentMethod, promoCode } = req.body;
+
+    if (!items || !customer || !paymentMethod) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Validate customer info
+    if (!ALLOWED_PAYMENT_METHODS.has(paymentMethod)) {
+      return res.status(400).json({ error: 'Unsupported payment method' });
+    }
+
     if (!customer.name || !customer.phone || !customer.address?.street || !customer.address?.district) {
-      console.error('❌ Incomplete customer information');
       return res.status(400).json({ error: 'Incomplete customer information' });
     }
 
-    // Create order object
-    const orderData = {
-      items,
-      customer,
-      total,
-      paymentMethod,
-      status: paymentMethod === 'cod' ? 'confirmed' : 'pending',
-    };
+    const pricing = await normalizeAndPriceOrderItems(items, promoCode || null);
+    assertSubmittedTotal(total, pricing.total);
 
-    // Save order to store
-    const order = await createOrder(orderData);
+    const order = await createOrder({
+      items: pricing.items,
+      customer,
+      total: pricing.total,
+      paymentMethod,
+      status: 'pending',
+      promoCode: pricing.appliedPromo || null,
+      discountAmount: pricing.discountAmount || 0,
+    });
+
     if (!order || !order.id) {
-      console.error('❌ Order creation failed or missing order ID');
       return res.status(500).json({ error: 'Order creation failed' });
     }
-    console.log('✅ New order created:', order.id);
-
-    // You could also send an email/SMS notification here
-    // await sendOrderConfirmation(order);
 
     return res.status(200).json({
       success: true,
       orderId: order.id,
-      message: paymentMethod === 'cod' 
+      total: pricing.total,
+      discountAmount: pricing.discountAmount,
+      message: paymentMethod === 'cod'
         ? 'Order placed successfully! We will call you to confirm.'
         : 'Order created successfully!',
     });
-
   } catch (error) {
+    if (error instanceof OrderValidationError) {
+      return res.status(400).json({
+        error: error.message,
+        ...(error.details ? { details: error.details } : {}),
+      });
+    }
+
     console.error('Order creation error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }

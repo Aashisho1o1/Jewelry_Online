@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { CartItem } from '../types/cart';
 import { JewelryProduct } from '../types/jewelry';
+import { getProducts } from '../data/product-loader';
 
 const CART_STORAGE_KEY = 'aashish-cart';
 
@@ -38,9 +39,11 @@ export function useCart() {
         id: product.id,
         name: product.name,
         price: product.price,
+        originalPrice: product.originalPrice,
         image: product.image,
         quantity: 1,
         material: product.material,
+        category: product.category,
       };
       
       return [...current, newItem];
@@ -70,6 +73,51 @@ export function useCart() {
     setItems([]);
   };
 
+  const refreshPrices = useCallback(async () => {
+    try {
+      const products = await getProducts(true);
+      const productMap = new Map(products.map(product => [product.id, product]));
+
+      const nextItems = items.map(item => {
+        const product = productMap.get(item.id);
+        if (!product) {
+          return item;
+        }
+
+        return {
+          ...item,
+          name: product.name,
+          price: product.price,
+          originalPrice: product.originalPrice,
+          image: product.image,
+          material: product.material,
+          category: product.category,
+        };
+      });
+
+      const didChange = nextItems.some((item, index) => {
+        const currentItem = items[index];
+        return (
+          item.name !== currentItem?.name ||
+          item.price !== currentItem?.price ||
+          item.originalPrice !== currentItem?.originalPrice ||
+          item.image !== currentItem?.image ||
+          item.material !== currentItem?.material ||
+          item.category !== currentItem?.category
+        );
+      });
+
+      if (didChange) {
+        setItems(nextItems);
+      }
+
+      return didChange;
+    } catch (error) {
+      console.error('Failed to refresh cart prices:', error);
+      return false;
+    }
+  }, [items]);
+
   // Computed values
   const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const count = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -82,5 +130,6 @@ export function useCart() {
     removeItem,
     updateQuantity,
     clearCart,
+    refreshPrices,
   };
 }

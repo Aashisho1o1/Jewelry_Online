@@ -43,8 +43,8 @@ Add these environment variables in your Vercel project settings:
 2. Click "Generate new token (classic)"
 
 3. Select scopes:
-   - ✅ `repo` (Full control of private repositories)
-   - ✅ `user:email` (Access user email addresses)
+   - `repo` (Full control of private repositories)
+   - `user:email` (Access user email addresses)
 
 4. Copy the token and add to Vercel as `GITHUB_TOKEN`
 

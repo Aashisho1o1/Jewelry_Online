@@ -93,9 +93,9 @@ export default function InstallPrompt() {
         </div>
         
         <div className="text-xs text-gray-600 mb-3">
-          • Faster loading times
-          • Offline browsing
-          • Push notifications for new arrivals
+          - Faster loading times
+          - Offline browsing
+          - Push notifications for new arrivals
         </div>
         
         <div className="flex gap-2">

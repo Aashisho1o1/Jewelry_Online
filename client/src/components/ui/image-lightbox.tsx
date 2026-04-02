@@ -144,7 +144,7 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({
 
       {/* Instructions */}
       <div className="absolute bottom-6 right-6 z-10 text-white/60 text-sm font-light">
-        <p>Click image to zoom • ESC to close{hasMultipleImages ? ' • \u2190 \u2192 to navigate' : ''}</p>
+        <p>Click image to zoom. ESC to close{hasMultipleImages ? ' - use left/right arrow keys to navigate' : ''}</p>
       </div>
 
       {/* Image counter */}

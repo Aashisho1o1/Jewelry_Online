@@ -1,24 +1,50 @@
 import fetch from "node-fetch";
 import process from "process";
+import { verifyOAuthState } from '../lib/oauth-state.js';
+
+function sendAuthError(res, status, title, message) {
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.status(status).send(`
+    <!DOCTYPE html>
+    <html>
+      <head><title>${title}</title></head>
+      <body>
+        <h2>${title}</h2>
+        <p>${message}</p>
+        <p>Please close this window and try again.</p>
+      </body>
+    </html>
+  `);
+}
 
 export default async (req, res) => {
-  const { code, error } = req.query;
+  const { code, error, state } = req.query;
   const GITHUB_CLIENT_ID = process.env.OAUTH_GITHUB_CLIENT_ID || process.env.GITHUB_CLIENT_ID;
   const GITHUB_CLIENT_SECRET = process.env.OAUTH_GITHUB_CLIENT_SECRET || process.env.GITHUB_CLIENT_SECRET;
 
   if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET) {
     console.error('Missing GitHub OAuth credentials');
-    res.status(500).send("GitHub OAuth credentials are not configured.");
+    sendAuthError(res, 500, 'Authentication Failed', 'GitHub OAuth credentials are not configured.');
     return;
   }
 
   if (error) {
-    res.status(400).send(`GitHub OAuth error: ${error}`);
+    sendAuthError(res, 400, 'Authentication Failed', 'GitHub did not complete the OAuth flow.');
     return;
   }
 
   if (!code) {
-    res.status(400).send("No authorization code received");
+    sendAuthError(res, 400, 'Authentication Failed', 'No authorization code was received.');
+    return;
+  }
+
+  let oauthState;
+  try {
+    oauthState = verifyOAuthState(state);
+  } catch (stateError) {
+    console.error('Invalid OAuth state:', stateError.message);
+    sendAuthError(res, 400, 'Authentication Failed', 'Invalid OAuth state.');
     return;
   }
 
@@ -40,12 +66,14 @@ export default async (req, res) => {
 
     if (data.error) {
       console.error('GitHub token exchange failed:', data.error_description);
-      res.status(400).send(`Error from GitHub: ${data.error_description}`);
+      sendAuthError(res, 400, 'Authentication Failed', 'GitHub rejected the token exchange.');
       return;
     }
 
     const { access_token } = data;
+    const trustedOrigin = oauthState.origin;
 
+    res.setHeader('Cache-Control', 'no-store');
     res.status(200).send(`
       <!DOCTYPE html>
       <html>
@@ -61,22 +89,25 @@ export default async (req, res) => {
           <p>Redirecting you back to the CMS...</p>
           <p><small>If this window doesn't close automatically, please close it manually.</small></p>
           <script>
-            const token = '${access_token}';
+            const token = ${JSON.stringify(access_token)};
+            const trustedOrigin = ${JSON.stringify(trustedOrigin)};
             const hasOpener = !!window.opener;
+            const authMessage = \`authorization:github:success:\${JSON.stringify({ token, provider: 'github' })}\`;
 
             if (hasOpener) {
               try {
                 // Initiate two-way handshake with Decap CMS
-                window.opener.postMessage("authorizing:github", "*");
+                window.opener.postMessage("authorizing:github", trustedOrigin);
 
                 let handshakeComplete = false;
                 const receiveMessage = (event) => {
+                  if (event.origin !== trustedOrigin) {
+                    return;
+                  }
+
                   if (event.data && typeof event.data === 'string' && event.data.includes('authorizing')) {
                     handshakeComplete = true;
-
-                    const tokenData = { token: token, provider: 'github' };
-                    const authMessage = \`authorization:github:success:\${JSON.stringify(tokenData)}\`;
-                    window.opener.postMessage(authMessage, event.origin);
+                    window.opener.postMessage(authMessage, trustedOrigin);
 
                     window.removeEventListener('message', receiveMessage);
                     setTimeout(() => window.close(), 1000);
@@ -88,7 +119,7 @@ export default async (req, res) => {
                 // Fallback: if no acknowledgment within 5 seconds, send token directly
                 setTimeout(() => {
                   if (!handshakeComplete) {
-                    window.opener.postMessage(\`authorization:github:success:\${token}\`, '*');
+                    window.opener.postMessage(authMessage, trustedOrigin);
                     window.removeEventListener('message', receiveMessage);
                     setTimeout(() => window.close(), 1000);
                   }
@@ -99,7 +130,7 @@ export default async (req, res) => {
               } catch (err) {
                 console.error('OAuth handshake error:', err);
                 try {
-                  window.opener.postMessage(\`authorization:github:success:\${token}\`, '*');
+                  window.opener.postMessage(authMessage, trustedOrigin);
                   setTimeout(() => window.close(), 1000);
                 } catch (e) {}
               }
@@ -112,16 +143,6 @@ export default async (req, res) => {
     `);
   } catch (error) {
     console.error('OAuth callback error:', error);
-    res.status(500).send(`
-      <!DOCTYPE html>
-      <html>
-        <head><title>Authentication Error</title></head>
-        <body>
-          <h2>Authentication Failed</h2>
-          <p>Error: ${error.message}</p>
-          <p>Please close this window and try again.</p>
-        </body>
-      </html>
-    `);
+    sendAuthError(res, 500, 'Authentication Failed', 'The OAuth callback could not be completed.');
   }
 };

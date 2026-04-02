@@ -1,11 +1,11 @@
 {
   "hero": {
-    "welcomeText": "WELCOME",
-    "mainTitle": "ELEGANT NEPALI JEWELRY",
-    "description": "Discover unique jewelry designs and exquisite craftsmanship in elegant handmade jewelry today!",
-    "ctaText": "SHOP NOW FOR BEAUTIFUL JEWELRY",
-    "ctaLink": "/about",
-    "heroImage": "/images/item-header-img-the-real-effect-london.png"
+    "welcomeText": "Aashish Jewellers",
+    "mainTitle": "Simple silver jewelry for everyday wear and gifting.",
+    "description": "Handcrafted pieces from Butwal, Nepal with clear pricing, gift-friendly support, and a cleaner shopping experience.",
+    "ctaText": "Shop collection",
+    "ctaLink": "/#catalog",
+    "heroImage": "/images/jewelry/elegance.jpg"
   },
   "brand": {
     "name": "AASHISH JEWELLERS",
@@ -14,21 +14,21 @@
   "features": [
     {
       "title": "925 Silver Certified",
-      "description": "Premium sterling silver jewelry with guaranteed purity and lasting shine.",
+      "description": "Clear material information and care guidance across the store.",
       "icon": "shield"
     },
     {
-      "title": "Free Delivery Nepal",
-      "description": "Convenient delivery across Nepal with secure packaging and tracking.",
-      "icon": "truck"
+      "title": "Gift-Ready Service",
+      "description": "Packaging, notes, and support that make gifting easier.",
+      "icon": "gift"
     },
     {
-      "title": "1000+ Happy Customers",
-      "description": "Trusted by customers across Nepal for quality and craftsmanship.",
-      "icon": "heart"
+      "title": "Delivery Across Nepal",
+      "description": "Simple delivery messaging and WhatsApp support when needed.",
+      "icon": "truck"
     }
   ],
-  "imageUrl": "/images/item-header-img-the-real-effect-london.png",
-  "subtitle": "Elegant blend of Nepali heritage and modern trends",
-  "title": "Classic"
+  "imageUrl": "/images/jewelry/elegance.jpg",
+  "subtitle": "Handcrafted silver jewelry from Butwal, Nepal",
+  "title": "Simple silver jewelry"
 }
