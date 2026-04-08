@@ -1,6 +1,8 @@
+// Also handles /api/rates (public store rates) to stay within Vercel's 12-function limit.
 import { requireAdminAuth } from '../lib/admin-auth.js';
 import { getMetalRates, upsertMetalRate } from '../lib/db-store.js';
 import { DEFAULT_METAL_RATES, normalizeMetalRateRecord } from '../lib/metal-pricing.js';
+import { getPublicStoreRates } from '../lib/store-rates.js';
 
 function buildRatePayload(row) {
   const normalized = normalizeMetalRateRecord(row);
@@ -16,6 +18,22 @@ function buildRatePayload(row) {
 }
 
 export default async function handler(req, res) {
+  // Route /api/rates to public store rates endpoint
+  if (req.url && req.url.split('?')[0].endsWith('/rates')) {
+    if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+    try {
+      const payload = await getPublicStoreRates();
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      res.setHeader('Cache-Control', 'public, max-age=60');
+      return res.status(200).json(payload);
+    } catch (error) {
+      console.error('Public rates API error:', error);
+      return res.status(500).json({ error: 'Failed to load current store rates.' });
+    }
+  }
+
   if (req.method === 'GET') {
     try {
       const storedRates = await getMetalRates();
