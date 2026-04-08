@@ -172,7 +172,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#faf8f5] pt-16 md:pt-[72px]">
+    <div className="min-h-screen bg-[#faf8f5]">
       <SiteMeta
         title="Aashish Jewellers | Premium Silver Jewelry from Nepal"
         description="Discover handcrafted 925 silver rings, necklaces, earrings and bracelets. Free delivery in Butwal and Bhairahawa. Shop the collection now."
