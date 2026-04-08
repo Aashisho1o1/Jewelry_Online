@@ -60,7 +60,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
   return (
     <div className="group">
       {/* Image block */}
-      <div className="relative overflow-hidden bg-[#f0ebe3]">
+      <div className="relative overflow-hidden rounded-xl bg-[#f0ebe3]">
         <Link href={productHref} className="block">
           <img
             src={primaryImage}

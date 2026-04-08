@@ -181,11 +181,10 @@ export default function Home() {
 
       {/* ── Hero ── */}
       <section className="border-b border-stone-200 bg-white">
-        <div className="container py-12 md:py-16">
+        <div className="container py-6 md:py-10">
           <div className="grid gap-10 lg:grid-cols-[1fr_0.95fr] lg:items-center">
             <div className="max-w-xl">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-stone-400">{homeContent.brand.name}</p>
-              <h1 className="mt-4 text-4xl font-serif font-light leading-tight text-stone-950 md:text-6xl">
+              <h1 className="text-4xl font-serif font-light leading-tight text-stone-950 md:text-6xl">
                 {homeContent.hero.mainTitle || homeContent.title}
               </h1>
               <p className="mt-5 text-lg leading-relaxed text-stone-500 font-light">
@@ -235,7 +234,7 @@ export default function Home() {
               <img
                 src={homeContent.hero.heroImage || homeContent.imageUrl}
                 alt="Aashish Jewellers featured collection"
-                className="aspect-[3/2] w-full object-cover md:aspect-[4/5]"
+                className="aspect-[3/2] w-full rounded-xl object-cover md:aspect-[4/5]"
                 loading="eager"
                 fetchPriority="high"
               />
@@ -244,7 +243,7 @@ export default function Home() {
                   <img
                     src={spotlightAccentImage || spotlightProduct.image}
                     alt={spotlightProduct.name}
-                    className="h-14 w-14 shrink-0 object-cover"
+                    className="h-14 w-14 shrink-0 rounded-lg object-cover"
                   />
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-serif text-base text-stone-900">{spotlightProduct.name}</p>
