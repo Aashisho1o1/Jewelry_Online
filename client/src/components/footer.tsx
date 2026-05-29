@@ -82,7 +82,7 @@ export default function Footer() {
                   href={social.instagram}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-9 h-9 border border-stone-700 flex items-center justify-center text-stone-400 hover:border-white hover:text-white transition-colors"
+                  className="w-11 h-11 sm:w-10 sm:h-10 border border-stone-700 flex items-center justify-center text-stone-400 hover:border-white hover:text-white transition-colors"
                   aria-label="Instagram"
                 >
                   <SiInstagram className="w-3.5 h-3.5" />
@@ -93,7 +93,7 @@ export default function Footer() {
                   href={social.facebook}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-9 h-9 border border-stone-700 flex items-center justify-center text-stone-400 hover:border-white hover:text-white transition-colors"
+                  className="w-11 h-11 sm:w-10 sm:h-10 border border-stone-700 flex items-center justify-center text-stone-400 hover:border-white hover:text-white transition-colors"
                   aria-label="Facebook"
                 >
                   <SiFacebook className="w-3.5 h-3.5" />
@@ -104,7 +104,7 @@ export default function Footer() {
                   href={social.tiktok}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-9 h-9 border border-stone-700 flex items-center justify-center text-stone-400 hover:border-white hover:text-white transition-colors"
+                  className="w-11 h-11 sm:w-10 sm:h-10 border border-stone-700 flex items-center justify-center text-stone-400 hover:border-white hover:text-white transition-colors"
                   aria-label="TikTok"
                 >
                   <SiTiktok className="w-3.5 h-3.5" />
@@ -114,16 +114,16 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="py-5 border-t border-stone-800">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div className="py-5 border-t border-stone-800 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 text-center sm:text-left">
             <p className="text-xs text-stone-600 font-light tracking-[0.1em]">
               {footer?.copyright || `Copyright ${new Date().getFullYear()} Aashish Jewellers. All rights reserved.`}
             </p>
-            <div className="flex items-center gap-4 text-xs text-stone-600">
-              <a href="/privacy-policy" className="hover:text-stone-400 transition-colors">Privacy Policy</a>
-              <span className="w-px h-3 bg-stone-700" />
-              <a href="/terms" className="hover:text-stone-400 transition-colors">Terms</a>
-              <span className="w-px h-3 bg-stone-700" />
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-stone-600">
+              <a href="/privacy-policy" className="py-1 hover:text-stone-400 transition-colors">Privacy Policy</a>
+              <span className="hidden sm:inline w-px h-3 bg-stone-700" />
+              <a href="/terms" className="py-1 hover:text-stone-400 transition-colors">Terms</a>
+              <span className="hidden sm:inline w-px h-3 bg-stone-700" />
               <span>925 Sterling Silver Certified</span>
             </div>
           </div>

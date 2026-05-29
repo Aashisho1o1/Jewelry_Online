@@ -57,10 +57,10 @@ export default function ChatWidget() {
           <button
             type="button"
             onClick={closeChat}
-            className="p-1 hover:bg-white/10 transition-colors"
+            className="-mr-2 flex h-10 w-10 items-center justify-center hover:bg-white/10 transition-colors"
             aria-label="Close chat"
           >
-            <X className="w-4 h-4" strokeWidth={1.5} />
+            <X className="w-5 h-5" strokeWidth={1.5} />
           </button>
         </div>
 
@@ -123,13 +123,16 @@ export default function ChatWidget() {
             onKeyDown={handleKeyDown}
             placeholder="Ask about our jewelry..."
             disabled={isLoading}
-            className="flex-1 px-4 py-3 text-sm font-light text-gray-900 placeholder-gray-400 bg-transparent outline-none disabled:opacity-50"
+            enterKeyHint="send"
+            autoComplete="off"
+            aria-label="Type a message"
+            className="min-h-[48px] flex-1 px-4 py-3 text-sm font-light text-gray-900 placeholder-gray-400 bg-transparent outline-none disabled:opacity-50"
           />
           <button
             type="button"
             onClick={handleSend}
             disabled={isLoading || !input.trim()}
-            className="px-4 py-3 bg-black text-white hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex h-12 w-12 items-center justify-center bg-black text-white hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Send message"
           >
             <Send className="w-4 h-4" strokeWidth={1.5} />

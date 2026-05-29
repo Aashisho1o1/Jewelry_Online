@@ -114,28 +114,33 @@ export default function SearchOverlay({ products, onClose }: SearchOverlayProps)
   };
 
   const filterBtn = (active: boolean) =>
-    `px-4 py-1.5 text-xs tracking-[0.1em] font-light border transition-all duration-200 ${
+    `min-h-[36px] px-4 py-2 text-xs tracking-[0.1em] font-light border transition-all duration-200 ${
       active ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:border-black'
     }`;
 
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col bg-white">
+    <div className="fixed inset-0 z-[60] flex flex-col bg-white pt-[env(safe-area-inset-top)]">
       {/* Search Header */}
       <div className="border-b border-gray-200 px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center gap-4">
           <Search className="w-5 h-5 text-gray-400 flex-shrink-0" strokeWidth={1.5} />
           <input
             ref={inputRef}
-            type="text"
+            type="search"
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search rings, necklaces, earrings..."
-            className="flex-1 text-lg font-light text-gray-900 placeholder-gray-400 bg-transparent outline-none tracking-wide"
+            enterKeyHint="search"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            aria-label="Search products"
+            className="flex-1 min-w-0 text-lg font-light text-gray-900 placeholder-gray-400 bg-transparent outline-none tracking-wide"
           />
           <button
             type="button"
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 transition-colors"
+            className="-mr-2 flex h-11 w-11 items-center justify-center hover:bg-gray-100 transition-colors"
             aria-label="Close search"
           >
             <X className="w-5 h-5 text-gray-600" strokeWidth={1.5} />

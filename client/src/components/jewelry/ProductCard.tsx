@@ -123,7 +123,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
           type="button"
           onClick={handleWishlist}
           aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
-          className={`absolute right-3 top-3 flex h-10 w-10 items-center justify-center bg-white/80 backdrop-blur-sm transition-all duration-200 hover:bg-white md:h-8 md:w-8 ${
+          className={`absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-full bg-white/80 backdrop-blur-sm transition-all duration-200 hover:bg-white md:right-3 md:top-3 md:h-8 md:w-8 md:rounded-none ${
             wishlisted ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'
           }`}
         >
@@ -143,7 +143,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
         </p>
 
         <Link href={productHref}>
-          <h3 className="mt-1 font-serif text-[15px] font-light leading-snug text-stone-900 transition-colors hover:text-stone-500">
+          <h3 className="mt-1 line-clamp-2 font-serif text-[15px] font-light leading-snug text-stone-900 transition-colors hover:text-stone-500">
             {product.name}
           </h3>
         </Link>
@@ -182,7 +182,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
             type="button"
             onClick={handleAddToCart}
             disabled={!product.inStock}
-            className="mt-3 w-full border border-stone-200 py-2.5 text-[10px] uppercase tracking-[0.18em] text-stone-600 transition-colors active:border-stone-900 active:bg-stone-900 active:text-white disabled:opacity-40 md:hidden"
+            className="mt-3 min-h-[44px] w-full border border-stone-200 py-3 text-[11px] uppercase tracking-[0.18em] text-stone-600 transition-colors active:border-stone-900 active:bg-stone-900 active:text-white disabled:opacity-40 md:hidden"
           >
             {product.inStock ? 'Add to bag' : 'Out of stock'}
           </button>

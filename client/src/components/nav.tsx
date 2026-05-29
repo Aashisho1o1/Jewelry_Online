@@ -76,29 +76,29 @@ export default function Nav() {
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-              className="p-2 -ml-2 text-stone-700 transition-colors hover:text-stone-950"
+              className="-ml-2 flex h-11 w-11 items-center justify-center text-stone-700 transition-colors hover:text-stone-950"
             >
               {mobileMenuOpen ? <X className="h-5 w-5" strokeWidth={1.5} /> : <Menu className="h-5 w-5" strokeWidth={1.5} />}
             </button>
 
             <Link href="/" className="flex flex-col items-center">
               <h1 className="text-lg font-serif font-light tracking-[0.2em] text-stone-950">AASHISH</h1>
-              <p className="text-[8px] tracking-[0.28em] text-stone-500">JEWELLERS</p>
+              <p className="text-[10px] tracking-[0.28em] text-stone-500">JEWELLERS</p>
             </Link>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               <button
                 type="button"
                 onClick={() => setIsSearchOpen(true)}
                 aria-label="Search products"
-                className="p-2 text-stone-700 transition-colors hover:text-stone-950"
+                className="flex h-11 w-11 items-center justify-center text-stone-700 transition-colors hover:text-stone-950"
               >
                 <Search className="h-5 w-5" strokeWidth={1.5} />
               </button>
-              <Link href="/wishlist" className="relative p-2 text-stone-700 transition-colors hover:text-stone-950" aria-label="Wishlist">
+              <Link href="/wishlist" className="relative flex h-11 w-11 items-center justify-center text-stone-700 transition-colors hover:text-stone-950" aria-label="Wishlist">
                 <Heart className="h-5 w-5" strokeWidth={1.5} />
                 {wishlistCount > 0 && (
-                  <span className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-stone-950 text-[9px] text-white">
+                  <span className="absolute right-1 top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-stone-950 px-1 text-[10px] font-medium text-white">
                     {wishlistCount > 9 ? '9+' : wishlistCount}
                   </span>
                 )}
@@ -107,11 +107,11 @@ export default function Nav() {
                 type="button"
                 onClick={openCart}
                 aria-label="Open cart"
-                className="relative p-2 text-stone-700 transition-colors hover:text-stone-950"
+                className="relative -mr-2 flex h-11 w-11 items-center justify-center text-stone-700 transition-colors hover:text-stone-950"
               >
                 <ShoppingBag className="h-5 w-5" strokeWidth={1.5} />
                 {count > 0 && (
-                  <span className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-stone-950 text-[9px] text-white">
+                  <span className="absolute right-1 top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-stone-950 px-1 text-[10px] font-medium text-white">
                     {count > 9 ? '9+' : count}
                   </span>
                 )}
@@ -190,7 +190,7 @@ export default function Nav() {
                       setMobileMenuOpen(false);
                     }}
                     className={cn(
-                      'flex w-full items-center justify-between border-b border-stone-200 py-4 text-left text-sm uppercase tracking-[0.16em] transition-colors last:border-0',
+                      'flex min-h-[52px] w-full items-center justify-between border-b border-stone-200 py-4 text-left text-base uppercase tracking-[0.16em] transition-colors last:border-0',
                       link.active ? 'text-stone-950' : 'text-stone-700'
                     )}
                   >

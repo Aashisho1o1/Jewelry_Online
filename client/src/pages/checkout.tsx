@@ -459,6 +459,9 @@ Please confirm this order and estimated delivery time.`;
                       value={customerInfo.name}
                       onChange={e => handleInputChange('name', e.target.value)}
                       placeholder="Enter your full name"
+                      autoComplete="name"
+                      autoCapitalize="words"
+                      enterKeyHint="next"
                       className="mt-2 border-stone-300"
                     />
                   </div>
@@ -466,6 +469,10 @@ Please confirm this order and estimated delivery time.`;
                     <Label htmlFor="phone">Phone Number *</Label>
                     <Input
                       id="phone"
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      enterKeyHint="next"
                       value={customerInfo.phone}
                       onChange={e => handleInputChange('phone', e.target.value)}
                       onBlur={handlePhoneBlur}
@@ -478,6 +485,12 @@ Please confirm this order and estimated delivery time.`;
                     <Input
                       id="email"
                       type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      enterKeyHint="next"
                       value={customerInfo.email}
                       onChange={e => handleInputChange('email', e.target.value)}
                       placeholder="your@email.com"
@@ -502,13 +515,16 @@ Please confirm this order and estimated delivery time.`;
                         value={customerInfo.address.street}
                         onChange={e => handleInputChange('address.street', e.target.value)}
                         placeholder="House no, street name"
+                        autoComplete="street-address"
+                        enterKeyHint="next"
                         className="border-stone-300"
                       />
                       <button
                         type="button"
                         onClick={getCurrentLocation}
                         title="Use my current location"
-                        className="inline-flex shrink-0 items-center gap-2 rounded-full border border-stone-300 px-4 py-2 text-sm text-stone-700 transition-colors hover:border-stone-900"
+                        aria-label="Use my current location"
+                        className="inline-flex h-11 shrink-0 items-center gap-2 rounded-full border border-stone-300 px-4 text-sm text-stone-700 transition-colors hover:border-stone-900"
                       >
                         <MapPin className="h-4 w-4" strokeWidth={1.5} />
                         <span className="hidden sm:inline">Locate</span>
@@ -524,6 +540,9 @@ Please confirm this order and estimated delivery time.`;
                         value={customerInfo.address.district}
                         onChange={e => handleInputChange('address.district', e.target.value)}
                         placeholder="e.g. Kathmandu"
+                        autoComplete="address-level2"
+                        autoCapitalize="words"
+                        enterKeyHint="next"
                         className="mt-2 border-stone-300"
                       />
                     </div>
@@ -534,6 +553,9 @@ Please confirm this order and estimated delivery time.`;
                         value={customerInfo.address.zone}
                         onChange={e => handleInputChange('address.zone', e.target.value)}
                         placeholder="e.g. Bagmati"
+                        autoComplete="address-level1"
+                        autoCapitalize="words"
+                        enterKeyHint="next"
                         className="mt-2 border-stone-300"
                       />
                     </div>
@@ -546,6 +568,7 @@ Please confirm this order and estimated delivery time.`;
                       value={customerInfo.address.landmark}
                       onChange={e => handleInputChange('address.landmark', e.target.value)}
                       placeholder="Near school, temple, chowk, etc."
+                      enterKeyHint="next"
                       className="mt-2 border-stone-300"
                     />
                   </div>
@@ -594,6 +617,8 @@ Please confirm this order and estimated delivery time.`;
                           value={giftOptions.recipient}
                           onChange={e => handleGiftOptionChange('recipient', e.target.value)}
                           placeholder="For her, mother, sister..."
+                          autoCapitalize="words"
+                          enterKeyHint="next"
                           className="mt-2 border-stone-300"
                         />
                       </div>
@@ -604,6 +629,8 @@ Please confirm this order and estimated delivery time.`;
                           value={giftOptions.occasion}
                           onChange={e => handleGiftOptionChange('occasion', e.target.value)}
                           placeholder="Birthday, anniversary..."
+                          autoCapitalize="sentences"
+                          enterKeyHint="next"
                           className="mt-2 border-stone-300"
                         />
                       </div>
@@ -747,7 +774,7 @@ Please confirm this order and estimated delivery time.`;
                       </button>
                     </div>
                   ) : (
-                    <div className="flex gap-2">
+                    <div className="flex flex-col gap-2 sm:flex-row">
                       <input
                         type="text"
                         value={promoInput}
@@ -757,13 +784,18 @@ Please confirm this order and estimated delivery time.`;
                         }}
                         onKeyDown={e => e.key === 'Enter' && handleApplyPromo()}
                         placeholder="Promo code"
-                        className="flex-1 rounded-full border border-stone-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-stone-900/10"
+                        autoCapitalize="characters"
+                        autoCorrect="off"
+                        spellCheck={false}
+                        enterKeyHint="done"
+                        aria-label="Promo code"
+                        className="min-h-[44px] flex-1 rounded-full border border-stone-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-stone-900/10"
                       />
                       <button
                         type="button"
                         onClick={handleApplyPromo}
                         disabled={promoLoading || !promoInput.trim()}
-                        className="rounded-full border border-stone-900 bg-stone-900 px-4 py-2.5 text-xs uppercase tracking-[0.14em] text-white transition-colors hover:bg-stone-800 disabled:opacity-50"
+                        className="min-h-[44px] rounded-full border border-stone-900 bg-stone-900 px-6 py-2.5 text-xs uppercase tracking-[0.14em] text-white transition-colors hover:bg-stone-800 disabled:opacity-50"
                       >
                         {promoLoading ? '...' : 'Apply'}
                       </button>

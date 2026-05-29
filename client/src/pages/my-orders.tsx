@@ -108,18 +108,22 @@ export default function MyOrders() {
 
           {/* Phone lookup form */}
           <form onSubmit={handleSubmit} className="mb-8">
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <input
                 type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                enterKeyHint="search"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 placeholder="e.g. 9841234567"
-                className="flex-1 border border-stone-300 bg-white px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:border-stone-900 focus:outline-none"
+                aria-label="Phone number"
+                className="min-h-[48px] flex-1 border border-stone-300 bg-white px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:border-stone-900 focus:outline-none"
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="flex items-center gap-2 bg-stone-900 px-5 py-3 text-xs uppercase tracking-[0.18em] text-white transition-colors hover:bg-stone-700 disabled:opacity-50"
+                className="flex min-h-[48px] items-center justify-center gap-2 bg-stone-900 px-5 py-3 text-xs uppercase tracking-[0.18em] text-white transition-colors hover:bg-stone-700 disabled:opacity-50"
               >
                 <Search className="h-3.5 w-3.5" strokeWidth={1.5} />
                 {loading ? 'Looking up...' : 'Find orders'}

@@ -267,12 +267,13 @@ export default function ProductDetails() {
             <div className="flex flex-col-reverse gap-3 md:flex-row md:items-start">
               {/* Thumbnails */}
               {images.length > 1 && (
-                <div className="grid grid-cols-4 gap-2 md:grid-cols-1 md:w-16">
+                <div className="grid grid-cols-4 gap-1.5 sm:gap-2 md:grid-cols-1 md:w-16">
                   {images.map((img, i) => (
                     <button
                       key={`${img}-${i}`}
                       type="button"
                       onClick={() => setActiveImage(i)}
+                      aria-label={`View image ${i + 1}`}
                       className={`aspect-square overflow-hidden border bg-white shadow-sm transition-colors ${
                         i === activeImage ? 'border-stone-900' : 'border-stone-200 hover:border-stone-400'
                       }`}
@@ -280,6 +281,7 @@ export default function ProductDetails() {
                       <img
                         src={img}
                         alt={`${product.name} view ${i + 1}`}
+                        loading="lazy"
                         className="h-full w-full object-cover"
                       />
                     </button>
@@ -292,6 +294,8 @@ export default function ProductDetails() {
                 <img
                   src={selectedImage}
                   alt={product.name}
+                  width={800}
+                  height={1000}
                   className="aspect-[4/5] w-full object-cover"
                 />
               </div>
@@ -388,7 +392,7 @@ export default function ProductDetails() {
                 type="button"
                 onClick={() => handleAddToCart(product)}
                 disabled={!product.inStock}
-                className="flex-1 bg-stone-900 py-3.5 text-xs uppercase tracking-[0.2em] text-white transition-colors hover:bg-stone-700 disabled:cursor-not-allowed disabled:bg-stone-300"
+                className="flex min-h-[48px] flex-1 items-center justify-center bg-stone-900 py-3.5 text-xs uppercase tracking-[0.2em] text-white transition-colors hover:bg-stone-700 disabled:cursor-not-allowed disabled:bg-stone-300"
               >
                 <span className="flex items-center justify-center gap-2">
                   <ShoppingBag className="h-4 w-4" strokeWidth={1.5} />
@@ -399,7 +403,7 @@ export default function ProductDetails() {
                 type="button"
                 onClick={handleWishlist}
                 aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
-                className={`flex h-[46px] w-[46px] items-center justify-center border transition-colors ${
+                className={`flex h-[48px] w-full items-center justify-center border transition-colors sm:w-[48px] ${
                   wishlisted ? 'border-stone-900 bg-stone-900 text-white' : 'border-stone-300 text-stone-700 hover:border-stone-900'
                 }`}
               >
@@ -411,7 +415,7 @@ export default function ProductDetails() {
               type="button"
               onClick={handleBuyNow}
               disabled={!product.inStock}
-              className="mt-2 w-full border border-stone-300 py-3.5 text-xs uppercase tracking-[0.2em] text-stone-800 transition-colors hover:border-stone-900 disabled:cursor-not-allowed disabled:opacity-40"
+              className="mt-2 min-h-[48px] w-full border border-stone-300 py-3.5 text-xs uppercase tracking-[0.2em] text-stone-800 transition-colors hover:border-stone-900 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Buy now - go to checkout
             </button>

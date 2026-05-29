@@ -172,7 +172,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#faf8f5] pt-16 md:pt-[72px]">
+    <div className="min-h-[100dvh] bg-[#faf8f5] pt-16 md:pt-[72px]">
       <SiteMeta
         title="Aashish Jewellers | Premium Silver Jewelry from Nepal"
         description="Discover handcrafted 925 silver rings, necklaces, earrings and bracelets. Free delivery in Butwal and Bhairahawa. Shop the collection now."
@@ -196,14 +196,14 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => scrollToSection('catalog')}
-                  className="inline-flex items-center justify-center gap-2 bg-stone-950 px-7 py-3.5 text-xs uppercase tracking-[0.18em] text-white transition-colors hover:bg-stone-800"
+                  className="inline-flex min-h-[48px] items-center justify-center gap-2 bg-stone-950 px-7 py-3.5 text-xs uppercase tracking-[0.18em] text-white transition-colors hover:bg-stone-800"
                 >
                   Shop collection
                   <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
                 </button>
                 <Link
                   href="/shop-by"
-                  className="inline-flex items-center justify-center border border-stone-300 px-7 py-3.5 text-xs uppercase tracking-[0.18em] text-stone-800 transition-colors hover:border-stone-900"
+                  className="inline-flex min-h-[48px] items-center justify-center border border-stone-300 px-7 py-3.5 text-xs uppercase tracking-[0.18em] text-stone-800 transition-colors hover:border-stone-900"
                 >
                   Gift guide
                 </Link>
@@ -235,6 +235,8 @@ export default function Home() {
               <img
                 src={homeContent.hero.heroImage || homeContent.imageUrl}
                 alt="Aashish Jewellers featured collection"
+                width={1200}
+                height={1500}
                 className="aspect-[3/2] w-full object-cover md:aspect-[4/5]"
                 loading="eager"
                 fetchPriority="high"

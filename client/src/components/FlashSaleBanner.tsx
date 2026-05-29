@@ -66,14 +66,14 @@ export default function FlashSaleBanner() {
 
   return (
     <div className="w-full bg-stone-900 text-white">
-      <div className="container flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-2.5">
+      <div className="container flex flex-col items-stretch gap-2 py-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-x-6">
         {/* Left — label + title */}
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="inline-flex items-center gap-1 shrink-0 bg-amber-500 text-white text-[10px] font-semibold tracking-[0.14em] uppercase px-2 py-0.5">
             <Zap className="w-2.5 h-2.5" strokeWidth={2.5} />
             Flash Sale
           </span>
-          <span className="text-sm font-light truncate">
+          <span className="text-sm font-light line-clamp-2 sm:line-clamp-1">
             {sale.title}
             {sale.subtitle && (
               <span className="text-stone-400 ml-1.5">— {sale.subtitle}</span>
@@ -85,14 +85,14 @@ export default function FlashSaleBanner() {
         </div>
 
         {/* Right — countdown + CTA */}
-        <div className="flex items-center gap-4 shrink-0">
+        <div className="flex items-center justify-between gap-4 shrink-0 sm:justify-end">
           <div className="flex items-center gap-2 text-stone-300 text-xs">
             <span className="uppercase tracking-[0.14em]">Ends in</span>
             <Countdown endsAt={sale.ends_at} />
           </div>
           <button
             onClick={scrollToCatalog}
-            className="text-xs tracking-[0.14em] uppercase text-amber-400 hover:text-amber-300 transition-colors font-medium"
+            className="min-h-[36px] px-2 text-xs tracking-[0.14em] uppercase text-amber-400 hover:text-amber-300 transition-colors font-medium"
           >
             Shop Now →
           </button>

@@ -15,7 +15,7 @@ export function CartSheet() {
     <Sheet open={isOpen} onOpenChange={closeCart}>
       <SheetContent
         side="right"
-        className="flex w-full flex-col gap-0 p-0 sm:max-w-[400px] bg-white border-l border-stone-200 [&>button]:hidden"
+        className="flex w-full flex-col gap-0 p-0 sm:max-w-[400px] bg-white border-l border-stone-200 pr-[env(safe-area-inset-right)] [&>button]:hidden"
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-stone-200 px-6 py-5">
@@ -30,10 +30,10 @@ export function CartSheet() {
           <button
             type="button"
             onClick={closeCart}
-            className="flex h-9 w-9 items-center justify-center text-stone-500 transition-colors hover:text-stone-900"
+            className="-mr-2 flex h-11 w-11 items-center justify-center text-stone-500 transition-colors hover:text-stone-900"
             aria-label="Close cart"
           >
-            <X className="h-4 w-4" strokeWidth={1.5} />
+            <X className="h-5 w-5" strokeWidth={1.5} />
           </button>
         </div>
 
@@ -78,26 +78,26 @@ export function CartSheet() {
 
                     <div className="mt-3 flex items-center justify-between">
                       {/* Qty controls */}
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="flex h-7 w-7 items-center justify-center border border-stone-200 text-stone-600 transition-colors hover:border-stone-900 hover:text-stone-900"
+                          className="flex h-9 w-9 items-center justify-center border border-stone-200 text-stone-600 transition-colors hover:border-stone-900 hover:text-stone-900"
                           aria-label="Decrease quantity"
                         >
-                          <Minus className="h-3 w-3" strokeWidth={1.5} />
+                          <Minus className="h-3.5 w-3.5" strokeWidth={1.5} />
                         </button>
-                        <span className="min-w-[1.25rem] text-center text-sm text-stone-800">
+                        <span className="min-w-[1.5rem] text-center text-sm text-stone-800">
                           {item.quantity}
                         </span>
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
                           disabled={item.quantity >= 10}
-                          className="flex h-7 w-7 items-center justify-center border border-stone-200 text-stone-600 transition-colors hover:border-stone-900 hover:text-stone-900 disabled:opacity-30"
+                          className="flex h-9 w-9 items-center justify-center border border-stone-200 text-stone-600 transition-colors hover:border-stone-900 hover:text-stone-900 disabled:opacity-30"
                           aria-label="Increase quantity"
                         >
-                          <Plus className="h-3 w-3" strokeWidth={1.5} />
+                          <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
                         </button>
                       </div>
 
@@ -105,7 +105,7 @@ export function CartSheet() {
                       <button
                         type="button"
                         onClick={() => removeItem(item.id)}
-                        className="text-[11px] uppercase tracking-[0.12em] text-stone-400 transition-colors hover:text-stone-900"
+                        className="px-2 py-2 text-[11px] uppercase tracking-[0.12em] text-stone-400 transition-colors hover:text-stone-900"
                       >
                         Remove
                       </button>
@@ -131,7 +131,7 @@ export function CartSheet() {
 
         {/* Footer */}
         {items.length > 0 && (
-          <div className="border-t border-stone-200 bg-white px-6 py-5 space-y-4">
+          <div className="border-t border-stone-200 bg-white px-6 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] space-y-4">
             {/* Free delivery progress */}
             {amountToFree > 0 && (
               <p className="text-xs text-stone-500">
@@ -161,7 +161,7 @@ export function CartSheet() {
             <Link href="/checkout" onClick={closeCart}>
               <button
                 type="button"
-                className="w-full bg-stone-900 py-3.5 text-xs uppercase tracking-[0.2em] text-white transition-colors hover:bg-stone-700"
+                className="min-h-[48px] w-full bg-stone-900 py-3.5 text-xs uppercase tracking-[0.2em] text-white transition-colors hover:bg-stone-700"
               >
                 Checkout
               </button>
@@ -170,7 +170,7 @@ export function CartSheet() {
             <button
               type="button"
               onClick={closeCart}
-              className="w-full text-xs uppercase tracking-[0.18em] text-stone-400 transition-colors hover:text-stone-900"
+              className="min-h-[44px] w-full py-2 text-xs uppercase tracking-[0.18em] text-stone-400 transition-colors hover:text-stone-900"
             >
               Continue shopping
             </button>
