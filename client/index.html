@@ -1,36 +1,117 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-NP">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Aashish Jewellers - Timeless Silver Elegance</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Aashish Jewellers | 925 Silver Jewelry Nepal — Rings, Necklaces, Earrings</title>
+
+    <meta name="description" content="Shop handcrafted 925 sterling silver jewelry from Aashish Jewellers, Butwal Nepal. Rings, necklaces, earrings, bracelets and gift sets with delivery across Nepal." />
+    <link rel="canonical" href="https://www.aashish.website/" />
+
     <link rel="manifest" href="/manifest.json">
-    
+
+    <!-- Performance: preconnect to fonts so first paint isn't blocked -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
     <!-- Theme Colors -->
-    <meta name="theme-color" content="#667eea">
-    <meta name="msapplication-TileColor" content="#667eea">
-    
+    <meta name="theme-color" content="#1c1917">
+    <meta name="msapplication-TileColor" content="#1c1917">
+
     <!-- Apple Touch Icons -->
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Aashish Jewellers">
-    
-    <!-- SEO and Social Media -->
-    <meta name="description" content="Premium silver jewelry collection from Nepal. Discover timeless elegance with handcrafted silver pieces from Aashish Jewellers.">
-    <meta name="keywords" content="silver jewelry, Nepal jewelry, handcrafted jewelry, silver necklaces, silver earrings, silver rings">
+    <link rel="apple-touch-icon" href="/icons/icon-512.png">
+
+    <!-- SEO -->
     <meta name="author" content="Aashish Jewellers">
-    
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="geo.region" content="NP-P5">
+    <meta name="geo.placename" content="Butwal, Rupandehi, Nepal">
+
     <!-- Open Graph -->
-    <meta property="og:title" content="Aashish Jewellers - Timeless Silver Elegance">
-    <meta property="og:description" content="Premium silver jewelry collection from Nepal. Discover timeless elegance with handcrafted silver pieces.">
+    <meta property="og:title" content="Aashish Jewellers | 925 Silver Jewelry Nepal">
+    <meta property="og:description" content="Handcrafted 925 sterling silver jewelry from Butwal, Nepal. Rings, necklaces, earrings, bracelets and gift sets with delivery across Nepal.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://jewelry-online.vercel.app">
-    <meta property="og:image" content="/icons/icon-512.png">
+    <meta property="og:url" content="https://www.aashish.website/">
+    <meta property="og:site_name" content="Aashish Jewellers">
+    <meta property="og:locale" content="en_NP">
+    <meta property="og:image" content="https://www.aashish.website/icons/icon-512.png">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
+    <meta property="og:image:alt" content="Aashish Jewellers — 925 silver jewelry from Nepal">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Aashish Jewellers | 925 Silver Jewelry Nepal">
+    <meta name="twitter:description" content="Handcrafted 925 sterling silver jewelry from Butwal, Nepal.">
+    <meta name="twitter:image" content="https://www.aashish.website/icons/icon-512.png">
+
+    <!-- Google Search Console verification (paste content value from search.google.com after verifying) -->
+    <!-- <meta name="google-site-verification" content="REPLACE_WITH_TOKEN_FROM_SEARCH_CONSOLE"> -->
+
+    <!-- Bing Webmaster verification (paste content value from bing.com/webmasters) -->
+    <!-- <meta name="msvalidate.01" content="REPLACE_WITH_TOKEN_FROM_BING"> -->
+
+    <!-- Site-wide structured data crawlers will read on first paint -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Aashish Jewellers",
+      "url": "https://www.aashish.website/",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://www.aashish.website/shop-by?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "JewelryStore",
+      "name": "Aashish Jewellers",
+      "image": "https://www.aashish.website/icons/icon-512.png",
+      "url": "https://www.aashish.website/",
+      "telephone": "+977-9811469486",
+      "priceRange": "NPR 1,000 - NPR 25,000",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Butwal",
+        "addressLocality": "Butwal",
+        "addressRegion": "Lumbini Province",
+        "postalCode": "32907",
+        "addressCountry": "NP"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 27.7000,
+        "longitude": 83.4486
+      },
+      "openingHoursSpecification": [
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          "opens": "10:00",
+          "closes": "19:30"
+        },
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": "Saturday",
+          "opens": "10:00",
+          "closes": "17:00"
+        }
+      ],
+      "sameAs": []
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="./src/main.tsx"></script>
   </body>
-</html> 
+</html>

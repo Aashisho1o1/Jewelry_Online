@@ -9,12 +9,53 @@ const RING_SIZES = [
   { size: '9', diameter: '19.0 mm', note: 'Statement or larger fit' },
 ];
 
+const SIZE_FAQ_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'How do I measure my ring size at home?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Wrap a thin strip of paper around the base of the finger you want to wear the ring on. Mark where the paper overlaps, then measure the length in millimetres. Match that against our reference chart, or contact us with the measurement and we will recommend a size.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What size should I pick if I am between two sizes?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Choose the slightly larger option. Fingers swell during the day and in warm weather, and a ring that is too tight is harder to remove than one that is slightly loose.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What time of day should I measure my ring size?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Late afternoon or evening, when your fingers are at their normal warm-temperature size. Measuring in the early morning or when cold can give you a size that is too small.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can I resize a ring after I buy it?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Most solid 925 silver rings can be resized at our store within a reasonable range. Reach out on WhatsApp with your order ID and current size and we will guide you through the process.',
+      },
+    },
+  ],
+};
+
 export default function SizeGuidePage() {
   return (
     <div className="min-h-screen bg-[#f7f2ea] pt-24">
       <SiteMeta
         title="Ring Size Guide"
         description="Find your perfect ring size with our easy measurement guide. Includes size chart for Indian, US and UK ring sizes."
+        jsonLd={SIZE_FAQ_JSON_LD}
+        canonical="/size-guide"
       />
       <div className="container py-12">
         <div className="max-w-3xl">

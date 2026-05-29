@@ -214,23 +214,61 @@ export default function ProductDetails() {
   const recentProducts = recentlyViewed.filter(p => p.id !== product.id).slice(0, 4);
 
   const productImages = [product.image, ...(product.images || [])].filter(Boolean);
+  const productUrl = `https://www.aashish.website/products/${encodeURIComponent(product.id)}`;
+  const categoryLabel = formatProductLabel(product.category);
   const productJsonLd = {
-    '@context': 'https://schema.org/',
-    '@type': 'Product',
-    name: product.name,
-    image: productImages.map(img => img.startsWith('http') ? img : `https://www.aashish.website${img}`),
-    description: product.description,
-    sku: product.id,
-    brand: { '@type': 'Brand', name: 'Aashish Jewellers' },
-    offers: {
-      '@type': 'Offer',
-      priceCurrency: 'NPR',
-      price: product.price,
-      availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      url: `https://www.aashish.website/products/${encodeURIComponent(product.id)}`,
-      seller: { '@type': 'Organization', name: 'Aashish Jewellers' },
-    },
-    ...(rating && { aggregateRating: { '@type': 'AggregateRating', ratingValue: rating, reviewCount: reviewCount || 1 } }),
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Product',
+        '@id': `${productUrl}#product`,
+        name: product.name,
+        image: productImages.map(img => img.startsWith('http') ? img : `https://www.aashish.website${img}`),
+        description: product.description,
+        sku: product.id,
+        mpn: product.id,
+        category: categoryLabel,
+        material: product.material || '925 Sterling Silver',
+        brand: { '@type': 'Brand', name: 'Aashish Jewellers' },
+        offers: {
+          '@type': 'Offer',
+          priceCurrency: 'NPR',
+          price: product.price,
+          availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+          itemCondition: 'https://schema.org/NewCondition',
+          url: productUrl,
+          priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          seller: { '@type': 'Organization', name: 'Aashish Jewellers' },
+          hasMerchantReturnPolicy: {
+            '@type': 'MerchantReturnPolicy',
+            applicableCountry: 'NP',
+            returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+            merchantReturnDays: 7,
+            returnMethod: 'https://schema.org/ReturnByMail',
+            returnFees: 'https://schema.org/FreeReturn',
+          },
+          shippingDetails: {
+            '@type': 'OfferShippingDetails',
+            shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'NP' },
+            deliveryTime: {
+              '@type': 'ShippingDeliveryTime',
+              handlingTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 1, unitCode: 'DAY' },
+              transitTime: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 5, unitCode: 'DAY' },
+            },
+          },
+        },
+        ...(rating && { aggregateRating: { '@type': 'AggregateRating', ratingValue: rating, reviewCount: reviewCount || 1 } }),
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.aashish.website/' },
+          { '@type': 'ListItem', position: 2, name: 'Shop', item: 'https://www.aashish.website/shop-by' },
+          { '@type': 'ListItem', position: 3, name: categoryLabel, item: `https://www.aashish.website/shop-by/category/${encodeURIComponent(product.category)}` },
+          { '@type': 'ListItem', position: 4, name: product.name, item: productUrl },
+        ],
+      },
+    ],
   };
 
   return (

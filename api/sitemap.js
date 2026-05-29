@@ -28,17 +28,35 @@ function escapeXml(str) {
     .replace(/'/g, '&apos;');
 }
 
-function urlEntry({ loc, priority = '0.6', changefreq = 'weekly', lastmod }) {
-  return [
+function absoluteImageUrl(img) {
+  if (!img) return null;
+  if (img.startsWith('http://') || img.startsWith('https://')) return img;
+  if (img.startsWith('/')) return BASE_URL + img;
+  return `${BASE_URL}/${img}`;
+}
+
+function urlEntry({ loc, priority = '0.6', changefreq = 'weekly', lastmod, images, title }) {
+  const lines = [
     '  <url>',
     `    <loc>${escapeXml(BASE_URL + loc)}</loc>`,
     lastmod ? `    <lastmod>${lastmod}</lastmod>` : '',
     `    <changefreq>${changefreq}</changefreq>`,
     `    <priority>${priority}</priority>`,
-    '  </url>',
-  ]
-    .filter(Boolean)
-    .join('\n');
+  ];
+
+  if (Array.isArray(images) && images.length) {
+    for (const img of images) {
+      const abs = absoluteImageUrl(img);
+      if (!abs) continue;
+      lines.push('    <image:image>');
+      lines.push(`      <image:loc>${escapeXml(abs)}</image:loc>`);
+      if (title) lines.push(`      <image:title>${escapeXml(title)}</image:title>`);
+      lines.push('    </image:image>');
+    }
+  }
+
+  lines.push('  </url>');
+  return lines.filter(Boolean).join('\n');
 }
 
 export default async function handler(req, res) {
@@ -52,18 +70,23 @@ export default async function handler(req, res) {
 
     const staticEntries = STATIC_PAGES.map(page => urlEntry(page));
 
-    const productEntries = products.map(product =>
-      urlEntry({
+    const productEntries = products.map(product => {
+      const imgs = [product.image, ...(product.images || [])]
+        .filter(Boolean)
+        .slice(0, 6);
+      return urlEntry({
         loc: `/products/${encodeURIComponent(product.id)}`,
         priority: product.featured ? '0.9' : '0.8',
         changefreq: 'weekly',
         lastmod: today,
-      })
-    );
+        images: imgs,
+        title: product.name,
+      });
+    });
 
     const xml = [
       '<?xml version="1.0" encoding="UTF-8"?>',
-      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">',
       ...staticEntries,
       ...productEntries,
       '</urlset>',

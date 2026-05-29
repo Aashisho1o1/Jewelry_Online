@@ -11,27 +11,75 @@ import TrustStrip from '../components/TrustStrip';
 import StoreRateStrip from '../components/StoreRateStrip';
 import FlashSaleBanner from '../components/FlashSaleBanner';
 import { getFacetOptions } from '@/lib/product-taxonomy';
+import { Helmet } from 'react-helmet-async';
 import SiteMeta from '@/components/SiteMeta';
 
 const ORG_JSON_LD = {
   '@context': 'https://schema.org',
-  '@type': 'JewelryStore',
-  name: 'Aashish Jewellers',
-  url: 'https://www.aashish.website',
-  image: 'https://www.aashish.website/icons/icon-512.png',
-  description: 'Premium 925 silver jewelry handcrafted in Nepal - rings, necklaces, earrings, bracelets and traditional sets.',
-  address: {
-    '@type': 'PostalAddress',
-    addressLocality: 'Butwal',
-    addressCountry: 'NP',
-  },
-  contactPoint: {
-    '@type': 'ContactPoint',
-    contactType: 'customer service',
-    telephone: '+977-981-1469486',
-    availableLanguage: ['Nepali', 'English'],
-  },
-  sameAs: ['https://www.facebook.com/aashishjewellery'],
+  '@graph': [
+    {
+      '@type': 'JewelryStore',
+      '@id': 'https://www.aashish.website/#store',
+      name: 'Aashish Jewellers',
+      url: 'https://www.aashish.website/',
+      image: 'https://www.aashish.website/icons/icon-512.png',
+      logo: 'https://www.aashish.website/icons/icon-512.png',
+      description: 'Premium 925 sterling silver jewelry handcrafted in Nepal - rings, necklaces, earrings, bracelets and traditional sets.',
+      priceRange: 'NPR 1,000 - NPR 25,000',
+      telephone: '+977-9811469486',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Butwal',
+        addressLocality: 'Butwal',
+        addressRegion: 'Lumbini Province',
+        postalCode: '32907',
+        addressCountry: 'NP',
+      },
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: 27.7000,
+        longitude: 83.4486,
+      },
+      openingHoursSpecification: [
+        {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+          opens: '10:00',
+          closes: '19:30',
+        },
+        {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: 'Saturday',
+          opens: '10:00',
+          closes: '17:00',
+        },
+      ],
+      contactPoint: {
+        '@type': 'ContactPoint',
+        contactType: 'customer service',
+        telephone: '+977-9811469486',
+        availableLanguage: ['Nepali', 'English'],
+      },
+      areaServed: { '@type': 'Country', name: 'Nepal' },
+      sameAs: ['https://www.facebook.com/aashishjewellery'],
+    },
+    {
+      '@type': 'WebSite',
+      '@id': 'https://www.aashish.website/#website',
+      url: 'https://www.aashish.website/',
+      name: 'Aashish Jewellers',
+      publisher: { '@id': 'https://www.aashish.website/#store' },
+      inLanguage: 'en-NP',
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: 'https://www.aashish.website/shop-by?q={search_term_string}',
+        },
+        'query-input': 'required name=search_term_string',
+      },
+    },
+  ],
 };
 
 const PREFERRED_CATEGORY_ORDER = [
@@ -171,13 +219,21 @@ export default function Home() {
     },
   ];
 
+  const heroImageUrl = homeContent.hero.heroImage || homeContent.imageUrl;
+
   return (
     <div className="min-h-[100dvh] bg-[#faf8f5] pt-16 md:pt-[72px]">
       <SiteMeta
         title="Aashish Jewellers | Premium Silver Jewelry from Nepal"
         description="Discover handcrafted 925 silver rings, necklaces, earrings and bracelets. Free delivery in Butwal and Bhairahawa. Shop the collection now."
         jsonLd={ORG_JSON_LD}
+        canonical="/"
       />
+      {heroImageUrl && (
+        <Helmet>
+          <link rel="preload" as="image" href={heroImageUrl} />
+        </Helmet>
+      )}
 
       {/* ── Hero ── */}
       <section className="border-b border-stone-200 bg-white">
