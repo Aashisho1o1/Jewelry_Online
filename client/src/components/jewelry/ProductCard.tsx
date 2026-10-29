@@ -148,17 +148,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
           </h3>
         </Link>
 
-        <div className="mt-1.5 flex items-center gap-2">
-          <span className="text-sm text-stone-800">
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <span className="whitespace-nowrap text-sm text-stone-800">
             NPR {(flashPrice ?? product.price).toLocaleString()}
           </span>
           {flashActive && (
-            <span className="text-xs text-stone-400 line-through">
+            <span className="whitespace-nowrap text-xs text-stone-400 line-through">
               NPR {product.price.toLocaleString()}
             </span>
           )}
           {!flashActive && hasDiscount && (
-            <span className="text-xs text-stone-400 line-through">
+            <span className="whitespace-nowrap text-xs text-stone-400 line-through">
               NPR {product.originalPrice!.toLocaleString()}
             </span>
           )}

@@ -276,7 +276,7 @@ export default function Home() {
           </div>
 
           {categoryHighlights.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">
               {categoryHighlights.map(category => (
                 <button
                   key={category.id}
@@ -292,9 +292,9 @@ export default function Home() {
                       loading="lazy"
                     />
                   </div>
-                  <div className="p-4">
-                    <p className="font-serif text-lg font-light text-stone-950">{category.name}</p>
-                    <p className="mt-1 text-sm text-stone-500">{category.copy}</p>
+                  <div className="p-3 md:p-4">
+                    <p className="font-serif text-base font-light text-stone-950 md:text-lg">{category.name}</p>
+                    <p className="mt-1 hidden text-sm text-stone-500 sm:block">{category.copy}</p>
                     <p className="mt-3 text-[10px] uppercase tracking-[0.14em] text-stone-400">{category.count} pieces</p>
                   </div>
                 </button>

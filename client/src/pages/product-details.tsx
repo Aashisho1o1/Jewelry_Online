@@ -315,11 +315,7 @@ export default function ProductDetails() {
                 </span>
               )}
             </div>
-            {/* Label + name */}
-            <p className="mt-5 text-[10px] uppercase tracking-[0.22em] text-stone-400">
-              {formatProductLabel(product.category)} / {materialLabel}
-            </p>
-            <h1 className="mt-2 font-serif text-3xl font-light leading-tight text-stone-900 md:text-4xl">
+            <h1 className="mt-5 font-serif text-3xl font-light leading-tight text-stone-900 md:text-4xl">
               {product.name}
             </h1>
 
@@ -383,7 +379,7 @@ export default function ProductDetails() {
             )}
 
             {/* CTAs */}
-            <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+            <div className="mt-6 flex gap-2">
               <button
                 type="button"
                 onClick={() => handleAddToCart(product)}
@@ -399,7 +395,7 @@ export default function ProductDetails() {
                 type="button"
                 onClick={handleWishlist}
                 aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
-                className={`flex h-[46px] w-[46px] items-center justify-center border transition-colors ${
+                className={`flex h-[46px] w-[46px] shrink-0 items-center justify-center border transition-colors ${
                   wishlisted ? 'border-stone-900 bg-stone-900 text-white' : 'border-stone-300 text-stone-700 hover:border-stone-900'
                 }`}
               >
