@@ -60,25 +60,6 @@ export default function Checkout() {
   const initialPriceSyncDone = useRef(false);
   const giftOptions = customerInfo.giftOptions || DEFAULT_GIFT_OPTIONS;
 
-  if (items.length === 0) {
-    return (
-      <div className="min-h-screen bg-[#faf8f5] pt-24">
-        <div className="container py-20">
-          <div className="mx-auto max-w-md border border-stone-200 bg-white px-8 py-10 text-center">
-            <h1 className="text-3xl font-serif font-light text-stone-900">Your bag is empty</h1>
-            <p className="mt-4 text-stone-500">Add a few pieces before moving to checkout.</p>
-            <Link
-              href="/"
-              className="mt-8 inline-flex bg-stone-900 px-6 py-3 text-sm uppercase tracking-[0.16em] text-white transition-colors hover:bg-stone-800"
-            >
-              Continue shopping
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const discountAmount = promoApplied?.discountAmount ?? 0;
   const deliveryFee = total >= 5000 ? 0 : 150;
   const finalTotal = total - discountAmount + deliveryFee;
@@ -116,6 +97,26 @@ export default function Checkout() {
       cancelled = true;
     };
   }, [refreshPrices, toast]);
+
+  // Must stay below all hooks: the cart empties after a successful order.
+  if (items.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#faf8f5] pt-24">
+        <div className="container py-20">
+          <div className="mx-auto max-w-md border border-stone-200 bg-white px-8 py-10 text-center">
+            <h1 className="text-3xl font-serif font-light text-stone-900">Your bag is empty</h1>
+            <p className="mt-4 text-stone-500">Add a few pieces before moving to checkout.</p>
+            <Link
+              href="/"
+              className="mt-8 inline-flex bg-stone-900 px-6 py-3 text-sm uppercase tracking-[0.16em] text-white transition-colors hover:bg-stone-800"
+            >
+              Continue shopping
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleInputChange = (field: string, value: string) => {
     if (field.startsWith('address.')) {
