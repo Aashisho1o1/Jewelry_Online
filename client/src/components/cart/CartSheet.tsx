@@ -2,7 +2,7 @@ import React from 'react';
 import { Plus, Minus, X } from 'lucide-react';
 import { useCartContext } from '../../contexts/CartContext';
 import { Link } from 'wouter';
-import { Sheet, SheetContent } from '../ui/sheet';
+import { Sheet, SheetContent, SheetTitle } from '../ui/sheet';
 
 export function CartSheet() {
   const { items, total, count, isOpen, closeCart, updateQuantity, removeItem } = useCartContext();
@@ -20,7 +20,7 @@ export function CartSheet() {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-stone-200 px-6 py-5">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.22em] text-stone-400">Your bag</p>
+            <SheetTitle className="text-[10px] font-normal uppercase tracking-[0.22em] text-stone-400">Your bag</SheetTitle>
             {count > 0 && (
               <p className="mt-0.5 font-serif text-lg font-light text-stone-900">
                 {count} {count === 1 ? 'item' : 'items'}

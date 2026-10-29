@@ -494,7 +494,7 @@ export default function ProductDetails() {
                 )}
                 {product.recipients?.length ? (
                   <p className="mt-2 text-sm text-stone-500">
-                    A thoughtful gift for {product.recipients.map(r => formatProductLabel(r).toLowerCase()).join(', ')}.
+                    Gift idea for: {product.recipients.map(r => formatProductLabel(r)).join(' · ')}
                   </p>
                 ) : null}
               </div>
@@ -511,7 +511,7 @@ export default function ProductDetails() {
                   ))}
                 </ul>
                 <Link href="/care-guide" className="mt-4 inline-flex text-xs uppercase tracking-[0.14em] text-stone-500 underline underline-offset-4 hover:text-stone-900 transition-colors">
-                  Full care guide {'->'}
+                  Full care guide →
                 </Link>
               </div>
             </div>
@@ -546,7 +546,7 @@ export default function ProductDetails() {
                   </div>
                   {product.fitNotes && <p className="mt-3 text-sm text-stone-500">{product.fitNotes}</p>}
                   <Link href="/size-guide" className="mt-3 inline-flex text-xs uppercase tracking-[0.14em] text-stone-500 underline underline-offset-4 hover:text-stone-900 transition-colors">
-                    Full size guide {'->'}
+                    Full size guide →
                   </Link>
                 </div>
               )}
@@ -558,12 +558,12 @@ export default function ProductDetails() {
       {/* Reviews */}
       <section className="border-t border-stone-200 bg-white py-12 md:py-14">
         <div className="container">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-stone-400 mb-2">Reviews</p>
-          <h2 className="font-serif text-2xl font-light text-stone-900 mb-8">
-            {reviewCount > 0 ? `${reviewCount} customer ${reviewCount === 1 ? 'review' : 'reviews'}` : 'Customer reviews'}
-          </h2>
-
           {reviews.length > 0 ? (
+            <>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-stone-400 mb-2">Reviews</p>
+            <h2 className="font-serif text-2xl font-light text-stone-900 mb-8">
+              {reviewCount} customer {reviewCount === 1 ? 'review' : 'reviews'}
+            </h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
               {reviews.map((review, i) => (
                 <div key={`${review.author}-${i}`} className="border border-stone-200 p-5">
@@ -581,9 +581,10 @@ export default function ProductDetails() {
                 </div>
               ))}
             </div>
+            </>
           ) : null}
 
-          <ReviewSection productId={product.id} />
+          <ReviewSection productId={product.id} hasOtherReviews={reviews.length > 0} />
         </div>
       </section>
 

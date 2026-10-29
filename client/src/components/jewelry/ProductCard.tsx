@@ -58,7 +58,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
   };
 
   return (
-    <div className="group">
+    <div className="group flex h-full flex-col">
       {/* Image block */}
       <div className="relative overflow-hidden rounded-xl bg-[#f0ebe3]">
         <Link href={productHref} className="block">
@@ -137,10 +137,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
       </div>
 
       {/* Info */}
-      <div className="pt-3">
-        <p className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
-          {toDisplayLabel(product.category || 'jewelry')}
-        </p>
+      <div className="flex flex-1 flex-col pt-3">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+            {toDisplayLabel(product.category || 'jewelry')}
+          </p>
+          {product.rating && (
+            <span className="flex items-center gap-0.5 text-[11px] text-stone-400">
+              <Star className="h-2.5 w-2.5 fill-current" strokeWidth={1} />
+              {product.rating.toFixed(1)}
+            </span>
+          )}
+        </div>
 
         <Link href={productHref}>
           <h3 className="mt-1 font-serif text-[15px] font-light leading-snug text-stone-900 transition-colors hover:text-stone-500">
@@ -162,12 +170,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
               NPR {product.originalPrice!.toLocaleString()}
             </span>
           )}
-          {product.rating && (
-            <span className="ml-auto flex items-center gap-0.5 text-[11px] text-stone-400">
-              <Star className="h-2.5 w-2.5 fill-current" strokeWidth={1} />
-              {product.rating.toFixed(1)}
-            </span>
-          )}
         </div>
 
         {product.priceSource === 'market_rate' && (
@@ -176,16 +178,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
           </p>
         )}
 
-        {/* Mobile: always-visible add button */}
+        {/* Mobile: always-visible add button, pinned to the bottom so rows line up */}
         {onAddToCart && (
-          <button
-            type="button"
-            onClick={handleAddToCart}
-            disabled={!product.inStock}
-            className="mt-3 w-full border border-stone-200 py-2.5 text-[10px] uppercase tracking-[0.18em] text-stone-600 transition-colors active:border-stone-900 active:bg-stone-900 active:text-white disabled:opacity-40 md:hidden"
-          >
-            {product.inStock ? 'Add to bag' : 'Out of stock'}
-          </button>
+          <div className="mt-auto pt-3 md:hidden">
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={!product.inStock}
+              className="w-full border border-stone-200 py-2.5 text-[10px] uppercase tracking-[0.18em] text-stone-600 transition-colors active:border-stone-900 active:bg-stone-900 active:text-white disabled:opacity-40"
+            >
+              {product.inStock ? 'Add to bag' : 'Out of stock'}
+            </button>
+          </div>
         )}
       </div>
     </div>
