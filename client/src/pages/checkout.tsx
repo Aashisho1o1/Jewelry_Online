@@ -56,6 +56,7 @@ export default function Checkout() {
   const [promoApplied, setPromoApplied] = useState<{ code: string; discountAmount: number; description: string | null } | null>(null);
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoError, setPromoError] = useState('');
+  const [codSaveFailed, setCodSaveFailed] = useState(false);
   const cartSaved = useRef(false);
   const initialPriceSyncDone = useRef(false);
   const giftOptions = customerInfo.giftOptions || DEFAULT_GIFT_OPTIONS;
@@ -197,9 +198,57 @@ export default function Checkout() {
     return true;
   };
 
+  const buildWhatsAppOrderUrl = (paymentLabel: string) => {
+    const orderSummary = items
+      .map(item => `- ${item.name} x${item.quantity} - NPR ${(item.price * item.quantity).toLocaleString()}`)
+      .join('\n');
+
+    const deliveryInfo = deliveryFee === 0 ? 'Free Delivery' : `Delivery: NPR ${deliveryFee}`;
+    const discountInfo = discountAmount > 0 ? `\nPromo (${promoApplied?.code}): -NPR ${discountAmount.toLocaleString()}` : '';
+    const giftSummary = giftOptions.isGift
+      ? `\n\nGift Details:\nGift Wrap: ${giftOptions.giftWrap ? 'Yes' : 'No'}\nRecipient: ${giftOptions.recipient || 'Not specified'}\nOccasion: ${giftOptions.occasion || 'Not specified'}${giftOptions.giftCard ? '\nGift Card: Requested' : ''}${giftOptions.giftNote ? `\nGift Note: ${giftOptions.giftNote}` : ''}${giftOptions.specialInstructions ? `\nSpecial Instructions: ${giftOptions.specialInstructions}` : ''}`
+      : '';
+
+    const whatsappMessage = `New Order from Aashish Jewellers
+
+Customer Details:
+Name: ${customerInfo.name}
+Phone: ${customerInfo.phone}
+${customerInfo.email ? `Email: ${customerInfo.email}` : ''}
+
+Delivery Address:
+${customerInfo.address.street}
+${customerInfo.address.district}${customerInfo.address.zone ? `, ${customerInfo.address.zone}` : ''}
+${customerInfo.address.landmark ? `Near: ${customerInfo.address.landmark}` : ''}
+
+Order Items:
+${orderSummary}
+
+Payment Summary:
+Subtotal: NPR ${total.toLocaleString()}${discountInfo}
+${deliveryInfo}
+Total: NPR ${finalTotal.toLocaleString()}
+
+Payment Method: ${paymentLabel}${giftSummary}
+
+Please confirm this order and estimated delivery time.`;
+
+    return `https://wa.me/9779811469486?text=${encodeURIComponent(whatsappMessage)}`;
+  };
+
+  // Opened from a tap (not after the failed request) so mobile pop-up blockers allow it.
+  const sendCodOrderOnWhatsApp = () => {
+    window.open(buildWhatsAppOrderUrl('Cash on Delivery'), '_blank');
+    clearCart();
+    setTimeout(() => {
+      window.location.href = `/order-success?id=&payment=whatsapp&amount=${finalTotal}&phone=${encodeURIComponent(customerInfo.phone)}`;
+    }, 1000);
+  };
+
   const handlePlaceOrder = async () => {
     if (!validateForm()) return;
 
+    setCodSaveFailed(false);
     setLoading(true);
     try {
       const pricesChanged = await refreshPrices();
@@ -233,15 +282,20 @@ export default function Checkout() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...order, paymentMethod: 'cod' }),
-        });
+        }).catch(() => null);
 
-        if (response.ok) {
+        if (response?.ok) {
           const { orderId } = await response.json();
           clearCart();
           toast({ title: 'Order placed successfully!', description: "We'll call you to confirm your order." });
           window.location.href = `/order-success?id=${orderId}&payment=cod&amount=${finalTotal}&phone=${encodeURIComponent(customerInfo.phone)}`;
+        } else if (response && response.status < 500) {
+          // Validation problems (stock, price, details) must be fixed, not routed around.
+          const data = await response.json().catch(() => ({}));
+          toast({ title: 'Order not placed', description: data.error || 'Please check your details and try again.', variant: 'destructive' });
         } else {
-          throw new Error('Failed to create order');
+          // Server or network down: don't lose the sale, let the customer send it on WhatsApp.
+          setCodSaveFailed(true);
         }
       } else if (paymentMethod === 'esewa') {
         const form = document.createElement('form');
@@ -281,41 +335,7 @@ export default function Checkout() {
           throw new Error(errorData.error || 'Failed to initiate Khalti payment');
         }
       } else if (paymentMethod === 'whatsapp') {
-        const orderSummary = items
-          .map(item => `- ${item.name} x${item.quantity} - NPR ${(item.price * item.quantity).toLocaleString()}`)
-          .join('\n');
-
-        const deliveryInfo = deliveryFee === 0 ? 'Free Delivery' : `Delivery: NPR ${deliveryFee}`;
-        const giftSummary = giftOptions.isGift
-          ? `\n\nGift Details:\nGift Wrap: ${giftOptions.giftWrap ? 'Yes' : 'No'}\nRecipient: ${giftOptions.recipient || 'Not specified'}\nOccasion: ${giftOptions.occasion || 'Not specified'}${giftOptions.giftCard ? '\nGift Card: Requested' : ''}${giftOptions.giftNote ? `\nGift Note: ${giftOptions.giftNote}` : ''}${giftOptions.specialInstructions ? `\nSpecial Instructions: ${giftOptions.specialInstructions}` : ''}`
-          : '';
-
-        const whatsappMessage = `New Order from Aashish Jewellers
-
-Customer Details:
-Name: ${customerInfo.name}
-Phone: ${customerInfo.phone}
-${customerInfo.email ? `Email: ${customerInfo.email}` : ''}
-
-Delivery Address:
-${customerInfo.address.street}
-${customerInfo.address.district}${customerInfo.address.zone ? `, ${customerInfo.address.zone}` : ''}
-${customerInfo.address.landmark ? `Near: ${customerInfo.address.landmark}` : ''}
-
-Order Items:
-${orderSummary}
-
-Payment Summary:
-Subtotal: NPR ${total.toLocaleString()}
-${deliveryInfo}
-Total: NPR ${finalTotal.toLocaleString()}
-
-Payment Method: Cash on Delivery / Bank Transfer${giftSummary}
-
-Please confirm this order and estimated delivery time.`;
-
-        const whatsappNumber = '9779811469486';
-        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+        const whatsappUrl = buildWhatsAppOrderUrl('Cash on Delivery / Bank Transfer');
 
         const response = await fetch('/api/orders/create', {
           method: 'POST',
@@ -833,6 +853,23 @@ Please confirm this order and estimated delivery time.`;
                 >
                   {loading ? 'Processing...' : `Place order - NPR ${finalTotal.toLocaleString()}`}
                 </Button>
+
+                {codSaveFailed && paymentMethod === 'cod' && (
+                  <div role="alert" className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
+                    <p className="font-medium">We couldn&apos;t save your order just now.</p>
+                    <p className="mt-1 text-amber-800">
+                      Send it to us on WhatsApp instead. Your details are filled in, and we&apos;ll confirm by phone.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={sendCodOrderOnWhatsApp}
+                      className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1ebe5b]"
+                    >
+                      <MessageCircle className="h-4 w-4" strokeWidth={1.75} />
+                      Send order on WhatsApp
+                    </button>
+                  </div>
+                )}
 
                 <p className="mt-4 text-center text-xs text-stone-500">
                   Customers who need help with gifting or delivery can complete the order through WhatsApp.
