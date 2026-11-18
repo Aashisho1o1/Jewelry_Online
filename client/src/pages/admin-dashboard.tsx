@@ -162,9 +162,12 @@ function exportOrdersCSV(orders: AdminOrder[]) {
     new Date(o.created_at).toLocaleDateString(),
     o.notes || '',
   ]);
-  const csv = [headers, ...rows].map(r =>
-    r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')
-  ).join('\n');
+  // Customer-entered text starting with = + - @ would run as a formula in Excel/Sheets; prefix ' to keep it text.
+  const csvCell = (c: unknown) => {
+    const s = String(c ?? '');
+    return `"${(/^[=+\-@\t\r]/.test(s) ? `'${s}` : s).replace(/"/g, '""')}"`;
+  };
+  const csv = [headers, ...rows].map(r => r.map(csvCell).join(',')).join('\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
   a.download = `orders-${new Date().toISOString().slice(0, 10)}.csv`;
