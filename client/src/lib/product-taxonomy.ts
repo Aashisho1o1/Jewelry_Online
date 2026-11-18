@@ -112,6 +112,8 @@ export function getFacetOptions(products: JewelryProduct[], facet: ShopFacetKey,
 }
 
 export function matchesFacet(product: JewelryProduct, facet: ShopFacetKey, slug: string) {
+  // /shop-by/category/all lists everything until the collection pages replace it.
+  if (facet === 'category' && slug === 'all') return true;
   if (facet === 'price') {
     return PRICE_BUCKETS.some(bucket => bucket.slug === slug && bucket.match(product));
   }

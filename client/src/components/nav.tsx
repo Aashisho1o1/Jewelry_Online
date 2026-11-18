@@ -47,18 +47,8 @@ export default function Nav({ onOpenCategories }: NavProps) {
     getProducts().then(setSearchProducts).catch(() => {});
   }, []);
 
-  const goToCatalog = () => {
-    const scroll = () => document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    if (location !== '/') {
-      navigate('/');
-      window.setTimeout(scroll, 120);
-    } else {
-      scroll();
-    }
-  };
-
   const links = [
-    { label: 'Shop All', onClick: goToCatalog, active: false },
+    { label: 'Shop All', onClick: () => navigate('/shop-by/category/all'), active: location === '/shop-by/category/all' },
     ...['rings', 'necklaces', 'earrings', 'bracelets'].map(id => ({
       label: id.charAt(0).toUpperCase() + id.slice(1),
       onClick: () => navigate(`/shop-by/category/${id}`),

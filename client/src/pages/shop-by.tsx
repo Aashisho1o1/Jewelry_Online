@@ -71,7 +71,10 @@ export default function ShopByPage() {
     );
   }
 
-  const metaTitle = facetDefinition && activeValue
+  const isAllJewellery = facetDefinition?.key === 'category' && activeValue === 'all';
+  const metaTitle = isAllJewellery
+    ? 'All Jewellery'
+    : facetDefinition && activeValue
     ? `${formatProductLabel(activeValue)} ${facetDefinition.label} Jewelry`
     : 'Gift Guide - Shop by Occasion, Style & Recipient';
   const metaDesc = facetDefinition && activeValue
@@ -96,7 +99,7 @@ export default function ShopByPage() {
             </Link>
             <p className="text-xs tracking-[0.2em] uppercase text-stone-400 mb-2">{facetDefinition.label}</p>
             <h1 className="text-3xl md:text-4xl font-serif font-light text-stone-900">
-              {activeOption?.label || formatProductLabel(activeValue)}
+              {isAllJewellery ? 'All jewellery' : activeOption?.label || formatProductLabel(activeValue)}
             </h1>
             <p className="text-sm text-stone-500 mt-2">{filteredProducts.length} {filteredProducts.length === 1 ? 'piece' : 'pieces'}</p>
           </div>
