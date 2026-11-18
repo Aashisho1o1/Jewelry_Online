@@ -68,7 +68,7 @@ This is a **monolithic Vite + React SPA** deployed to **Vercel** with serverless
 - `DATABASE_URL` - Railway Postgres connection string
 - `ESEWA_MERCHANT_ID`, `ESEWA_SECRET_KEY`, `KHALTI_SECRET_KEY`
 
-**CRITICAL**: OAuth callback URL must match `https://jewelry-online.vercel.app/api/callback` in GitHub app settings.
+**CRITICAL**: OAuth callback URL must match `https://aashish-jewellers.vercel.app/api/callback` in GitHub app settings.
 
 ## Development Workflow
 
@@ -85,7 +85,7 @@ npm run cms:local  # Start netlify-cms-proxy-server on :8081
 Then visit `http://localhost:5173/admin` and use local Git backend.
 
 ### Deployment
-- **Platform**: Vercel (production at `jewelry-online.vercel.app`)
+- **Platform**: Vercel (production at `aashish-jewellers.vercel.app`, Vercel account aadarshagautam; Neon Postgres in Singapore)
 - **Build**: `npm run build` → outputs to `dist/` (Vite root is `client/`)
 - **Routes**: See `vercel.json` for API rewrites (`/api/*` → `/api/*.js` serverless functions)
 

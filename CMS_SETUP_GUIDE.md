@@ -31,8 +31,8 @@ Add these environment variables in your Vercel project settings:
 
 2. Fill in:
    - Application name: `Aashish Jewellers CMS`
-   - Homepage URL: `https://jewelry-online.vercel.app`
-   - Authorization callback URL: `https://jewelry-online.vercel.app/api/callback`
+   - Homepage URL: `https://aashish-jewellers.vercel.app`
+   - Authorization callback URL: `https://aashish-jewellers.vercel.app/api/callback`
 
 3. Save the Client ID and Client Secret to Vercel environment variables
 

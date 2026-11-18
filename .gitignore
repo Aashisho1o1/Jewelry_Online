@@ -19,3 +19,4 @@ vite.config.ts.*
 tmp-*.png
 tmp-*.jpg
 audit.json
+.env*
