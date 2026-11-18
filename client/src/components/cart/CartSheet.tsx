@@ -158,7 +158,8 @@ export function CartSheet() {
             </div>
 
             {/* Checkout */}
-            <Link href="/checkout" onClick={closeCart}>
+            {/* block: an inline <a> ignores space-y margin, which left Total touching the button */}
+            <Link href="/checkout" onClick={closeCart} className="block">
               <button
                 type="button"
                 className="w-full bg-stone-900 py-3.5 text-xs uppercase tracking-[0.2em] text-white transition-colors hover:bg-stone-700"
@@ -170,7 +171,7 @@ export function CartSheet() {
             <button
               type="button"
               onClick={closeCart}
-              className="w-full text-xs uppercase tracking-[0.18em] text-stone-400 transition-colors hover:text-stone-900"
+              className="w-full py-2 text-xs uppercase tracking-[0.18em] text-stone-400 transition-colors hover:text-stone-900"
             >
               Continue shopping
             </button>

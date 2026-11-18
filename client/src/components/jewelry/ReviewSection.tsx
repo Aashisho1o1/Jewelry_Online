@@ -120,7 +120,7 @@ function ReviewForm({ productId, onSubmitted }: { productId: string; onSubmitted
             onChange={e => setName(e.target.value)}
             maxLength={50}
             placeholder="Name or initials"
-            className="w-full border border-stone-300 bg-white px-4 py-3 text-sm text-stone-800 transition-colors focus:border-stone-900 focus:outline-none"
+            className="w-full border border-stone-300 bg-white px-4 py-3 text-base md:text-sm text-stone-800 transition-colors focus:border-stone-900 focus:outline-none"
           />
         </div>
 
@@ -140,7 +140,7 @@ function ReviewForm({ productId, onSubmitted }: { productId: string; onSubmitted
           onChange={e => setTitle(e.target.value)}
           maxLength={100}
           placeholder="Summarize your experience"
-          className="w-full border border-stone-300 bg-white px-4 py-3 text-sm text-stone-800 transition-colors focus:border-stone-900 focus:outline-none"
+          className="w-full border border-stone-300 bg-white px-4 py-3 text-base md:text-sm text-stone-800 transition-colors focus:border-stone-900 focus:outline-none"
         />
       </div>
 
@@ -152,7 +152,7 @@ function ReviewForm({ productId, onSubmitted }: { productId: string; onSubmitted
           maxLength={500}
           rows={4}
           placeholder="Share your thoughts on quality, fit, and gifting experience..."
-          className="w-full resize-none border border-stone-300 bg-white px-4 py-3 text-sm text-stone-800 transition-colors focus:border-stone-900 focus:outline-none"
+          className="w-full resize-none border border-stone-300 bg-white px-4 py-3 text-base md:text-sm text-stone-800 transition-colors focus:border-stone-900 focus:outline-none"
         />
         <p className="mt-1 text-right text-[11px] text-stone-400">{body.length}/500</p>
       </div>

@@ -170,14 +170,14 @@ export default function OrderTrack() {
             value={inputId}
             onChange={e => setInputId(e.target.value)}
             placeholder="e.g. ORD-1234567890-abc"
-            className="flex-1 border border-stone-300 bg-white px-4 py-3 text-sm text-stone-800 focus:outline-none focus:border-stone-900 transition-colors tracking-[0.05em] font-mono"
+            className="flex-1 border border-stone-300 bg-white px-4 py-3 text-base md:text-sm text-stone-800 focus:outline-none focus:border-stone-900 transition-colors tracking-[0.05em] font-mono"
           />
           <input
             type="tel"
             value={inputPhone}
             onChange={e => setInputPhone(e.target.value)}
             placeholder="Checkout phone number"
-            className="flex-1 border border-stone-300 bg-white px-4 py-3 text-sm text-stone-800 focus:outline-none focus:border-stone-900 transition-colors"
+            className="flex-1 border border-stone-300 bg-white px-4 py-3 text-base md:text-sm text-stone-800 focus:outline-none focus:border-stone-900 transition-colors"
           />
           <button
             type="submit"

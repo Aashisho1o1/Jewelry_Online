@@ -123,14 +123,14 @@ export default function MyOrders() {
                 value={orderId}
                 onChange={e => setOrderId(e.target.value)}
                 placeholder="e.g. ORD-1234567890-abc"
-                className="flex-1 border border-stone-300 bg-white px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:border-stone-900 focus:outline-none font-mono"
+                className="flex-1 border border-stone-300 bg-white px-4 py-3 text-base md:text-sm text-stone-900 placeholder:text-stone-400 focus:border-stone-900 focus:outline-none font-mono"
               />
               <input
                 type="tel"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 placeholder="e.g. 9841234567"
-                className="flex-1 border border-stone-300 bg-white px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:border-stone-900 focus:outline-none"
+                className="flex-1 border border-stone-300 bg-white px-4 py-3 text-base md:text-sm text-stone-900 placeholder:text-stone-400 focus:border-stone-900 focus:outline-none"
               />
               <button
                 type="submit"

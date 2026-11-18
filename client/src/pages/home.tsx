@@ -382,19 +382,19 @@ export default function Home() {
             {quickGuides.map(guide => (
               <div key={guide.title} className="border border-stone-200 bg-white p-5">
                 <p className="text-xs uppercase tracking-[0.18em] text-stone-400 mb-4">{guide.title}</p>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col">
                   {guide.links.length > 0 ? (
                     guide.links.map(link => (
                       <Link
                         key={`${guide.title}-${link.label}`}
                         href={link.href}
-                        className="text-sm text-stone-700 hover:text-stone-950 transition-colors"
+                        className="py-2 text-sm text-stone-700 hover:text-stone-950 transition-colors"
                       >
                         {link.label} →
                       </Link>
                     ))
                   ) : (
-                    <Link href="/shop-by" className="text-sm text-stone-700 hover:text-stone-950">
+                    <Link href="/shop-by" className="py-2 text-sm text-stone-700 hover:text-stone-950">
                       Browse →
                     </Link>
                   )}

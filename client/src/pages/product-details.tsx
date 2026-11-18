@@ -245,10 +245,10 @@ export default function ProductDetails() {
 
       {/* Breadcrumb */}
       <div className="border-b border-stone-100">
-        <div className="container flex items-center gap-2 py-3 text-[11px] uppercase tracking-[0.14em] text-stone-400">
-          <Link href="/" className="hover:text-stone-700 transition-colors">Home</Link>
+        <div className="container flex items-center gap-2 py-1 text-[11px] uppercase tracking-[0.14em] text-stone-400">
+          <Link href="/" className="py-2 hover:text-stone-700 transition-colors">Home</Link>
           <span>/</span>
-          <Link href="/shop-by" className="hover:text-stone-700 transition-colors">Shop</Link>
+          <Link href="/shop-by" className="py-2 hover:text-stone-700 transition-colors">Shop</Link>
           <span>/</span>
           <span className="text-stone-600">{formatProductLabel(product.category)}</span>
         </div>
@@ -456,9 +456,9 @@ export default function ProductDetails() {
             </div>
 
             {/* Helper links */}
-            <div className="mt-4 flex flex-wrap gap-4 text-xs text-stone-500">
+            <div className="mt-2 flex flex-wrap gap-x-4 text-xs text-stone-500">
               {product.category === 'rings' && (
-                <Link href="/size-guide" className="flex items-center gap-1.5 underline underline-offset-4 hover:text-stone-900 transition-colors">
+                <Link href="/size-guide" className="flex items-center gap-1.5 py-2 underline underline-offset-4 hover:text-stone-900 transition-colors">
                   <Ruler className="h-3.5 w-3.5" strokeWidth={1.5} />
                   Ring size guide
                 </Link>
@@ -467,7 +467,7 @@ export default function ProductDetails() {
                 href={`https://wa.me/9779811469486?text=${encodeURIComponent(`Hi, I want to know more about ${product.name} (${product.id}).`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 underline underline-offset-4 hover:text-stone-900 transition-colors"
+                className="flex items-center gap-1.5 py-2 underline underline-offset-4 hover:text-stone-900 transition-colors"
               >
                 <MessageCircle className="h-3.5 w-3.5" strokeWidth={1.5} />
                 Ask on WhatsApp

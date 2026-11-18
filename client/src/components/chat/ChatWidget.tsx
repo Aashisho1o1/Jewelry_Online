@@ -123,7 +123,7 @@ export default function ChatWidget() {
             onKeyDown={handleKeyDown}
             placeholder="Ask about our jewelry..."
             disabled={isLoading}
-            className="flex-1 px-4 py-3 text-sm font-light text-gray-900 placeholder-gray-400 bg-transparent outline-none disabled:opacity-50"
+            className="flex-1 px-4 py-3 text-base md:text-sm font-light text-gray-900 placeholder-gray-400 bg-transparent outline-none disabled:opacity-50"
           />
           <button
             type="button"
