@@ -1,13 +1,7 @@
 import React from 'react';
 import { Ruler, Hand } from 'lucide-react';
 import SiteMeta from '@/components/SiteMeta';
-
-const RING_SIZES = [
-  { size: '6', diameter: '16.5 mm', note: 'Slim fingers / snug fit' },
-  { size: '7', diameter: '17.3 mm', note: 'Common regular fit' },
-  { size: '8', diameter: '18.1 mm', note: 'Comfortable medium-large fit' },
-  { size: '9', diameter: '19.0 mm', note: 'Statement or larger fit' },
-];
+import { RING_SIZES } from '@/lib/ring-sizes';
 
 export default function SizeGuidePage() {
   return (

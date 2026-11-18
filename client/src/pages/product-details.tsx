@@ -1,15 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useRoute } from 'wouter';
 import ReviewSection from '@/components/jewelry/ReviewSection';
 import SiteMeta from '@/components/SiteMeta';
 import {
   ArrowLeft,
+  Check,
+  ChevronDown,
+  Gift,
   Heart,
   MessageCircle,
-  Gift,
-  Ruler,
+  RotateCcw,
   ShieldCheck,
-  ShoppingBag,
   Sparkles,
   Star,
   Truck,
@@ -20,8 +21,10 @@ import { useCartContext } from '@/contexts/CartContext';
 import { useEngagementContext } from '@/contexts/EngagementContext';
 import { useToast } from '@/hooks/use-toast';
 import ProductCard from '@/components/jewelry/ProductCard';
-import StoreRateStrip from '@/components/StoreRateStrip';
+import ProductGallery from '@/components/jewelry/ProductGallery';
 import { formatProductLabel, getExplicitBundleProducts, getSimilarProducts } from '@/lib/product-taxonomy';
+import { RING_SIZES, RING_SIZE_UNSURE, needsRingSize } from '@/lib/ring-sizes';
+import { cn } from '@/lib/utils';
 
 function buildDefaultCare(product: JewelryProduct) {
   const base = [
@@ -46,34 +49,38 @@ function formatShortDate(value: string) {
   });
 }
 
-const RING_SIZE_GUIDE = [
-  { size: '6', mm: '16.5 mm', fit: 'Small / slim fingers' },
-  { size: '7', mm: '17.3 mm', fit: 'Most common regular fit' },
-  { size: '8', mm: '18.1 mm', fit: 'Comfortable medium-large' },
-  { size: '9', mm: '19.0 mm', fit: 'Larger / statement wear' },
-];
-
-function RecommendationSection({
-  title,
-  products,
-  onAddToCart,
-}: {
-  title: string;
-  products: JewelryProduct[];
-  onAddToCart: (p: JewelryProduct) => void;
-}) {
+function ProductRail({ title, products, onAddToCart }: { title: string; products: JewelryProduct[]; onAddToCart: (p: JewelryProduct) => void }) {
   if (products.length === 0) return null;
   return (
-    <section className="border-t border-stone-200 bg-white py-12">
-      <div className="container">
-        <h2 className="mb-8 font-serif text-2xl font-light text-stone-900">{title}</h2>
-        <div className="grid grid-cols-2 gap-4 md:gap-6 lg:grid-cols-4">
-          {products.map(item => (
-            <ProductCard key={item.id} product={item} onAddToCart={onAddToCart} />
-          ))}
-        </div>
+    <section className="mx-auto max-w-[1280px] px-4 pt-11 md:px-10 md:pt-20">
+      <h2 className="mb-5 font-serif text-[26px] font-normal text-stone-900 md:text-[34px]">{title}</h2>
+      {/* Rail on phones, four columns on desktop */}
+      <div className="-mx-4 grid snap-x snap-mandatory auto-cols-[46%] grid-flow-col gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:grid-flow-row md:grid-cols-4 md:gap-6 md:overflow-visible md:px-0">
+        {products.map(item => (
+          <div key={item.id} className="snap-start">
+            <ProductCard product={item} onAddToCart={onAddToCart} />
+          </div>
+        ))}
       </div>
     </section>
+  );
+}
+
+function Accordion({ title, children }: { title: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-b border-stone-200">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        className="flex h-[54px] w-full items-center justify-between text-left text-sm font-medium text-stone-900"
+      >
+        {title}
+        <ChevronDown className={cn('h-4 w-4 transition-transform duration-200', open && 'rotate-180')} strokeWidth={1.5} />
+      </button>
+      {open && <div className="flex flex-col gap-1.5 pb-4 text-sm leading-relaxed text-stone-600">{children}</div>}
+    </div>
   );
 }
 
@@ -83,9 +90,12 @@ export default function ProductDetails() {
   const productId = params?.productId || '';
   const [products, setProducts] = useState<JewelryProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeImage, setActiveImage] = useState(0);
-  const { addItem, openCart } = useCartContext();
-  const { toggleWishlist, isWishlisted, trackRecentlyViewed, recentlyViewed } = useEngagementContext();
+  const [size, setSize] = useState<string | null>(null);
+  const [sizeError, setSizeError] = useState(false);
+  const [showMore, setShowMore] = useState(false);
+  const sizePickerRef = useRef<HTMLDivElement>(null);
+  const { addItem, openCart, gift, setGift } = useCartContext();
+  const { toggleWishlist, isWishlisted, trackRecentlyViewed } = useEngagementContext();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -103,7 +113,9 @@ export default function ProductDetails() {
   );
 
   useEffect(() => {
-    setActiveImage(0);
+    setSize(null);
+    setSizeError(false);
+    setShowMore(false);
     window.scrollTo({ top: 0, behavior: 'auto' });
   }, [productId]);
 
@@ -111,12 +123,22 @@ export default function ProductDetails() {
     if (product) trackRecentlyViewed(product);
   }, [product?.id]);
 
+  // Rings can't go in the bag without a size; send the customer to the picker instead.
+  const requireSize = () => {
+    if (!product || !needsRingSize(product.category) || size) return true;
+    setSizeError(true);
+    sizePickerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    toast({ title: 'Choose a ring size', description: 'Pick your size, or "Not sure" and we\'ll confirm it by phone.' });
+    return false;
+  };
+
   const handleAddToCart = (item: JewelryProduct) => {
     if (!item.inStock) {
       toast({ title: 'Out of Stock', description: 'This piece is currently unavailable.', variant: 'destructive' });
       return;
     }
-    addItem(item);
+    if (item.id === product?.id && !requireSize()) return;
+    addItem(item, item.id === product?.id ? size || undefined : undefined);
     toast({ title: 'Added to bag', description: item.name });
     setTimeout(() => openCart(), 400);
   };
@@ -134,43 +156,43 @@ export default function ProductDetails() {
       toast({ title: 'Out of Stock', description: 'This piece is currently unavailable.', variant: 'destructive' });
       return;
     }
-    addItem(product);
+    if (!requireSize()) return;
+    addItem(product, size || undefined);
     navigate('/checkout');
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white pt-24 flex items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-stone-900" />
+      <div className="flex min-h-screen items-center justify-center bg-cream">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-forest-900" />
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-white pt-24">
+      <div className="min-h-screen bg-cream">
         <div className="container max-w-2xl py-24 text-center">
-          <h1 className="mb-4 text-3xl font-serif font-light text-stone-900">Product not found</h1>
+          <h1 className="mb-4 font-serif text-3xl font-normal text-stone-900">Product not found</h1>
           <p className="mb-8 text-stone-500">This item may have been removed or the link has changed.</p>
-          <Link href="/" className="inline-flex items-center gap-2 border border-stone-300 px-6 py-3 text-xs uppercase tracking-[0.18em] text-stone-700 hover:border-stone-900 transition-colors">
+          <Link href="/collections" className="inline-flex items-center gap-2 rounded-full border border-forest-900 px-6 py-3 text-xs uppercase tracking-[0.16em] text-forest-900">
             <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
-            Back to collection
+            Back to the shop
           </Link>
         </div>
       </div>
     );
   }
 
-  const images = product.images?.length ? product.images : [product.image];
-  const selectedImage = images[activeImage] || images[0];
-  const hasDiscount = product.originalPrice && product.originalPrice > product.price;
-  const discountPercent = hasDiscount
+  const gallery = Array.from(new Set([product.image, ...(product.images || [])].filter(Boolean)));
+  const hasDiscount = Boolean(product.originalPrice && product.originalPrice > product.price);
+  const discountPercent = product.flashSalePercent || (hasDiscount
     ? Math.round(((product.originalPrice! - product.price) / product.originalPrice!) * 100)
-    : 0;
+    : 0);
   const reviews = product.reviews || [];
   const careTips = product.care?.length ? product.care : buildDefaultCare(product);
-  const materialLabel = product.material === '925_silver' ? '925 Sterling Silver' : formatProductLabel(product.material);
-  const isMarketLinked = product.priceSource === 'market_rate' && Boolean(product.metalRateKey);
+  const isSilver = product.material === '925_silver';
+  const materialLabel = isSilver ? '925 Sterling Silver' : formatProductLabel(product.material);
   const livePriceNote = product.priceSource === 'market_rate' && product.priceUpdatedAt
     ? `Market-linked price using the ${product.metalRateLabel || materialLabel} rate updated ${formatShortDate(product.priceUpdatedAt)}.`
     : null;
@@ -179,46 +201,34 @@ export default function ProductDetails() {
   const rating = product.rating || (reviews.length
     ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) * 10) / 10
     : undefined);
-  const designStory = product.designStory || product.description;
-  const highlights = product.highlights?.length ? product.highlights : [];
-  const stylingNote = product.styleNote || (
-    product.occasions?.length
-      ? `Works well for ${product.occasions.map(o => formatProductLabel(o).toLowerCase()).join(', ')}.`
-      : product.occasion
-        ? `Works well for ${formatProductLabel(product.occasion).toLowerCase()}.`
-        : null
-  );
-  const purchaseInfo = [
-    { label: 'Material', value: materialLabel, icon: ShieldCheck },
-    { label: 'Dispatch', value: product.deliveryEstimate || '2-4 business days' },
-    ...(product.giftWrapAvailable
-      ? [{ label: 'Gift wrap', value: 'Available at checkout', icon: Gift }]
-      : []),
-    { label: 'Delivery', value: 'Across Nepal', icon: Truck },
-  ];
-  const specs = [
-    { label: 'Category', value: formatProductLabel(product.category) },
-    { label: 'Material', value: formatProductLabel(product.material) },
-    { label: 'Metal Tone', value: product.metalTone && formatProductLabel(product.metalTone) },
-    { label: 'Plating', value: product.plating },
-    { label: 'Stone', value: product.stoneType },
-    { label: 'Weight', value: product.weight },
-    { label: 'Dimensions', value: product.dimensions },
-    { label: 'Occasion', value: product.occasions?.join(', ') || product.occasion },
-    { label: 'Style', value: product.styles?.map(formatProductLabel).join(', ') },
-    { label: 'Collection', value: product.collection },
-  ].filter(e => Boolean(e.value));
+  const isRing = needsRingSize(product.category);
+  // Stored estimates may already read 'Dispatch in ...'; keep just the time so sentences read correctly.
+  const dispatch = (product.deliveryEstimate || '2 to 4 business days').replace(/^dispatch(es)? in\s*/i, '');
+  const giftAvailable = product.giftWrapAvailable !== false;
+
+  const bullets = [
+    ...(product.highlights || []),
+    materialLabel,
+    product.stoneType && `Stone: ${product.stoneType}`,
+    product.weight && `Weight: ${product.weight}`,
+    product.dimensions && `Size: ${product.dimensions}`,
+    giftAvailable && 'Comes in gift-ready Aashish packaging',
+    'Net quantity: 1 piece',
+  ].filter(Boolean) as string[];
+  const designStory = product.designStory && product.designStory !== product.description ? product.designStory : null;
+  const hasMore = bullets.length > 3 || Boolean(designStory || product.styleNote || product.recipients?.length);
+
+  // Only show a review photo when it's a real customer photo, not one of the product shots.
+  const realReviewPhoto = (photo?: string) => (photo && !gallery.includes(photo) ? photo : null);
 
   const completeTheLook = getExplicitBundleProducts(products, product);
   const similarProducts = getSimilarProducts(products, product, 4);
-  const recentProducts = recentlyViewed.filter(p => p.id !== product.id).slice(0, 4);
 
-  const productImages = [product.image, ...(product.images || [])].filter(Boolean);
   const productJsonLd = {
     '@context': 'https://schema.org/',
     '@type': 'Product',
     name: product.name,
-    image: productImages.map(img => img.startsWith('http') ? img : `https://www.aashish.website${img}`),
+    image: gallery.map(img => img.startsWith('http') ? img : `https://www.aashish.website${img}`),
     description: product.description,
     sku: product.id,
     brand: { '@type': 'Brand', name: 'Aashish Jewellers' },
@@ -233,8 +243,16 @@ export default function ProductDetails() {
     ...(rating && { aggregateRating: { '@type': 'AggregateRating', ratingValue: rating, reviewCount: reviewCount || 1 } }),
   };
 
+  const assurances = [
+    { icon: RotateCcw, label: ['30-day', 'returns'] },
+    { icon: Sparkles, label: ['After-care', 'support'] },
+    // Only silver pieces carry the 925 claim; gold and plated pieces get the general quality promise.
+    { icon: ShieldCheck, label: isSilver ? ['925 certified', 'silver'] : ['Quality', 'checked'] },
+    { icon: Truck, label: ['Delivery', 'across Nepal'] },
+  ];
+
   return (
-    <div className="bg-white">
+    <div className="bg-cream">
       <SiteMeta
         title={product.name}
         description={product.description.slice(0, 155)}
@@ -243,354 +261,244 @@ export default function ProductDetails() {
         canonical={`/products/${encodeURIComponent(product.id)}`}
       />
 
-      {/* Breadcrumb */}
-      <div className="border-b border-stone-100">
-        <div className="container flex items-center gap-2 py-1 text-[11px] uppercase tracking-[0.14em] text-stone-400">
-          <Link href="/" className="py-2 hover:text-stone-700 transition-colors">Home</Link>
-          <span>/</span>
-          <Link href="/shop-by" className="py-2 hover:text-stone-700 transition-colors">Shop</Link>
-          <span>/</span>
-          <span className="text-stone-600">{formatProductLabel(product.category)}</span>
-        </div>
-      </div>
+      <section className="mx-auto max-w-[1280px] px-4 pt-4 md:px-10 md:pt-7">
+        <nav aria-label="Breadcrumb" className="mb-4 truncate text-xs text-stone-500">
+          <Link href="/" className="py-2 hover:text-forest-900">Home</Link>
+          <span className="mx-1.5">/</span>
+          <Link href={`/collections/${product.category}`} className="py-2 hover:text-forest-900">{formatProductLabel(product.category)}</Link>
+          <span className="mx-1.5">/</span>
+          <span className="text-stone-700">{product.name}</span>
+        </nav>
 
-      {/* Main product section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute left-0 top-0 h-48 w-48 rounded-full bg-[#efe4ca]/60 blur-3xl" aria-hidden="true" />
-        <div className="absolute bottom-0 right-0 h-56 w-56 rounded-full bg-stone-200/60 blur-3xl" aria-hidden="true" />
-        <div className="container py-6 md:py-12">
-        <div className="grid items-start gap-6 md:gap-8 lg:grid-cols-[1fr_1fr] xl:grid-cols-[1.1fr_0.9fr] xl:gap-14">
+        <div className="grid items-start gap-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:gap-14">
+          <ProductGallery
+            images={gallery}
+            name={product.name}
+            rating={rating}
+            reviewCount={reviewCount}
+            similarHref={`/collections/${product.category}`}
+          />
 
-          {/* Gallery */}
-          <div className="xl:sticky xl:top-24">
-            <div className="border border-stone-200 bg-[linear-gradient(135deg,#fbf8f3_0%,#ffffff_55%,#f4efe7_100%)] p-2.5 shadow-[0_24px_60px_rgba(28,25,23,0.08)] md:p-4">
-            <div className="flex flex-col-reverse gap-3 md:flex-row md:items-start">
-              {/* Thumbnails */}
-              {images.length > 1 && (
-                <div className="grid grid-cols-4 gap-2 md:grid-cols-1 md:w-16">
-                  {images.map((img, i) => (
-                    <button
-                      key={`${img}-${i}`}
-                      type="button"
-                      onClick={() => setActiveImage(i)}
-                      className={`aspect-square overflow-hidden border bg-white shadow-sm transition-colors ${
-                        i === activeImage ? 'border-stone-900' : 'border-stone-200 hover:border-stone-400'
-                      }`}
-                    >
-                      <img
-                        src={img}
-                        alt={`${product.name} view ${i + 1}`}
-                        className="h-full w-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Main image */}
-              <div className="flex-1 overflow-hidden bg-[#f0ebe3]">
-                <img
-                  src={selectedImage}
-                  alt={product.name}
-                  className="aspect-[4/5] w-full object-cover"
-                />
+          <div className="flex flex-col gap-5 md:sticky md:top-24">
+            <div>
+              <div className="flex flex-wrap items-baseline gap-x-2.5">
+                <span className="text-[26px] font-semibold text-stone-900">NPR {product.price.toLocaleString()}</span>
+                {hasDiscount && <span className="text-[15px] text-stone-500 line-through">NPR {product.originalPrice!.toLocaleString()}</span>}
+                {discountPercent > 0 && <span className="text-[15px] font-semibold text-forest-700">{discountPercent}% off</span>}
               </div>
+              {livePriceNote && <p className="mt-1.5 text-xs text-stone-600">{livePriceNote}</p>}
+              <h1 className="mt-3.5 font-serif text-[22px] font-normal leading-[1.2] text-stone-900 md:text-[28px]">{product.name}</h1>
+              <p className="mt-1.5 text-[13px] text-stone-600">{isSilver ? 'Made with 925 sterling silver' : materialLabel}</p>
+              {!product.inStock && <p className="mt-2 text-sm font-medium text-red-700">Currently out of stock</p>}
             </div>
-            </div>
-          </div>
 
-          {/* Details */}
-          <div className="xl:sticky xl:top-24">
-            <div className="border border-stone-200 bg-[linear-gradient(135deg,#ffffff_0%,#faf8f5_48%,#f4efe7_100%)] p-5 shadow-[0_24px_60px_rgba(28,25,23,0.08)] md:p-8">
-            <div className="flex flex-wrap gap-2">
-              <span className="inline-flex items-center border border-stone-300 bg-white/80 px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] text-stone-700">
-                {formatProductLabel(product.category)}
-              </span>
-              <span className="inline-flex items-center border border-stone-300 bg-white/80 px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] text-stone-700">
-                {materialLabel}
-              </span>
-              {isMarketLinked && (
-                <span className="inline-flex items-center border border-stone-300 bg-white/80 px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] text-stone-700">
-                  Market-linked price
+            {isRing && (
+              <div ref={sizePickerRef}>
+                <div className="mb-2.5 flex justify-between text-xs">
+                  <span id="ring-size-label" className="uppercase tracking-[0.16em] text-stone-600">Ring size</span>
+                  <Link href="/size-guide" className="text-forest-900 underline underline-offset-[3px]">Size guide</Link>
+                </div>
+                <div role="radiogroup" aria-labelledby="ring-size-label" className="flex flex-wrap gap-2">
+                  {[...RING_SIZES.map(r => ({ value: r.size, label: r.size })), { value: RING_SIZE_UNSURE, label: 'Not sure' }].map(option => {
+                    const on = size === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        role="radio"
+                        aria-checked={on}
+                        onClick={() => { setSize(option.value); setSizeError(false); }}
+                        className={cn(
+                          'h-11 min-w-12 rounded-lg border px-3 text-sm transition-colors',
+                          on ? 'border-forest-900 bg-forest-900 text-white' : 'border-stone-300 bg-white text-stone-900 hover:border-forest-900'
+                        )}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {size === RING_SIZE_UNSURE && <p className="mt-2 text-xs text-stone-600">No problem. We&apos;ll confirm your size when we call to confirm the order.</p>}
+                {sizeError && <p role="alert" className="mt-2 text-xs font-medium text-red-700">Please choose a ring size.</p>}
+              </div>
+            )}
+
+            {giftAvailable && (
+              <button
+                type="button"
+                role="checkbox"
+                aria-checked={gift}
+                onClick={() => setGift(!gift)}
+                className="flex items-center gap-3 rounded-xl border border-dashed border-[#b8941f] bg-cream-gift px-4 py-3.5 text-left"
+              >
+                <Gift className="h-[22px] w-[22px] flex-none text-[#8b6b1f]" strokeWidth={1.5} />
+                <span className="flex flex-1 flex-col gap-0.5">
+                  <span className="text-sm font-medium text-stone-900">Make it special</span>
+                  <span className="text-xs text-stone-600">Gift-ready packaging with a handwritten note</span>
                 </span>
-              )}
-            </div>
-            <h1 className="mt-5 font-serif text-3xl font-light leading-tight text-stone-900 md:text-4xl">
-              {product.name}
-            </h1>
-
-            {/* Rating */}
-            {rating && (
-              <div className="mt-2 flex items-center gap-1.5">
-                <div className="flex items-center gap-0.5 text-amber-400">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className={`h-3.5 w-3.5 ${i < Math.round(rating) ? 'fill-current' : ''}`} strokeWidth={1} />
-                  ))}
-                </div>
-                <span className="text-xs text-stone-500">{rating.toFixed(1)}{reviewCount ? ` - ${reviewCount} reviews` : ''}</span>
-              </div>
+                <span className={cn('flex h-5 w-5 flex-none items-center justify-center rounded border', gift ? 'border-forest-900 bg-forest-900 text-white' : 'border-stone-400 bg-white')}>
+                  {gift && <Check className="h-3 w-3" strokeWidth={3} />}
+                </span>
+              </button>
             )}
 
-            {/* Price */}
-            <div className="mt-5 flex items-baseline gap-3">
-              <span className="text-2xl font-light text-stone-900">NPR {product.price.toLocaleString()}</span>
-              {hasDiscount && (
-                <>
-                  <span className="text-base text-stone-400 line-through">NPR {product.originalPrice!.toLocaleString()}</span>
-                  <span className="text-xs uppercase tracking-[0.14em] text-emerald-700">{discountPercent}% off</span>
-                </>
-              )}
-            </div>
-
-            {livePriceNote && (
-              <p className="mt-2 text-[11px] uppercase tracking-[0.16em] text-stone-400">
-                {livePriceNote}
-              </p>
-            )}
-
-            {isMarketLinked && product.metalRateKey && (
-              <StoreRateStrip focusRateKey={product.metalRateKey} compact={true} />
-            )}
-
-            {/* Stock */}
-            <p className={`mt-4 inline-flex border px-3 py-1.5 text-[11px] uppercase tracking-[0.16em] ${
-              product.inStock
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                : 'border-red-200 bg-red-50 text-red-600'
-            }`}>
-              {product.inStock ? 'In stock - ready to dispatch' : 'Currently out of stock'}
-            </p>
-
-            {/* Description */}
-            <p className="mt-5 text-base font-light leading-relaxed text-stone-600">
-              {product.description}
-            </p>
-
-            {/* Highlights */}
-            {highlights.length > 0 && (
-              <ul className="mt-4 space-y-1.5">
-                {highlights.map(h => (
-                  <li key={h} className="flex items-start gap-2 text-sm text-stone-600">
-                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-stone-400" />
-                    {h}
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {/* CTAs */}
-            <div className="mt-6 flex gap-2">
+            <div className="grid grid-cols-[1fr_1fr_52px] gap-2.5">
+              <button
+                type="button"
+                onClick={handleBuyNow}
+                disabled={!product.inStock}
+                className="h-[52px] rounded-[10px] border border-forest-900 bg-white text-xs font-semibold uppercase tracking-[0.14em] text-forest-900 hover:bg-forest-50 disabled:cursor-not-allowed disabled:border-stone-300 disabled:text-stone-400"
+              >
+                Buy now
+              </button>
               <button
                 type="button"
                 onClick={() => handleAddToCart(product)}
                 disabled={!product.inStock}
-                className="flex-1 bg-stone-900 py-3.5 text-xs uppercase tracking-[0.2em] text-white transition-colors hover:bg-stone-700 disabled:cursor-not-allowed disabled:bg-stone-300"
+                className="h-[52px] rounded-[10px] bg-forest-900 text-xs font-semibold uppercase tracking-[0.14em] text-white hover:bg-forest-700 disabled:cursor-not-allowed disabled:bg-stone-300"
               >
-                <span className="flex items-center justify-center gap-2">
-                  <ShoppingBag className="h-4 w-4" strokeWidth={1.5} />
-                  {product.inStock ? 'Add to bag' : 'Out of stock'}
-                </span>
+                {product.inStock ? 'Add to bag' : 'Sold out'}
               </button>
               <button
                 type="button"
                 onClick={handleWishlist}
                 aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
-                className={`flex h-[46px] w-[46px] shrink-0 items-center justify-center border transition-colors ${
-                  wishlisted ? 'border-stone-900 bg-stone-900 text-white' : 'border-stone-300 text-stone-700 hover:border-stone-900'
-                }`}
+                aria-pressed={wishlisted}
+                className="flex h-[52px] items-center justify-center rounded-[10px] border border-stone-300 bg-white text-forest-900"
               >
-                <Heart className="h-4 w-4" strokeWidth={1.5} fill={wishlisted ? 'currentColor' : 'none'} />
+                <Heart className="h-[19px] w-[19px]" strokeWidth={1.5} fill={wishlisted ? 'currentColor' : 'none'} />
               </button>
             </div>
 
-            <button
-              type="button"
-              onClick={handleBuyNow}
-              disabled={!product.inStock}
-              className="mt-2 w-full border border-stone-300 py-3.5 text-xs uppercase tracking-[0.2em] text-stone-800 transition-colors hover:border-stone-900 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Buy now - go to checkout
-            </button>
-
-            {/* Key info */}
-            <div className="hidden">
-              <div className="flex justify-between py-3">
-                <span className="text-stone-400">Material</span>
-                <span className="flex items-center gap-1.5 text-stone-700">
-                  <ShieldCheck className="h-3.5 w-3.5 text-stone-400" strokeWidth={1.5} />
-                  {materialLabel}
-                </span>
-              </div>
-              <div className="flex justify-between py-3">
-                <span className="text-stone-400">Dispatch</span>
-                <span className="text-stone-700">{product.deliveryEstimate || '2-4 business days'}</span>
-              </div>
-              {product.giftWrapAvailable && (
-                <div className="flex justify-between py-3">
-                  <span className="text-stone-400">Gift wrap</span>
-                  <span className="flex items-center gap-1.5 text-stone-700">
-                    <Gift className="h-3.5 w-3.5 text-stone-400" strokeWidth={1.5} />
-                    Available at checkout
-                  </span>
-                </div>
-              )}
-              <div className="flex justify-between py-3">
-                <span className="text-stone-400">Delivery</span>
-                <span className="flex items-center gap-1.5 text-stone-700">
-                  <Truck className="h-3.5 w-3.5 text-stone-400" strokeWidth={1.5} />
-                  Across Nepal
-                </span>
+            <div className="rounded-[14px] border border-stone-200 bg-white px-4 py-[18px]">
+              <p className="mb-4 font-serif text-lg text-stone-900">Aashish assures you</p>
+              <div className="grid grid-cols-4 gap-2">
+                {assurances.map(item => (
+                  <div key={item.label[0]} className="flex flex-col items-center gap-2 text-center">
+                    <span className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-forest-100">
+                      <item.icon className="h-[22px] w-[22px] text-forest-900" strokeWidth={1.5} />
+                    </span>
+                    <span className="text-xs leading-[1.35] text-stone-900">{item.label[0]}<br />{item.label[1]}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className="mt-6 grid gap-3 md:grid-cols-2">
-              {purchaseInfo.map(item => (
-                <div key={item.label} className="border border-stone-200 bg-white/75 px-4 py-4 text-sm text-stone-600">
-                  <p className="text-[10px] uppercase tracking-[0.14em] text-stone-400">{item.label}</p>
-                  <p className="mt-3 flex items-center gap-2 text-stone-800">
-                    {item.icon && <item.icon className="h-3.5 w-3.5 text-stone-400" strokeWidth={1.5} />}
-                    <span>{item.value}</span>
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* Helper links */}
-            <div className="mt-2 flex flex-wrap gap-x-4 text-xs text-stone-500">
-              {product.category === 'rings' && (
-                <Link href="/size-guide" className="flex items-center gap-1.5 py-2 underline underline-offset-4 hover:text-stone-900 transition-colors">
-                  <Ruler className="h-3.5 w-3.5" strokeWidth={1.5} />
-                  Ring size guide
-                </Link>
-              )}
+            <div className="flex flex-col gap-1.5 text-[13px] text-forest-600">
+              <p className="flex items-center gap-2"><Truck className="h-4 w-4 flex-none" strokeWidth={1.5} />Dispatch in {dispatch} · Free delivery above NPR 5,000</p>
               <a
                 href={`https://wa.me/9779811469486?text=${encodeURIComponent(`Hi, I want to know more about ${product.name} (${product.id}).`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 py-2 underline underline-offset-4 hover:text-stone-900 transition-colors"
+                className="flex items-center gap-2 py-1 text-forest-900 underline underline-offset-4"
               >
-                <MessageCircle className="h-3.5 w-3.5" strokeWidth={1.5} />
-                Ask on WhatsApp
+                <MessageCircle className="h-4 w-4 flex-none" strokeWidth={1.5} />
+                Ask about this piece on WhatsApp
               </a>
             </div>
-            </div>
-          </div>
-        </div>
-        </div>
-      </section>
 
-      {/* Product details */}
-      <section className="border-t border-stone-200 bg-[#faf8f5] py-12 md:py-14">
-        <div className="container">
-          <div className="grid gap-10 lg:grid-cols-2 xl:gap-16">
-
-            {/* Left: design story + highlights + styling */}
-            <div className="space-y-8">
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-stone-400 mb-3">About this piece</p>
-                <p className="text-base font-light leading-relaxed text-stone-700">{designStory}</p>
-                {stylingNote && (
-                  <p className="mt-3 text-sm text-stone-500">{stylingNote}</p>
-                )}
-                {product.recipients?.length ? (
-                  <p className="mt-2 text-sm text-stone-500">
-                    Gift idea for: {product.recipients.map(r => formatProductLabel(r)).join(' · ')}
-                  </p>
-                ) : null}
-              </div>
-
-              {/* Care */}
-              <div className="border-t border-stone-200 pt-8">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-stone-400 mb-4">Care guide</p>
-                <ul className="space-y-2.5">
-                  {careTips.map(tip => (
-                    <li key={tip} className="flex items-start gap-2.5 text-sm text-stone-600">
-                      <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-stone-400" strokeWidth={1.5} />
-                      {tip}
-                    </li>
-                  ))}
-                </ul>
-                <Link href="/care-guide" className="mt-4 inline-flex text-xs uppercase tracking-[0.14em] text-stone-500 underline underline-offset-4 hover:text-stone-900 transition-colors">
-                  Full care guide →
-                </Link>
-              </div>
-            </div>
-
-            {/* Right: specs + ring size */}
-            <div className="space-y-8">
-              {specs.length > 0 && (
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-stone-400 mb-4">Specifications</p>
-                  <dl className="divide-y divide-stone-200">
-                    {specs.map(spec => (
-                      <div key={spec.label} className="flex justify-between gap-4 py-3 text-sm">
-                        <dt className="text-stone-400">{spec.label}</dt>
-                        <dd className="text-right text-stone-700">{spec.value}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
+            <div className="border-t border-stone-200 pt-5">
+              <h2 className="mb-2.5 font-serif text-xl font-normal text-stone-900">Product description</h2>
+              <p className="text-sm leading-[1.7] text-stone-700 [text-wrap:pretty]">{product.description}</p>
+              {showMore && designStory && (
+                <p className="mt-3 text-sm leading-[1.7] text-stone-700"><strong className="font-semibold text-stone-900">The design:</strong> {designStory}</p>
               )}
+              <ul className="mt-3 flex list-disc flex-col gap-1.5 pl-[18px] text-sm leading-normal text-stone-700">
+                {(showMore ? bullets : bullets.slice(0, 3)).map(b => <li key={b}>{b}</li>)}
+              </ul>
+              {showMore && product.styleNote && (
+                <p className="mt-3 text-sm leading-[1.7] text-stone-700"><strong className="font-semibold text-stone-900">Styling tip:</strong> {product.styleNote}</p>
+              )}
+              {showMore && product.recipients?.length ? (
+                <p className="mt-3 text-sm text-stone-700"><strong className="font-semibold text-stone-900">Gift idea for:</strong> {product.recipients.map(r => formatProductLabel(r)).join(' · ')}</p>
+              ) : null}
+              {hasMore && (
+                <button type="button" onClick={() => setShowMore(m => !m)} className="mt-3 py-1 text-[13px] font-medium text-forest-900 underline underline-offset-4">
+                  {showMore ? 'Show less' : 'Show more'}
+                </button>
+              )}
+            </div>
 
-              {product.category === 'rings' && (
-                <div className="border-t border-stone-200 pt-8">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-stone-400 mb-4">Ring sizes</p>
-                  <div className="divide-y divide-stone-200">
-                    {RING_SIZE_GUIDE.map(row => (
-                      <div key={row.size} className="flex items-baseline gap-4 py-3 text-sm">
-                        <span className="w-12 font-medium text-stone-800">Size {row.size}</span>
-                        <span className="w-20 text-stone-500">{row.mm}</span>
-                        <span className="text-stone-500">{row.fit}</span>
-                      </div>
-                    ))}
-                  </div>
-                  {product.fitNotes && <p className="mt-3 text-sm text-stone-500">{product.fitNotes}</p>}
-                  <Link href="/size-guide" className="mt-3 inline-flex text-xs uppercase tracking-[0.14em] text-stone-500 underline underline-offset-4 hover:text-stone-900 transition-colors">
-                    Full size guide →
-                  </Link>
-                </div>
+            <div className="border-t border-stone-200">
+              <Accordion title="Care">
+                {careTips.map(tip => <p key={tip}>{tip}</p>)}
+                <Link href="/care-guide" className="mt-1 text-forest-900 underline underline-offset-4">Full care guide</Link>
+              </Accordion>
+              <Accordion title="Delivery & returns">
+                <p>Dispatch in {dispatch}.</p>
+                <p>Free delivery on orders above NPR 5,000; otherwise NPR 150.</p>
+                <p>30-day returns. <Link href="/returns" className="text-forest-900 underline underline-offset-4">Read the returns policy</Link></p>
+              </Accordion>
+              {isRing && (
+                <Accordion title="Ring size guide">
+                  {RING_SIZES.map(r => <p key={r.size}><span className="font-medium text-stone-900">Size {r.size}</span> · {r.diameter} · {r.note}</p>)}
+                  {product.fitNotes && <p className="mt-1">{product.fitNotes}</p>}
+                </Accordion>
               )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Reviews */}
-      <section className="border-t border-stone-200 bg-white py-12 md:py-14">
-        <div className="container">
-          {reviews.length > 0 ? (
-            <>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-stone-400 mb-2">Reviews</p>
-            <h2 className="font-serif text-2xl font-light text-stone-900 mb-8">
-              {reviewCount} customer {reviewCount === 1 ? 'review' : 'reviews'}
-            </h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
-              {reviews.map((review, i) => (
-                <div key={`${review.author}-${i}`} className="border border-stone-200 p-5">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-medium text-stone-800">{review.author}</p>
-                    <div className="flex items-center gap-0.5 text-amber-400">
-                      {Array.from({ length: 5 }).map((_, si) => (
-                        <Star key={si} className={`h-3.5 w-3.5 ${si < Math.round(review.rating) ? 'fill-current' : ''}`} strokeWidth={1} />
+      {reviews.length > 0 && (
+        <section className="mx-auto max-w-[1280px] px-4 pt-11 md:px-10 md:pt-20">
+          <h2 className="mb-5 font-serif text-[26px] font-normal text-stone-900 md:text-[34px]">Customer reviews</h2>
+          <div className="-mx-4 grid snap-x snap-mandatory auto-cols-[86%] grid-flow-col gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:auto-cols-auto md:grid-flow-row md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0">
+            {reviews.map((review, i) => {
+              const photo = realReviewPhoto(review.image);
+              return (
+                <div key={`${review.author}-${i}`} className={cn('grid snap-start gap-4 rounded-[14px] border border-stone-200 bg-white p-3.5', photo && 'grid-cols-[96px_minmax(0,1fr)]')}>
+                  {photo && <img src={photo} alt={`Photo from ${review.author}`} loading="lazy" className="h-[120px] w-24 rounded-[10px] object-cover" />}
+                  <div className="flex min-w-0 flex-col">
+                    <div className="flex gap-0.5" aria-label={`${review.rating} out of 5 stars`}>
+                      {[1, 2, 3, 4, 5].map(n => (
+                        <Star key={n} className="h-[13px] w-[13px] text-[#b8941f]" strokeWidth={1.2} fill={n <= Math.round(review.rating) ? '#b8941f' : 'none'} />
                       ))}
                     </div>
+                    {review.title && <p className="mt-2 text-sm font-medium text-stone-900">{review.title}</p>}
+                    <p className="mt-1 text-[13px] leading-[1.55] text-stone-600">{review.text}</p>
+                    <p className="mt-auto pt-2.5 text-[11px] uppercase tracking-[0.12em] text-stone-700">
+                      {review.author} <span className="normal-case tracking-normal text-stone-500">· {review.verified ? 'Verified buyer' : 'Customer review'}</span>
+                    </p>
                   </div>
-                  <p className="mt-0.5 text-xs text-stone-400">{review.verified ? 'Verified purchase' : 'Customer review'}</p>
-                  {review.title && <p className="mt-3 text-sm font-medium text-stone-800">{review.title}</p>}
-                  <p className="mt-2 text-sm leading-relaxed text-stone-600">{review.text}</p>
                 </div>
-              ))}
-            </div>
-            </>
-          ) : null}
+              );
+            })}
+          </div>
+        </section>
+      )}
 
-          <ReviewSection productId={product.id} hasOtherReviews={reviews.length > 0} />
+      <div className="mx-auto max-w-[1280px] px-4 md:px-10">
+        <ReviewSection productId={product.id} hasOtherReviews={reviews.length > 0} />
+      </div>
+
+      <ProductRail title="Complete the look" products={completeTheLook} onAddToCart={handleAddToCart} />
+      <ProductRail title="You may also like" products={similarProducts} onAddToCart={handleAddToCart} />
+      <div className="h-11 md:h-20" />
+
+      {/* Phone buy bar: sticky (not fixed) so it stops above the footer instead of covering it */}
+      <div className="sticky bottom-0 z-[15] grid grid-cols-[auto_1fr_1fr] items-center gap-2 border-t border-stone-200 bg-white px-4 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-6px_20px_rgba(0,0,0,0.05)] md:hidden">
+        <div className="flex flex-col pr-1">
+          <span className="whitespace-nowrap text-base font-semibold text-stone-900">NPR {product.price.toLocaleString()}</span>
+          {discountPercent > 0 && <span className="text-[11px] font-semibold text-forest-700">{discountPercent}% off</span>}
         </div>
-      </section>
-
-      <RecommendationSection title="Complete the look" products={completeTheLook} onAddToCart={handleAddToCart} />
-      <RecommendationSection title="You may also like" products={similarProducts} onAddToCart={handleAddToCart} />
-      <RecommendationSection title="Recently viewed" products={recentProducts} onAddToCart={handleAddToCart} />
+        <button
+          type="button"
+          onClick={handleBuyNow}
+          disabled={!product.inStock}
+          className="h-12 rounded-[10px] border border-forest-900 bg-white text-[11px] font-semibold uppercase tracking-[0.12em] text-forest-900 disabled:border-stone-300 disabled:text-stone-400"
+        >
+          Buy now
+        </button>
+        <button
+          type="button"
+          onClick={() => handleAddToCart(product)}
+          disabled={!product.inStock}
+          className="h-12 rounded-[10px] bg-forest-900 text-[11px] font-semibold uppercase tracking-[0.12em] text-white disabled:bg-stone-300"
+        >
+          {product.inStock ? 'Add to bag' : 'Sold out'}
+        </button>
+      </div>
     </div>
   );
 }

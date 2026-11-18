@@ -16,6 +16,7 @@ import {
   Truck,
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
+import { needsRingSize, ringSizeLabel } from '@/lib/ring-sizes';
 import { Link } from 'wouter';
 import FonePayQRModal from '../components/FonePayQRModal';
 
@@ -33,7 +34,7 @@ const SECTION_CLASS = 'border border-stone-200 bg-white p-6';
 const TEXTAREA_CLASS = 'min-h-24 w-full border border-stone-300 bg-white px-3 py-2 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-stone-900/10';
 
 export default function Checkout() {
-  const { items, total, clearCart, refreshPrices } = useCartContext();
+  const { items, total, clearCart, refreshPrices, gift, setGift } = useCartContext();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [priceSyncing, setPriceSyncing] = useState(false);
@@ -47,7 +48,8 @@ export default function Checkout() {
       zone: '',
       landmark: '',
     },
-    giftOptions: DEFAULT_GIFT_OPTIONS,
+    // Starts from the gift choice made on the product page or in the bag.
+    giftOptions: { ...DEFAULT_GIFT_OPTIONS, isGift: gift },
   });
   const [paymentMethod, setPaymentMethod] = useState<'esewa' | 'khalti' | 'cod' | 'whatsapp' | 'fonepay'>('whatsapp');
   const [showFonePayModal, setShowFonePayModal] = useState(false);
@@ -132,6 +134,7 @@ export default function Checkout() {
   };
 
   const handleGiftOptionChange = (field: keyof GiftOptions, value: string | boolean) => {
+    if (field === 'isGift') setGift(Boolean(value));
     setCustomerInfo(prev => ({
       ...prev,
       giftOptions: {
@@ -200,7 +203,7 @@ export default function Checkout() {
 
   const buildWhatsAppOrderUrl = (paymentLabel: string) => {
     const orderSummary = items
-      .map(item => `- ${item.name} x${item.quantity} - NPR ${(item.price * item.quantity).toLocaleString()}`)
+      .map(item => `- ${item.name}${needsRingSize(item.category) ? ` (${ringSizeLabel(item.size)})` : ''} x${item.quantity} - NPR ${(item.price * item.quantity).toLocaleString()}`)
       .join('\n');
 
     const deliveryInfo = deliveryFee === 0 ? 'Free Delivery' : `Delivery: NPR ${deliveryFee}`;
@@ -269,6 +272,7 @@ Please confirm this order and estimated delivery time.`;
           price: item.price,
           quantity: item.quantity,
           image: item.image,
+          ...(item.size ? { size: item.size } : {}),
         })),
         customer: customerInfo,
         total: finalTotal,
@@ -733,7 +737,7 @@ Please confirm this order and estimated delivery time.`;
 
                 <div className="space-y-4">
                   {items.map(item => (
-                    <div key={item.id} className="flex gap-3">
+                    <div key={`${item.id}-${item.size || ''}`} className="flex gap-3">
                       <img
                         src={item.image}
                         alt={item.name}
@@ -741,7 +745,9 @@ Please confirm this order and estimated delivery time.`;
                       />
                       <div className="flex-1">
                         <h3 className="text-sm font-medium text-stone-900">{item.name}</h3>
-                        <p className="mt-1 text-sm text-stone-500">Qty: {item.quantity}</p>
+                        <p className="mt-1 text-sm text-stone-500">
+                          Qty: {item.quantity}{needsRingSize(item.category) && <> · {ringSizeLabel(item.size)}</>}
+                        </p>
                       </div>
                       <p className="text-sm font-medium text-stone-900">NPR {(item.price * item.quantity).toLocaleString()}</p>
                     </div>

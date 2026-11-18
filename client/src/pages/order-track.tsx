@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Link, useRoute } from 'wouter';
 import { CheckCircle, Circle, MessageCircle, Package, Search, Truck, XCircle } from 'lucide-react';
 import SiteMeta from '@/components/SiteMeta';
+import { ringSizeLabel } from "@/lib/ring-sizes";
 
 interface OrderItem {
   id: string;
   name: string;
   price: number;
   quantity: number;
+  size?: string;
   image: string;
 }
 
@@ -258,7 +260,7 @@ export default function OrderTrack() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-stone-800 font-light leading-tight">{item.name}</p>
-                      <p className="text-xs text-stone-500 mt-1">Qty: {item.quantity}</p>
+                      <p className="text-xs text-stone-500 mt-1">Qty: {item.quantity}{item.size && <> · {ringSizeLabel(item.size)}</>}</p>
                     </div>
                     <p className="text-stone-800 font-light shrink-0">NPR {(item.price * item.quantity).toLocaleString()}</p>
                   </div>
