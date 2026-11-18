@@ -57,6 +57,8 @@ export default async function handler(req, res) {
       if (!customer.name || !customer.phone || !customer.address?.street || !customer.address?.district) {
         return res.status(400).json({ error: 'Incomplete customer information' });
       }
+      // Customer JSON is stored as-is; cap it so one request can't bloat the orders table.
+      if (JSON.stringify(customer).length > 4000) return res.status(400).json({ error: 'Customer details are too long' });
       const pricing = await normalizeAndPriceOrderItems(items, promoCode || null);
       assertSubmittedTotal(total, pricing.total);
       const order = await createOrder({ items: pricing.items, customer, total: pricing.total, paymentMethod, status: 'pending', promoCode: pricing.appliedPromo || null, discountAmount: pricing.discountAmount || 0 });
@@ -92,11 +94,16 @@ export default async function handler(req, res) {
     if (!id || typeof id !== 'string' || id.trim().length === 0 || !phone || typeof phone !== 'string') {
       return res.status(400).json({ error: 'Order ID and phone number are required' });
     }
-    const order = await getOrderById(id.trim());
-    if (!order || normalizePhone(order.customer?.phone) !== normalizePhone(phone)) {
-      return res.status(404).json({ error: 'Order not found' });
+    try {
+      const order = await getOrderById(id.trim());
+      if (!order || normalizePhone(order.customer?.phone) !== normalizePhone(phone)) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+      return res.status(200).json({ id: order.id, status: order.status, items: order.items, total: order.total, paymentMethod: order.payment_method || order.paymentMethod, createdAt: order.created_at || order.createdAt });
+    } catch (err) {
+      console.error('Order lookup error:', err);
+      return res.status(500).json({ error: 'Internal server error' });
     }
-    return res.status(200).json({ id: order.id, status: order.status, items: order.items, total: order.total, paymentMethod: order.payment_method || order.paymentMethod, createdAt: order.created_at || order.createdAt });
   }
 
   // POST /api/orders/update-status (admin)

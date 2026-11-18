@@ -33,8 +33,8 @@ Sync rule: keep `agents.md` and `claude.md` identical. Update both in the same c
 
 - Real working repo: `/Users/aahishsunar/Desktop/Projects/AJ/Jewelry_Online`
 - Ignore `/Users/aahishsunar/Desktop/Projects/AJ/Jewelry_Online_push` unless explicitly comparing an old backup copy.
-- Current working branch: `v1-Aashish`
-- Base branch for this work: `v1`
+- Current working branch: `design-ux-polish` (PR #19 into `main`)
+- Base branch for this work: `main`
 
 ## Current Repo Notes
 
@@ -76,3 +76,6 @@ Sync rule: keep `agents.md` and `claude.md` identical. Update both in the same c
 - 2026-03-11: `npm run check` now passes again; `npm run build` still writes `dist/` but does not exit yet, so there is a second build-lifecycle issue still under investigation.
 - 2026-03-11: deep security review found the main launch risks in public order access, public GitHub-backed image upload, browser-held admin/CMS secrets, stored XSS in admin print flow, weak rate limiting, and stock/order abuse paths.
 - 2026-03-11: shipped the first security hardening pass: order lookup/history now require order ID plus phone, `/api/orders/create` is rate-limited and leaves orders pending until confirmation, payment limiter awaits were fixed, `/api/upload-image` was disabled, callback/admin print XSS sinks were tightened, and stock/promo side effects moved to first confirmation.
+- 2026-10-29: `npm run build` exits cleanly now. Mobile UI polish; fixed checkout hooks crash after order and cart not clearing after redirect.
+- 2026-11-18: opened PR #19. Security pass: Khalti verify now checks pidx + amount belong to the order; eSewa callback checks amount; payment callbacks only confirm pending orders; stock/promo side effects only leave `pending`; rate limiters no longer share one map (and `/api/products` limiter is awaited); eSewa form URL via `ESEWA_FORM_URL` (sandbox default); order customer payload capped; constant-time admin key compare.
+- Open: flash-sale price is display-only (cards show sale price, cart/checkout/server charge full price). Admin cannot set `cancelled` status. Rate limiting and admin brute-force lock are in-memory per serverless instance.

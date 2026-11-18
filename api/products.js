@@ -54,6 +54,9 @@ export default async function handler(req, res) {
       if (!reviewBody || typeof reviewBody !== 'string' || reviewBody.trim().length < 10 || reviewBody.trim().length > 500) {
         return res.status(400).json({ error: 'Review must be 10-500 characters.' });
       }
+      if (title != null && (typeof title !== 'string' || title.trim().length > 100)) {
+        return res.status(400).json({ error: 'Title must be text up to 100 characters.' });
+      }
       const review = await query('INSERT INTO reviews (product_id, author_name, rating, title, body) VALUES ($1, $2, $3, $4, $5) RETURNING id, author_name, rating, title, body, created_at', [pid, authorName.trim(), ratingNum, title?.trim() || null, reviewBody.trim()]);
       return res.status(201).json({ review });
     }
@@ -63,7 +66,7 @@ export default async function handler(req, res) {
   // GET /api/products (public catalog, no sub-path)
   if (action === '') {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
-    if (!apiRateLimit(req, res)) return;
+    if (!(await apiRateLimit(req, res))) return;
     try {
       const products = await loadCatalogProductsWithPricing();
       res.setHeader('Access-Control-Allow-Origin', '*');

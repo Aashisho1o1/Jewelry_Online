@@ -18,6 +18,10 @@ import {
 import { validateOrder } from '../lib/validator.js';
 import logger from '../lib/logger.js';
 
+// Sandbox by default so test keys never hit live; set ESEWA_FORM_URL to
+// https://epay.esewa.com.np/api/epay/main/v2/form when going live.
+const ESEWA_FORM_URL = process.env.ESEWA_FORM_URL || 'https://rc-epay.esewa.com.np/api/epay/main/v2/form';
+
 function buildBaseUrl() {
   if (process.env.APP_URL) return process.env.APP_URL;
   const vercelUrl = process.env.VERCEL_URL;
@@ -75,7 +79,7 @@ export default async function handler(req, res) {
       const signature = crypto.createHmac('sha256', secretKey).update(message).digest('base64');
       const { createOrder } = await import('../lib/db-store.js');
       await createOrder({ id: transactionUuid, items: pricing.items, customer: parsedCustomer, total: totalAmount, paymentMethod: 'esewa', status: 'pending', paymentDetails: { provider: 'esewa', transactionUuid } });
-      const esewaFormHtml = `<!DOCTYPE html><html><head><title>eSewa Payment - Aashish Jewellers</title><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);margin:0;padding:0;min-height:100vh;display:flex;align-items:center;justify-content:center}.container{background:white;padding:40px;border-radius:15px;box-shadow:0 20px 40px rgba(0,0,0,.1);max-width:400px;width:90%;text-align:center}.logo{font-size:24px;font-weight:bold;color:#333;margin-bottom:20px}.amount{font-size:32px;font-weight:bold;color:#28a745;margin:20px 0}.details{background:#f8f9fa;padding:15px;border-radius:8px;margin:20px 0;text-align:left}.btn{background:#28a745;color:white;border:none;padding:15px 30px;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;width:100%;margin-top:20px}.btn:hover{background:#218838}.secure{font-size:12px;color:#666;margin-top:15px}.loader{border:3px solid #f3f3f3;border-top:3px solid #28a745;border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;margin:20px auto;display:none}@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style></head><body><div class="container"><div class="logo">Secure Payment</div><h2>Aashish Jewellers</h2><div class="amount">NPR ${totalAmount.toLocaleString()}</div><div class="details"><strong>Order Summary:</strong><br>${pricing.items.map(item => `${escapeHtml(item.name)} x${escapeHtml(String(item.quantity))}`).join('<br>')}</div><form id="esewaForm" action="https://rc-epay.esewa.com.np/api/epay/main/v2/form" method="POST"><input type="hidden" name="amount" value="${amount}"/><input type="hidden" name="tax_amount" value="${taxAmount}"/><input type="hidden" name="total_amount" value="${totalAmount}"/><input type="hidden" name="transaction_uuid" value="${transactionUuid}"/><input type="hidden" name="product_code" value="${productCode}"/><input type="hidden" name="product_service_charge" value="${productServiceCharge}"/><input type="hidden" name="product_delivery_charge" value="${productDeliveryCharge}"/><input type="hidden" name="success_url" value="${successUrl}"/><input type="hidden" name="failure_url" value="${failureUrl}"/><input type="hidden" name="signed_field_names" value="total_amount,transaction_uuid,product_code"/><input type="hidden" name="signature" value="${signature}"/><button type="submit" class="btn" onclick="showLoader()">Pay with eSewa</button></form><div class="loader" id="loader"></div><div class="secure">Your payment is secured by eSewa</div><script>function showLoader(){document.querySelector('.btn').style.display='none';document.getElementById('loader').style.display='block';}setTimeout(()=>{document.getElementById('esewaForm').submit();},3000);</script></div></body></html>`;
+      const esewaFormHtml = `<!DOCTYPE html><html><head><title>eSewa Payment - Aashish Jewellers</title><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);margin:0;padding:0;min-height:100vh;display:flex;align-items:center;justify-content:center}.container{background:white;padding:40px;border-radius:15px;box-shadow:0 20px 40px rgba(0,0,0,.1);max-width:400px;width:90%;text-align:center}.logo{font-size:24px;font-weight:bold;color:#333;margin-bottom:20px}.amount{font-size:32px;font-weight:bold;color:#28a745;margin:20px 0}.details{background:#f8f9fa;padding:15px;border-radius:8px;margin:20px 0;text-align:left}.btn{background:#28a745;color:white;border:none;padding:15px 30px;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;width:100%;margin-top:20px}.btn:hover{background:#218838}.secure{font-size:12px;color:#666;margin-top:15px}.loader{border:3px solid #f3f3f3;border-top:3px solid #28a745;border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;margin:20px auto;display:none}@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style></head><body><div class="container"><div class="logo">Secure Payment</div><h2>Aashish Jewellers</h2><div class="amount">NPR ${totalAmount.toLocaleString()}</div><div class="details"><strong>Order Summary:</strong><br>${pricing.items.map(item => `${escapeHtml(item.name)} x${escapeHtml(String(item.quantity))}`).join('<br>')}</div><form id="esewaForm" action="${escapeHtml(ESEWA_FORM_URL)}" method="POST"><input type="hidden" name="amount" value="${amount}"/><input type="hidden" name="tax_amount" value="${taxAmount}"/><input type="hidden" name="total_amount" value="${totalAmount}"/><input type="hidden" name="transaction_uuid" value="${transactionUuid}"/><input type="hidden" name="product_code" value="${productCode}"/><input type="hidden" name="product_service_charge" value="${productServiceCharge}"/><input type="hidden" name="product_delivery_charge" value="${productDeliveryCharge}"/><input type="hidden" name="success_url" value="${successUrl}"/><input type="hidden" name="failure_url" value="${failureUrl}"/><input type="hidden" name="signed_field_names" value="total_amount,transaction_uuid,product_code"/><input type="hidden" name="signature" value="${signature}"/><button type="submit" class="btn" onclick="showLoader()">Pay with eSewa</button></form><div class="loader" id="loader"></div><div class="secure">Your payment is secured by eSewa</div><script>function showLoader(){document.querySelector('.btn').style.display='none';document.getElementById('loader').style.display='block';}setTimeout(()=>{document.getElementById('esewaForm').submit();},3000);</script></div></body></html>`;
       res.setHeader('Content-Type', 'text/html');
       return res.status(200).send(esewaFormHtml);
     } catch (error) {
@@ -110,7 +114,14 @@ export default async function handler(req, res) {
       const { confirmOrder, getOrderById } = await import('../lib/db-store.js');
       const existingOrder = await getOrderById(transactionUuid);
       if (!existingOrder) return res.redirect('/checkout?status=failed&error=order_not_found');
-      await confirmOrder(transactionUuid, { provider: 'esewa', transactionCode, totalAmount });
+      if (Number(String(totalAmount).replace(/,/g, '')) !== Number(existingOrder.total)) {
+        console.error('[esewa] Amount mismatch for order', transactionUuid);
+        return res.redirect('/checkout?status=failed&error=amount_mismatch');
+      }
+      // Callback URLs can be replayed; only the first one should confirm the order.
+      if (existingOrder.status === 'pending') {
+        await confirmOrder(transactionUuid, { provider: 'esewa', transactionCode, totalAmount });
+      }
       const phoneParam = existingOrder.customer?.phone ? `&phone=${encodeURIComponent(existingOrder.customer.phone)}` : '';
       return res.redirect(`/order-success?id=${transactionUuid}&payment=esewa&amount=${totalAmount}&txn=${transactionCode}${phoneParam}`);
     } catch (error) {
@@ -164,7 +175,14 @@ export default async function handler(req, res) {
         const { confirmOrder, getOrderById } = await import('../lib/db-store.js');
         const existingOrder = await getOrderById(purchase_order_id);
         if (!existingOrder) return res.redirect('/checkout?status=failed&error=order_not_found');
-        await confirmOrder(purchase_order_id, { provider: 'khalti', pidx, transactionId: verificationData.transaction_id || null });
+        // A completed pidx proves *a* payment; it must be this order's payment for the full amount.
+        if (existingOrder.paymentDetails?.pidx !== pidx || Number(verificationData.total_amount) !== Math.round(Number(existingOrder.total) * 100)) {
+          console.error('[khalti] pidx/amount mismatch for order', purchase_order_id);
+          return res.redirect(`/checkout?status=failed&error=verification_failed&order=${encodeURIComponent(purchase_order_id)}`);
+        }
+        if (existingOrder.status === 'pending') {
+          await confirmOrder(purchase_order_id, { provider: 'khalti', pidx, transactionId: verificationData.transaction_id || null });
+        }
         const amountNPR = Number(verificationData.total_amount || amount) / 100;
         const phoneParam = existingOrder.customer?.phone ? `&phone=${encodeURIComponent(existingOrder.customer.phone)}` : '';
         return res.redirect(`/order-success?id=${purchase_order_id}&payment=khalti&amount=${amountNPR}&txn=${verificationData.transaction_id}${phoneParam}`);
