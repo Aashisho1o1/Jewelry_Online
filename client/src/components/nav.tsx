@@ -48,11 +48,11 @@ export default function Nav({ onOpenCategories }: NavProps) {
   }, []);
 
   const links = [
-    { label: 'Shop All', onClick: () => navigate('/shop-by/category/all'), active: location === '/shop-by/category/all' },
+    { label: 'Shop All', onClick: () => navigate('/collections'), active: location === '/collections' },
     ...['rings', 'necklaces', 'earrings', 'bracelets'].map(id => ({
       label: id.charAt(0).toUpperCase() + id.slice(1),
-      onClick: () => navigate(`/shop-by/category/${id}`),
-      active: location === `/shop-by/category/${id}`,
+      onClick: () => navigate(`/collections/${id}`),
+      active: location === `/collections/${id}`,
     })),
   ];
 

@@ -4,7 +4,7 @@
     "mainTitle": "Simple silver jewelry for everyday wear and gifting.",
     "description": "Handcrafted pieces from Butwal, Nepal with clear pricing, gift-friendly support, and a cleaner shopping experience.",
     "ctaText": "Shop collection",
-    "ctaLink": "/shop-by/category/all",
+    "ctaLink": "/collections",
     "heroImage": "/images/jewelry/elegance.jpg"
   },
   "brand": {
@@ -37,7 +37,7 @@
       "title": "Violet Drop Silver Necklace",
       "body": "Delicate silver finished with violet stones for a softer dressy look.",
       "cta": "Shop necklaces",
-      "href": "/shop-by/category/necklaces",
+      "href": "/collections/necklaces",
       "image": "/images/jewelry/elegance.jpg",
       "imagePosition": "50% 35%",
       "tone": "forest"
@@ -47,7 +47,7 @@
       "title": "Rings for every hand",
       "body": "Halo, pavé and statement rings, handcrafted in Butwal.",
       "cta": "Shop rings",
-      "href": "/shop-by/category/rings",
+      "href": "/collections/rings",
       "image": "/images/jewelry/eternal.jpg",
       "imagePosition": "50% 50%",
       "tone": "cream"
@@ -57,7 +57,7 @@
       "title": "Jhumkas under NPR 2,500",
       "body": "Gold-tone festive earrings, gift-ready out of the box.",
       "cta": "Shop under 2,500",
-      "href": "/shop-by/price/under-2500",
+      "href": "/collections?price=under-2500",
       "image": "/images/jewelry/jhumka.jpg",
       "imagePosition": "50% 50%",
       "tone": "mint"

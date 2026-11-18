@@ -1,6 +1,6 @@
 import { JewelryProduct } from '@/types/jewelry';
 
-export type ShopFacetKey = 'category' | 'occasion' | 'recipient' | 'style' | 'metal' | 'color' | 'price';
+export type ShopFacetKey = 'occasion' | 'recipient' | 'style' | 'metal' | 'color' | 'price';
 
 export interface ShopFacetOption {
   label: string;
@@ -13,7 +13,6 @@ export const SHOP_FACETS: Array<{
   label: string;
   description: string;
 }> = [
-  { key: 'category', label: 'Category', description: 'Rings, necklaces, earrings, bracelets and wedding pieces.' },
   { key: 'occasion', label: 'Occasion', description: 'Birthday, anniversary, festive and daily wear picks.' },
   { key: 'recipient', label: 'Recipient', description: 'Find gifts for her, mother, sister and more.' },
   { key: 'style', label: 'Style', description: 'Minimal, statement, classic and stacking-friendly pieces.' },
@@ -22,7 +21,7 @@ export const SHOP_FACETS: Array<{
   { key: 'price', label: 'Price', description: 'Quick ranges for gifting budgets and self-purchase.' },
 ];
 
-const PRICE_BUCKETS = [
+export const PRICE_BUCKETS = [
   { slug: 'under-2500', label: 'Under NPR 2,500', match: (product: JewelryProduct) => product.price < 2500 },
   { slug: '2500-5000', label: 'NPR 2,500 - 5,000', match: (product: JewelryProduct) => product.price >= 2500 && product.price <= 5000 },
   { slug: '5000-10000', label: 'NPR 5,000 - 10,000', match: (product: JewelryProduct) => product.price > 5000 && product.price <= 10000 },
@@ -54,8 +53,6 @@ export function getProductHref(productId: string) {
 
 function getFacetValues(product: JewelryProduct, facet: ShopFacetKey) {
   switch (facet) {
-    case 'category':
-      return product.category ? [product.category] : [];
     case 'occasion':
       return product.occasions?.length ? product.occasions : product.occasion ? [product.occasion] : [];
     case 'recipient':
@@ -112,8 +109,6 @@ export function getFacetOptions(products: JewelryProduct[], facet: ShopFacetKey,
 }
 
 export function matchesFacet(product: JewelryProduct, facet: ShopFacetKey, slug: string) {
-  // /shop-by/category/all lists everything until the collection pages replace it.
-  if (facet === 'category' && slug === 'all') return true;
   if (facet === 'price') {
     return PRICE_BUCKETS.some(bucket => bucket.slug === slug && bucket.match(product));
   }

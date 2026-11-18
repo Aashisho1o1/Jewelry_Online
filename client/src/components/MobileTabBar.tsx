@@ -29,7 +29,7 @@ export default function MobileTabBar({ categoriesOpen, onOpenCategories }: Mobil
       <button
         type="button"
         onClick={onOpenCategories}
-        className={cn(TAB, 'h-16', tone(categoriesOpen || location.startsWith('/shop-by')))}
+        className={cn(TAB, 'h-16', tone(categoriesOpen || location.startsWith('/collections') || location.startsWith('/shop-by')))}
       >
         <LayoutGrid className="h-[22px] w-[22px]" strokeWidth={1.5} />
         Categories

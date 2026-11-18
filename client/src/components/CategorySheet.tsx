@@ -67,7 +67,7 @@ export default function CategorySheet({ open, onOpenChange }: CategorySheetProps
           <button
             key={category.id}
             type="button"
-            onClick={() => go(`/shop-by/category/${category.id}`)}
+            onClick={() => go(`/collections/${category.id}`)}
             className="flex flex-col items-center gap-1.5"
           >
             <span className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-stone-200 bg-forest-100 font-serif text-[22px] text-forest-900">
@@ -88,7 +88,7 @@ export default function CategorySheet({ open, onOpenChange }: CategorySheetProps
               <button
                 key={budget.slug}
                 type="button"
-                onClick={() => go(`/shop-by/price/${budget.slug}`)}
+                onClick={() => go(`/collections?price=${budget.slug}`)}
                 className={`h-[52px] rounded-xl text-[13px] font-medium ${BUDGET_TONES[i % BUDGET_TONES.length]}`}
               >
                 {budget.label}

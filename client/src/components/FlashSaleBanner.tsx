@@ -61,9 +61,9 @@ export default function FlashSaleBanner() {
 
   if (!sale || expired) return null;
 
-  // The home catalog grid moved to its own page in the redesign.
+  // The home catalog grid moved to the collections page in the redesign.
   function scrollToCatalog() {
-    navigate('/shop-by/category/all');
+    navigate('/collections');
   }
 
   return (
