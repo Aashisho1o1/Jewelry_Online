@@ -13,7 +13,7 @@
  * GET   /api/orders/top-products
  */
 
-import { createOrder, confirmOrder, updateOrderStatus, getOrderStats, getOrderById } from '../lib/db-store.js';
+import { createOrder, confirmOrder, closeOrder, updateOrderStatus, getOrderStats, getOrderById, CLOSED_ORDER_STATUSES, OrderStatusError } from '../lib/db-store.js';
 import {
   assertSubmittedTotal,
   normalizeAndPriceOrderItems,
@@ -110,13 +110,25 @@ export default async function handler(req, res) {
   if (action === 'update-status') {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
     if (!requireAdminAuth(req, res)) return;
-    const ALLOWED_STATUSES = new Set(['pending', 'confirmed', 'processing', 'dispatched', 'delivered']);
+    const ALLOWED_STATUSES = new Set(['pending', 'confirmed', 'processing', 'dispatched', 'delivered', ...CLOSED_ORDER_STATUSES]);
     const NOTIFY_STATUSES = new Set(['confirmed', 'dispatched', 'delivered']);
     const { orderId, status } = req.body || {};
     if (!orderId || !status) return res.status(400).json({ error: 'Missing orderId or status' });
     if (!ALLOWED_STATUSES.has(status)) return res.status(400).json({ error: `Invalid status. Allowed: ${[...ALLOWED_STATUSES].join(', ')}` });
     try {
-      const order = status === 'confirmed' ? await confirmOrder(orderId) : await updateOrderStatus(orderId, status);
+      const existing = await getOrderById(orderId);
+      if (!existing) return res.status(404).json({ error: 'Order not found' });
+      if (CLOSED_ORDER_STATUSES.has(existing.status) && status !== existing.status) {
+        return res.status(400).json({ error: `Order is ${existing.status} and can't be reopened.` });
+      }
+      if (status === 'pending' && existing.status !== 'pending') {
+        return res.status(400).json({ error: 'Orders can\'t be moved back to pending.' });
+      }
+      // Leaving 'pending' (to any open status) takes stock; closing gives it back.
+      let order;
+      if (CLOSED_ORDER_STATUSES.has(status)) order = await closeOrder(orderId, status);
+      else if (existing.status === 'pending') order = await confirmOrder(orderId, null, status);
+      else order = await updateOrderStatus(orderId, status);
       if (!order) return res.status(404).json({ error: 'Order not found' });
       let whatsappSent = false;
       if (NOTIFY_STATUSES.has(status) && order.customer?.phone) {
@@ -125,6 +137,7 @@ export default async function handler(req, res) {
       }
       return res.status(200).json({ success: true, order, whatsappSent });
     } catch (err) {
+      if (err instanceof OrderStatusError) return res.status(409).json({ error: err.message });
       console.error('update-status error:', err);
       return res.status(500).json({ error: 'Internal server error' });
     }
