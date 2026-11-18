@@ -28,7 +28,8 @@ export function BottomSheet({ open, onOpenChange, title, children, footer }: Bot
             type="button"
             onClick={() => onOpenChange(false)}
             aria-label="Close"
-            className="flex h-11 w-11 items-center justify-center text-stone-700"
+            // The sheet focuses this on open (for keyboard users); a soft ring instead of the browser's black box.
+            className="flex h-11 w-11 items-center justify-center rounded-full text-stone-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-forest-900/30"
           >
             <X className="h-5 w-5" strokeWidth={1.5} />
           </button>

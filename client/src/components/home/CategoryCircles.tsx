@@ -15,7 +15,7 @@ export default function CategoryCircles({ products, className = '' }: { products
           return (
             <Link
               key={category.id}
-              href={`/shop-by/category/${category.id}`}
+              href={`/collections/${category.id}`}
               className="flex w-[72px] flex-none flex-col items-center gap-2.5 md:w-[100px]"
             >
               <span className="flex h-[72px] w-[72px] items-center justify-center overflow-hidden rounded-full border border-stone-200 bg-forest-100 font-serif text-[26px] text-forest-900 md:h-[100px] md:w-[100px]">

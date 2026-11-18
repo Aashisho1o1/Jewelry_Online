@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route, Redirect, useLocation } from "wouter";
 import Nav from "@/components/nav";
 import Footer from "@/components/footer";
 import Home from "@/pages/home";
 import About from "@/pages/about";
 import RatesPage from "@/pages/rates";
 import ShopByPage from "@/pages/shop-by";
+import CollectionPage from "@/pages/collection";
 import ProductDetails from "@/pages/product-details";
 import WishlistPage from "@/pages/wishlist";
 import CareGuidePage from "@/pages/care-guide";
@@ -53,6 +54,12 @@ function App() {
                   <Route path="/" component={Home} />
                   <Route path="/about" component={About} />
                   <Route path="/rates" component={RatesPage} />
+                  <Route path="/collections" component={CollectionPage} />
+                  <Route path="/collections/:category" component={CollectionPage} />
+                  {/* Category pages moved to /collections; keep old links working. */}
+                  <Route path="/shop-by/category/:id">
+                    {(params: { id: string }) => <Redirect replace to={params.id === "all" ? "/collections" : `/collections/${params.id}`} />}
+                  </Route>
                   <Route path="/shop-by" component={ShopByPage} />
                   <Route path="/shop-by/:facet/:value" component={ShopByPage} />
                   <Route path="/products/:productId" component={ProductDetails} />

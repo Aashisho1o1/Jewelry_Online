@@ -36,7 +36,7 @@ const ORG_JSON_LD = {
 };
 
 const WHATSAPP = 'https://wa.me/9779811469486';
-const ALL_JEWELLERY = '/shop-by/category/all';
+const ALL_JEWELLERY = '/collections';
 const WEDDING_CATEGORIES = STORE_CATEGORIES.filter(c => ['tilahari', 'mangalsutra', 'pote', 'pauju', 'maang-tika'].includes(c.id));
 const BUDGET_TONES = ['bg-forest-900 text-white', 'bg-forest-100 text-forest-900', 'bg-cream-card text-stone-900', 'bg-forest-700 text-white'];
 
@@ -174,7 +174,7 @@ export default function Home() {
               return (
                 <Link
                   key={budget.slug}
-                  href={`/shop-by/price/${budget.slug}`}
+                  href={`/collections?price=${budget.slug}`}
                   className={`flex flex-col gap-1 rounded-2xl px-4 py-[18px] transition-transform md:px-6 md:py-7 [@media(hover:hover)]:hover:-translate-y-0.5 ${BUDGET_TONES[i % BUDGET_TONES.length]}`}
                 >
                   <span className="text-xs tracking-[0.08em]">{pre}</span>
@@ -199,7 +199,7 @@ export default function Home() {
             {WEDDING_CATEGORIES.map(category => (
               <Link
                 key={category.id}
-                href={`/shop-by/category/${category.id}`}
+                href={`/collections/${category.id}`}
                 className="flex h-9 flex-none items-center rounded-full border border-white/40 px-3.5 text-[13px]"
               >
                 {category.label}
