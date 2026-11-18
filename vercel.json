@@ -3,6 +3,9 @@
   "outputDirectory": "dist",
   "devCommand": "vite --port 3001",
   "framework": null,
+  "crons": [
+    { "path": "/api/metal-rates/sync", "schedule": "30 5 * * *" }
+  ],
   "routes": [
     {
       "src": "/(.*)",
@@ -22,6 +25,7 @@
     { "src": "/api/carts/(.*)", "dest": "/api/carts" },
     { "src": "/api/promos/(.*)", "dest": "/api/promos" },
     { "src": "/api/rates", "dest": "/api/metal-rates" },
+    { "src": "/api/metal-rates/(.*)", "dest": "/api/metal-rates" },
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/auth", "dest": "/api/auth" },
     { "src": "/callback", "dest": "/api/callback" },

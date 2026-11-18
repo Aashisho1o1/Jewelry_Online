@@ -31,6 +31,7 @@ import {
   updateOrderStatus,
 } from "./lib/db-store.js";
 import { query, queryMany } from "./lib/db.js";
+import { RateSyncError, syncMetalRatesFromFenegosida } from "./lib/nepal-rates.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -237,6 +238,16 @@ function localApiPlugin(apiKey?: string, model?: string): Plugin {
             );
             sendJson(res, 200, { orders });
           } catch { sendJson(res, 200, { orders: [] }); }
+          return;
+        }
+
+        // ── Admin: Daily FENEGOSIDA rate sync (no auth locally, like the other admin routes here) ──
+        if (pathname === "/api/metal-rates/sync") {
+          try {
+            sendJson(res, 200, { success: true, ...(await syncMetalRatesFromFenegosida()) });
+          } catch (error) {
+            sendJson(res, error instanceof RateSyncError ? 502 : 500, { error: error instanceof Error ? error.message : "Rate sync failed" });
+          }
           return;
         }
 

@@ -703,6 +703,15 @@ function PromosTab({ adminKey }: { adminKey: string }) {
 
 // Rates tab
 
+// Mirrors lib/nepal-rates.js: share of pure metal per purity, and grams in a tola.
+const GRAMS_PER_TOLA = 11.664;
+const PURITY: Record<string, { metal: 'gold' | 'silver'; factor: number }> = {
+  silver_925: { metal: 'silver', factor: 0.925 },
+  gold_24k: { metal: 'gold', factor: 1 },
+  gold_22k: { metal: 'gold', factor: 0.916 },
+  gold_18k: { metal: 'gold', factor: 0.75 },
+};
+
 function RatesTab({ adminKey }: { adminKey: string }) {
   const [rows, setRows] = useState<MetalRateRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -728,6 +737,48 @@ function RatesTab({ adminKey }: { adminKey: string }) {
         ? ({ ...row, [field]: value } as MetalRateRow)
         : row
     )));
+  };
+
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState('');
+  const [tola, setTola] = useState({ gold: '', silver: '' });
+
+  // Pulls today's FENEGOSIDA rates on the server (the same job the daily cron runs).
+  const handleSync = async () => {
+    setSyncing(true);
+    setSyncMessage('');
+    setSaveError('');
+    try {
+      const res = await fetch('/api/metal-rates/sync', { method: 'POST', headers: { 'x-admin-key': adminKey } });
+      const data = await res.json();
+      if (!res.ok) {
+        setSaveError(`FENEGOSIDA: ${data.error || 'sync failed'}. Rates were not changed.`);
+        return;
+      }
+      const skipped = data.skipped?.length ? ` Skipped (changed over 15%): ${data.skipped.map((s: { rateKey: string }) => s.rateKey).join(', ')}.` : '';
+      setSyncMessage(`Saved FENEGOSIDA rates for ${data.date}: fine gold NPR ${Math.round(data.fineGoldPerGram).toLocaleString()}/g, pure silver NPR ${data.fineSilverPerGram.toFixed(2)}/g.${skipped}`);
+      await load();
+    } catch {
+      setSaveError('Network error while fetching FENEGOSIDA rates.');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  // Published rates are for pure metal per tola; convert to per gram at each purity.
+  const fillFromTola = () => {
+    setRows(prev => prev.map(row => {
+      const purity = PURITY[row.rateKey];
+      const perTola = Number(tola[purity?.metal ?? 'gold']);
+      if (!purity || !(perTola > 0)) return row;
+      return { ...row, pricePerGram: Math.round((perTola / GRAMS_PER_TOLA) * purity.factor * 100) / 100, source: 'Entered per tola' };
+    }));
+    setSyncMessage('Current rates filled from your per-tola entry. Press "Save all" to apply them.');
+  };
+
+  const handleSaveAll = async () => {
+    for (const row of rows) await handleSave(row);
+    setSyncMessage('All rates saved.');
   };
 
   const handleSave = async (row: MetalRateRow) => {
@@ -780,6 +831,55 @@ function RatesTab({ adminKey }: { adminKey: string }) {
         </button>
       </div>
 
+      <div className="mb-6 grid gap-4 lg:grid-cols-2">
+        <div className="border border-stone-200 bg-white p-4">
+          <p className="text-sm font-medium text-stone-800">Automatic daily rate</p>
+          <p className="mt-1 text-xs text-stone-500">
+            Every day at about 11:15 Nepal time the site fetches FENEGOSIDA&apos;s published gold and silver rates and updates
+            &quot;Current / g&quot; for each purity. Unusual data (missing, mismatched, or over 15% change) is skipped and the previous rate stays.
+          </p>
+          <button
+            type="button"
+            onClick={handleSync}
+            disabled={syncing}
+            className="mt-3 bg-stone-900 px-4 py-2 text-xs uppercase tracking-[0.15em] text-white hover:bg-stone-700 disabled:opacity-50"
+          >
+            {syncing ? 'Fetching...' : "Fetch today's rate now"}
+          </button>
+        </div>
+        <div className="border border-stone-200 bg-white p-4">
+          <p className="text-sm font-medium text-stone-800">Enter today&apos;s rate per tola</p>
+          <p className="mt-1 text-xs text-stone-500">Type the published fine gold and pure silver rate per tola; each purity is worked out for you.</p>
+          <div className="mt-3 flex flex-wrap items-end gap-3">
+            {(['gold', 'silver'] as const).map(metal => (
+              <label key={metal} className="flex flex-col gap-1 text-xs text-stone-500">
+                {metal === 'gold' ? 'Fine gold / tola' : 'Pure silver / tola'}
+                <input
+                  type="number"
+                  min="0"
+                  inputMode="decimal"
+                  value={tola[metal]}
+                  onChange={e => setTola(t => ({ ...t, [metal]: e.target.value }))}
+                  className="w-36 border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:border-stone-900"
+                />
+              </label>
+            ))}
+            <button type="button" onClick={fillFromTola} className="border border-stone-300 px-4 py-2 text-xs uppercase tracking-[0.15em] text-stone-700 hover:border-stone-900">
+              Fill rates
+            </button>
+            <button type="button" onClick={handleSaveAll} disabled={savingKey !== null} className="bg-stone-900 px-4 py-2 text-xs uppercase tracking-[0.15em] text-white hover:bg-stone-700 disabled:opacity-50">
+              Save all
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <p className="mb-4 text-xs text-stone-500">
+        <strong className="font-medium text-stone-700">Baseline / g</strong> is set once: the rate your product prices were based on. Don&apos;t change it daily;
+        while it is 0, products keep their fixed prices.
+      </p>
+
+      {syncMessage && <p className="mb-4 text-sm text-emerald-700">{syncMessage}</p>}
       {saveError && <p className="mb-4 text-sm text-red-600">{saveError}</p>}
 
       {loading ? (
