@@ -1,15 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { ArrowRight, Gift, MessageCircle, ShieldCheck, Star, Truck } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Link } from 'wouter';
+import { Gift, ShieldCheck, Star, Truck } from 'lucide-react';
 import { JewelryProduct } from '../types/jewelry';
 import { getProducts } from '../data/product-loader';
 import ProductCard from '../components/jewelry/ProductCard';
 import { useCartContext } from '../contexts/CartContext';
 import { useToast } from '../hooks/use-toast';
 import homeContent from '../content/home.json';
-import TrustStrip from '../components/TrustStrip';
 import FlashSaleBanner from '../components/FlashSaleBanner';
-import { getFacetOptions } from '@/lib/product-taxonomy';
+import HeroCarousel, { HeroSlide } from '../components/home/HeroCarousel';
+import CategoryCircles from '../components/home/CategoryCircles';
+import { STORE_CATEGORIES } from '../components/CategorySheet';
+import { getFacetOptions, getProductHref } from '@/lib/product-taxonomy';
 import SiteMeta from '@/components/SiteMeta';
 
 const ORG_JSON_LD = {
@@ -33,54 +35,41 @@ const ORG_JSON_LD = {
   sameAs: ['https://www.facebook.com/aashishjewellery'],
 };
 
-const PREFERRED_CATEGORY_ORDER = [
-  'rings', 'necklaces', 'earrings', 'bracelets', 'sets',
-  'tilahari', 'mangalsutra', 'sikri', 'baala', 'bulaki',
-  'pote', 'pauju', 'maang-tika', 'haar', 'dhungri',
-];
+const WHATSAPP = 'https://wa.me/9779811469486';
+const ALL_JEWELLERY = '/shop-by/category/all';
+const WEDDING_CATEGORIES = STORE_CATEGORIES.filter(c => ['tilahari', 'mangalsutra', 'pote', 'pauju', 'maang-tika'].includes(c.id));
+const BUDGET_TONES = ['bg-forest-900 text-white', 'bg-forest-100 text-forest-900', 'bg-cream-card text-stone-900', 'bg-forest-700 text-white'];
 
-const CATEGORY_LABELS: Record<string, string> = {
-  'maang-tika': 'Maang Tika',
-};
+// "NPR 2,500 - 5,000" -> pre "NPR 2,500 to", amount "5,000" (tile shows the top of the range large).
+function splitBudgetLabel(label: string) {
+  const match = label.match(/^(.*?)([\d,]+)$/);
+  if (!match) return { pre: '', amount: label };
+  return { pre: match[1].trim().replace(/\s-$/, ' to'), amount: match[2] };
+}
 
-const CATEGORY_COPY: Record<string, string> = {
-  rings: 'Easy everyday pieces and gift-friendly styles.',
-  necklaces: 'Layering chains and simple statement looks.',
-  earrings: 'Fast gifting options with strong visual appeal.',
-  bracelets: 'Light, wearable pieces for daily styling.',
-  sets: 'Ready-made combinations for bigger occasions.',
-};
-
-function formatCategoryName(category: string) {
-  if (CATEGORY_LABELS[category]) return CATEGORY_LABELS[category];
-  return category
-    .split(/[-_]/g)
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
+function SectionHeading({ eyebrow, title, action }: { eyebrow: string; title: string; action?: React.ReactNode }) {
+  return (
+    <div className="mb-6 flex items-end justify-between gap-4">
+      <div>
+        <p className="text-[11px] uppercase tracking-[0.22em] text-stone-500">{eyebrow}</p>
+        <h2 className="mt-2 font-serif text-[26px] font-normal text-stone-900 md:text-[34px]">{title}</h2>
+      </div>
+      {action}
+    </div>
+  );
 }
 
 export default function Home() {
-  const [activeCategory, setActiveCategory] = useState('all');
   const [products, setProducts] = useState<JewelryProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { addItem, openCart } = useCartContext();
   const { toast } = useToast();
 
   useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        setError(null);
-        const cmsProducts = await getProducts();
-        setProducts(cmsProducts);
-      } catch (loadError) {
-        console.error('Failed to load products:', loadError);
-        setError('Unable to load products. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadProducts();
+    getProducts()
+      .then(setProducts)
+      .catch(error => console.error('Failed to load products:', error))
+      .finally(() => setLoading(false));
   }, []);
 
   const handleAddToCart = (product: JewelryProduct) => {
@@ -93,451 +82,197 @@ export default function Home() {
     setTimeout(() => openCart(), 500);
   };
 
-  const scrollToSection = (sectionId: string) => {
-    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
-  const categoryCounts = products.reduce((counts, product) => {
-    const key = String(product.category || '').trim().toLowerCase();
-    if (!key) return counts;
-    counts[key] = (counts[key] || 0) + 1;
-    return counts;
-  }, {} as Record<string, number>);
-
-  const knownCategories = PREFERRED_CATEGORY_ORDER
-    .filter(c => categoryCounts[c] > 0)
-    .map(c => ({ id: c, name: formatCategoryName(c), count: categoryCounts[c] }));
-
-  const unknownCategories = Object.keys(categoryCounts)
-    .filter(c => !PREFERRED_CATEGORY_ORDER.includes(c))
-    .sort()
-    .map(c => ({ id: c, name: formatCategoryName(c), count: categoryCounts[c] }));
-
-  const allCategories = [...knownCategories, ...unknownCategories];
-  const categories = [{ id: 'all', name: 'All', count: products.length }, ...allCategories];
-
-  useEffect(() => {
-    if (activeCategory !== 'all' && !categories.some(c => c.id === activeCategory)) {
-      setActiveCategory('all');
-    }
-  }, [activeCategory, categories]);
-
-  // Featured first so best sellers lead the catalog when their own section is hidden.
-  const displayProducts = (activeCategory === 'all'
-    ? products
-    : products.filter(p => p.category?.toLowerCase() === activeCategory.toLowerCase())
-  ).slice().sort((a, b) => Number(!!b.featured) - Number(!!a.featured));
-
-  // A separate best-sellers row only adds value once the catalog is big enough to scroll.
-  const showBestSellers = products.length > 8;
-
-  const bestSellerProducts = (products.filter(p => p.featured).length > 0
-    ? products.filter(p => p.featured)
-    : products).slice(0, 4);
-
-  const spotlightProduct = bestSellerProducts[0];
-  const spotlightImages = spotlightProduct
-    ? [spotlightProduct.image, ...(spotlightProduct.images || [])].filter(Boolean)
-    : [];
-  const spotlightAccentImage = spotlightImages.find(img => img !== spotlightImages[0]);
-
-  const silverCount = products.filter(p => p.material.toLowerCase().includes('silver')).length;
-  const occasionOptions = getFacetOptions(products, 'occasion', 3);
-  const recipientOptions = getFacetOptions(products, 'recipient', 3);
-  const priceOptions = getFacetOptions(products, 'price', 3);
-
-  const categoryHighlights = allCategories.slice(0, 4).map(category => {
-    const leadProduct = products.find(p => p.category?.toLowerCase() === category.id);
-    const gallery = leadProduct ? [leadProduct.image, ...(leadProduct.images || [])].filter(Boolean) : [];
-    return {
-      ...category,
-      image: gallery[0] || homeContent.hero.heroImage || homeContent.imageUrl,
-      copy: CATEGORY_COPY[category.id] || 'Simple, giftable pieces.',
-    };
-  });
-
-  const customerQuotes = products
-    .flatMap(p => (p.reviews || []).map(r => ({ ...r, productName: p.name })))
-    .slice(0, 3);
-
-  const quickGuides = [
-    {
-      title: 'By occasion',
-      links: occasionOptions.map(o => ({ label: o.label, href: `/shop-by/occasion/${o.slug}` })),
-    },
-    {
-      title: 'By recipient',
-      links: recipientOptions.map(o => ({ label: o.label, href: `/shop-by/recipient/${o.slug}` })),
-    },
-    {
-      title: 'By budget',
-      links: priceOptions.map(o => ({ label: o.label, href: `/shop-by/price/${o.slug}` })),
-    },
-  ];
+  // Featured pieces first, then by rating.
+  const bestSellers = [...products]
+    .sort((a, b) => Number(!!b.featured) - Number(!!a.featured) || (b.rating || 0) - (a.rating || 0))
+    .slice(0, 6);
+  const budgets = getFacetOptions(products, 'price');
+  // One review per product so the section isn't all about a single piece.
+  const reviews = products
+    .filter(p => p.reviews?.length)
+    .slice(0, 3)
+    .map(p => ({ ...p.reviews![0], product: p }));
 
   return (
-    <div className="min-h-screen bg-[#faf8f5]">
+    <div className="flex min-h-screen flex-col bg-cream">
       <SiteMeta
         title="Aashish Jewellers | Premium Silver Jewelry from Nepal"
         description="Discover handcrafted 925 silver rings, necklaces, earrings and bracelets. Free delivery in Butwal and Bhairahawa. Shop the collection now."
         jsonLd={ORG_JSON_LD}
       />
+      {/* The slides are the visual headline; keep a real h1 for search engines and screen readers. */}
+      <h1 className="sr-only">{homeContent.hero.mainTitle}</h1>
 
-      {/* ── Hero ── */}
-      <section className="border-b border-stone-200 bg-white">
-        <div className="container py-6 md:py-10">
-          <div className="grid gap-10 lg:grid-cols-[1fr_0.95fr] lg:items-center">
-            <div className="max-w-xl">
-              <h1 className="text-4xl font-serif font-light leading-tight text-stone-950 md:text-6xl">
-                {homeContent.hero.mainTitle || homeContent.title}
-              </h1>
-              <p className="mt-5 text-lg leading-relaxed text-stone-500 font-light">
-                {homeContent.hero.description}
-              </p>
+      {/* Phone order: categories, best sellers, banner, trust, budget, wedding, reviews, help.
+          Desktop order: banner, categories, budget, best sellers, reviews, help. */}
+      <div className="order-3 md:order-1">
+        <HeroCarousel slides={homeContent.slides as HeroSlide[]} />
+      </div>
 
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <button
-                  type="button"
-                  onClick={() => scrollToSection('catalog')}
-                  className="inline-flex items-center justify-center gap-2 bg-stone-950 px-7 py-3.5 text-xs uppercase tracking-[0.18em] text-white transition-colors hover:bg-stone-800"
-                >
-                  Shop collection
-                  <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
-                </button>
+      <div className="order-4 md:order-2">
+        <FlashSaleBanner />
+      </div>
+
+      <CategoryCircles products={products} className="order-1 md:order-3" />
+
+      {/* Best sellers */}
+      <section className="order-2 mx-auto w-full max-w-[1280px] px-4 pb-2 pt-5 md:order-5 md:px-10 md:pb-0 md:pt-20">
+        <div className="mb-3.5 flex items-baseline justify-between gap-3 md:hidden">
+          <h2 className="font-serif text-[22px] font-normal text-stone-900">Best sellers</h2>
+          <Link href={ALL_JEWELLERY} className="text-[13px] font-medium text-forest-900">View all →</Link>
+        </div>
+        <div className="hidden md:block">
+          <SectionHeading
+            eyebrow="Best sellers"
+            title="Most loved pieces"
+            action={<Link href={ALL_JEWELLERY} className="whitespace-nowrap text-[13px] text-forest-900 underline underline-offset-4">View all</Link>}
+          />
+        </div>
+        {loading ? (
+          <div className="flex justify-center py-16"><div className="h-8 w-8 animate-spin rounded-full border-b-2 border-forest-900" /></div>
+        ) : (
+          <div className="grid grid-cols-2 gap-x-3 gap-y-4 md:grid-cols-4 md:gap-6">
+            {bestSellers.map((product, i) => (
+              // Phones show six; desktop shows one row of four.
+              <div key={product.id} className={i >= 4 ? 'md:hidden' : ''}>
+                <ProductCard product={product} onAddToCart={handleAddToCart} />
+              </div>
+            ))}
+          </div>
+        )}
+        <Link
+          href={ALL_JEWELLERY}
+          className="mt-[18px] flex h-[46px] w-full items-center justify-center rounded-[10px] border border-forest-900 bg-white text-xs font-semibold uppercase tracking-[0.12em] text-forest-900 md:hidden"
+        >
+          Shop all jewellery
+        </Link>
+      </section>
+
+      {/* Trust row (phones) */}
+      <section className="order-5 px-4 pt-3.5 md:hidden">
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { icon: ShieldCheck, label: ['925 certified', 'silver'] },
+            { icon: Gift, label: ['Gift-ready', 'packaging'] },
+            { icon: Truck, label: ['Delivery', 'across Nepal'] },
+          ].map(item => (
+            <div key={item.label[0]} className="flex flex-col items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-1.5 py-3 text-center text-[11px] leading-[1.3] text-stone-900">
+              <item.icon className="h-5 w-5 text-forest-900" strokeWidth={1.5} />
+              <span>{item.label[0]}<br />{item.label[1]}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Shop by budget */}
+      {budgets.length > 0 && (
+        <section className="order-6 mx-auto w-full max-w-[1280px] px-4 pt-11 md:order-4 md:px-10 md:pt-20">
+          <SectionHeading eyebrow="Shop by budget" title="Find a piece in your range" />
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-6">
+            {budgets.map((budget, i) => {
+              const { pre, amount } = splitBudgetLabel(budget.label);
+              return (
                 <Link
-                  href="/shop-by"
-                  className="inline-flex items-center justify-center border border-stone-300 px-7 py-3.5 text-xs uppercase tracking-[0.18em] text-stone-800 transition-colors hover:border-stone-900"
+                  key={budget.slug}
+                  href={`/shop-by/price/${budget.slug}`}
+                  className={`flex flex-col gap-1 rounded-2xl px-4 py-[18px] transition-transform md:px-6 md:py-7 [@media(hover:hover)]:hover:-translate-y-0.5 ${BUDGET_TONES[i % BUDGET_TONES.length]}`}
                 >
-                  Gift guide
+                  <span className="text-xs tracking-[0.08em]">{pre}</span>
+                  <span className="font-serif text-[30px] leading-[1.05] md:text-[44px]">{amount}</span>
+                  <span className="mt-2.5 text-xs">{budget.count} {budget.count === 1 ? 'piece' : 'pieces'} →</span>
                 </Link>
-              </div>
-
-              {/* Trust row */}
-              <div className="mt-8 flex flex-wrap gap-5 text-sm text-stone-500">
-                <span className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-stone-400" strokeWidth={1.5} />
-                  925 certified silver
-                </span>
-                <span className="flex items-center gap-2">
-                  <Gift className="h-4 w-4 text-stone-400" strokeWidth={1.5} />
-                  Gift-ready packaging
-                </span>
-                <span className="flex items-center gap-2">
-                  <Truck className="h-4 w-4 text-stone-400" strokeWidth={1.5} />
-                  Delivery across Nepal
-                </span>
-              </div>
-
-              {silverCount > 0 && (
-                <p className="mt-5 text-sm text-stone-400">{silverCount}+ handcrafted pieces available</p>
-              )}
-            </div>
-
-            {/* Hero image + spotlight */}
-            <div className="flex flex-col gap-4">
-              <img
-                src={homeContent.hero.heroImage || homeContent.imageUrl}
-                alt="Aashish Jewellers featured collection"
-                className="aspect-square w-full rounded-xl object-cover object-[50%_45%] md:aspect-[4/5] md:object-center"
-                loading="eager"
-                // React 18 only passes the lowercase attribute through to the DOM.
-                {...{ fetchpriority: 'high' }}
-              />
-              {spotlightProduct && (
-                <div className="hidden items-center gap-4 border border-stone-200 bg-white px-4 py-4 md:flex">
-                  <img
-                    src={spotlightAccentImage || spotlightProduct.image}
-                    alt={spotlightProduct.name}
-                    className="h-14 w-14 shrink-0 rounded-lg object-cover"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-serif text-base text-stone-900">{spotlightProduct.name}</p>
-                    <p className="text-sm text-stone-500">NPR {spotlightProduct.price.toLocaleString()}</p>
-                  </div>
-                  <Link
-                    href={`/products/${encodeURIComponent(spotlightProduct.id)}`}
-                    className="shrink-0 border border-stone-300 px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-stone-700 transition-colors hover:border-stone-900"
-                  >
-                    View
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <FlashSaleBanner />
-
-      <TrustStrip />
-
-      {/* ── Collections ── */}
-      <section id="collections" className="scroll-mt-32 py-16">
-        <div className="container">
-          <div className="mb-8">
-            <p className="text-xs uppercase tracking-[0.22em] text-stone-400">Collections</p>
-            <h2 className="mt-2 text-3xl font-serif font-light text-stone-950 md:text-4xl">Shop by category</h2>
-          </div>
-
-          {categoryHighlights.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">
-              {categoryHighlights.map(category => (
-                <button
-                  key={category.id}
-                  type="button"
-                  onClick={() => { setActiveCategory(category.id); scrollToSection('catalog'); }}
-                  className="group overflow-hidden border border-stone-200 bg-white text-left transition-shadow hover:shadow-sm"
-                >
-                  <div className="overflow-hidden">
-                    <img
-                      src={category.image}
-                      alt={category.name}
-                      className="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="p-3 md:p-4">
-                    <p className="font-serif text-base font-light text-stone-950 md:text-lg">{category.name}</p>
-                    <p className="mt-1 hidden text-sm text-stone-500 sm:block">{category.copy}</p>
-                    <p className="mt-3 text-[10px] uppercase tracking-[0.14em] text-stone-400">{category.count} {category.count === 1 ? 'piece' : 'pieces'}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="border border-dashed border-stone-300 bg-white px-6 py-10 text-center text-stone-500">
-              Categories will appear as products are added.
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ── Bestsellers ── */}
-      {showBestSellers && (
-      <section id="bestsellers" className="scroll-mt-32 border-y border-stone-200 bg-white py-16">
-        <div className="container">
-          <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.22em] text-stone-400">Best sellers</p>
-              <h2 className="mt-2 text-3xl font-serif font-light text-stone-950 md:text-4xl">Most loved pieces</h2>
-            </div>
-            <button
-              type="button"
-              onClick={() => scrollToSection('catalog')}
-              className="inline-flex items-center gap-2 text-sm text-stone-600 underline underline-offset-4 hover:text-stone-900"
-            >
-              Browse all
-              <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
-            </button>
-          </div>
-
-          {bestSellerProducts.length > 0 ? (
-            <div className="grid grid-cols-2 gap-4 md:gap-6 xl:grid-cols-4">
-              {bestSellerProducts.map(product => (
-                <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
-              ))}
-            </div>
-          ) : (
-            <div className="border border-dashed border-stone-300 bg-stone-50 px-6 py-10 text-center text-stone-500">
-              Best sellers will appear here once products are available.
-            </div>
-          )}
-        </div>
-      </section>
-      )}
-
-      {/* ── Gift guide strip ── */}
-      {/* No top padding when it directly follows the same-colored collections section. */}
-      <section className={showBestSellers ? 'py-16' : 'pb-16'}>
-        <div className="container grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
-          <div className="border border-stone-200 bg-white p-6">
-            <p className="text-xs uppercase tracking-[0.22em] text-stone-400">Gift guide</p>
-            <h2 className="mt-3 text-2xl font-serif font-light text-stone-950">
-              Know the occasion — not the product?
-            </h2>
-            <p className="mt-3 text-sm leading-relaxed text-stone-500">
-              Start with who you&apos;re buying for or what budget you have.
-            </p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
-              <Link
-                href="/shop-by"
-                className="inline-flex items-center justify-center bg-stone-950 px-6 py-3 text-xs uppercase tracking-[0.18em] text-white transition-colors hover:bg-stone-800"
-              >
-                Open gift guide
-              </Link>
-              <a
-                href="https://wa.me/9779811469486?text=Hi%2C%20I%20need%20help%20choosing%20a%20gift."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center border border-stone-300 px-6 py-3 text-xs uppercase tracking-[0.18em] text-stone-800 transition-colors hover:border-stone-900"
-              >
-                Ask on WhatsApp
-              </a>
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-3">
-            {quickGuides.map(guide => (
-              <div key={guide.title} className="border border-stone-200 bg-white p-5">
-                <p className="text-xs uppercase tracking-[0.18em] text-stone-400 mb-4">{guide.title}</p>
-                <div className="flex flex-col">
-                  {guide.links.length > 0 ? (
-                    guide.links.map(link => (
-                      <Link
-                        key={`${guide.title}-${link.label}`}
-                        href={link.href}
-                        className="py-2 text-sm text-stone-700 hover:text-stone-950 transition-colors"
-                      >
-                        {link.label} →
-                      </Link>
-                    ))
-                  ) : (
-                    <Link href="/shop-by" className="py-2 text-sm text-stone-700 hover:text-stone-950">
-                      Browse →
-                    </Link>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Full catalog ── */}
-      <section id="catalog" className="scroll-mt-32 border-y border-stone-200 bg-white py-16">
-        <div className="container">
-          <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div id={showBestSellers ? undefined : 'bestsellers'} className="scroll-mt-32">
-              <p className="text-xs uppercase tracking-[0.22em] text-stone-400">Catalog</p>
-              <h2 className="mt-2 text-3xl font-serif font-light text-stone-950 md:text-4xl">Full collection</h2>
-            </div>
-            <p className="text-sm text-stone-400">
-              {displayProducts.length} of {products.length} pieces
-            </p>
-          </div>
-
-          {/* Category filters */}
-          <div className="mb-8 flex gap-2 overflow-x-auto pb-2 sm:flex-wrap">
-            {categories.map(category => (
-              <button
-                key={category.id}
-                type="button"
-                onClick={() => setActiveCategory(category.id)}
-                className={`shrink-0 border px-4 py-2 text-xs uppercase tracking-[0.14em] transition-colors ${
-                  activeCategory === category.id
-                    ? 'border-stone-950 bg-stone-950 text-white'
-                    : 'border-stone-300 bg-white text-stone-600 hover:border-stone-950 hover:text-stone-950'
-                }`}
-              >
-                {category.name}
-                <span className="ml-1.5 opacity-60">({category.count})</span>
-              </button>
-            ))}
-          </div>
-
-          {loading ? (
-            <div className="flex items-center justify-center py-24">
-              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-stone-900" />
-            </div>
-          ) : error ? (
-            <div className="border border-red-200 bg-red-50 px-6 py-10 text-center">
-              <p className="text-red-600">{error}</p>
-              <button
-                type="button"
-                onClick={() => window.location.reload()}
-                className="mt-5 inline-flex bg-stone-950 px-6 py-3 text-xs uppercase tracking-[0.16em] text-white"
-              >
-                Retry
-              </button>
-            </div>
-          ) : displayProducts.length === 0 ? (
-            <div className="border border-dashed border-stone-300 bg-stone-50 px-6 py-10 text-center text-stone-500">
-              <p>
-                {products.length === 0
-                  ? 'The collection is being prepared. Please check back soon.'
-                  : `No products in "${activeCategory}".`}
-              </p>
-              {activeCategory !== 'all' && (
-                <button
-                  type="button"
-                  onClick={() => setActiveCategory('all')}
-                  className="mt-4 text-xs uppercase tracking-[0.14em] text-stone-900 underline underline-offset-4"
-                >
-                  View all
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4 md:gap-6 lg:grid-cols-3 xl:grid-cols-4">
-              {displayProducts.map((product: JewelryProduct) => (
-                <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ── Reviews ── */}
-      {customerQuotes.length > 0 && (
-        <section className="py-16">
-          <div className="container">
-            <div className="mb-8">
-              <p className="text-xs uppercase tracking-[0.22em] text-stone-400">Reviews</p>
-              <h2 className="mt-2 text-3xl font-serif font-light text-stone-950 md:text-4xl">What customers say</h2>
-            </div>
-
-            <div className="grid gap-4 lg:grid-cols-3">
-              {customerQuotes.map((quote, index) => (
-                <div key={`${quote.author}-${index}`} className="border border-stone-200 bg-white p-6">
-                  <div className="flex items-center gap-1 text-amber-400">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-3.5 w-3.5 ${i < Math.round(quote.rating) ? 'fill-current' : ''}`}
-                        strokeWidth={1}
-                      />
-                    ))}
-                  </div>
-                  {quote.title && <p className="mt-4 font-medium text-stone-900">{quote.title}</p>}
-                  <p className="mt-3 text-sm leading-relaxed text-stone-600">{quote.text}</p>
-                  <div className="mt-5 border-t border-stone-100 pt-4">
-                    <p className="text-xs uppercase tracking-[0.14em] text-stone-700">{quote.author}</p>
-                    <p className="mt-0.5 text-xs text-stone-400">{quote.productName}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </section>
       )}
 
-      {/* ── Help CTA ── */}
-      <section className="border-t border-stone-200 bg-stone-900 py-16">
-        <div className="container">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h2 className="text-3xl font-serif font-light text-white md:text-4xl">Need help choosing?</h2>
-              <p className="mt-3 text-stone-400 font-light">
-                Questions about sizing, gifting, or delivery? We reply on WhatsApp within minutes.
-              </p>
-            </div>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <a
-                href="https://wa.me/9779811469486?text=Hi%2C%20I%20need%20help%20choosing%20jewelry."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 bg-white px-6 py-3.5 text-xs uppercase tracking-[0.18em] text-stone-900 transition-colors hover:bg-stone-100"
-              >
-                <MessageCircle className="h-4 w-4" strokeWidth={1.5} />
-                Chat on WhatsApp
-              </a>
+      {/* Wedding & traditional (phones) */}
+      <section className="order-7 px-4 pt-7 md:hidden">
+        <div className="rounded-2xl bg-forest-900 px-5 py-[22px] text-white">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-forest-200">Wedding &amp; traditional</p>
+          <h2 className="mt-2 font-serif text-2xl font-normal leading-[1.15]">Heritage pieces for the big day</h2>
+          <p className="mt-2 text-sm leading-[1.55] text-[#d5e2d8]">
+            Tilahari, mangalsutra, pote and pauju. Ask us on WhatsApp for designs and pricing.
+          </p>
+          <div className="-mx-5 mt-4 flex gap-2 overflow-x-auto px-5 [scrollbar-width:none]">
+            {WEDDING_CATEGORIES.map(category => (
               <Link
-                href="/about"
-                className="inline-flex items-center justify-center border border-white/20 px-6 py-3.5 text-xs uppercase tracking-[0.18em] text-white transition-colors hover:border-white/60"
+                key={category.id}
+                href={`/shop-by/category/${category.id}`}
+                className="flex h-9 flex-none items-center rounded-full border border-white/40 px-3.5 text-[13px]"
               >
-                Our story
+                {category.label}
               </Link>
-            </div>
+            ))}
+          </div>
+          <a
+            href={`${WHATSAPP}?text=${encodeURIComponent("Hi, I'm looking for wedding jewellery.")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 flex h-11 items-center justify-center rounded-full bg-white text-[11px] font-semibold uppercase tracking-[0.14em] text-forest-900"
+          >
+            Ask on WhatsApp
+          </a>
+        </div>
+      </section>
+
+      {/* Reviews */}
+      {reviews.length > 0 && (
+        <section className="order-8 mx-auto w-full max-w-[1280px] px-4 pt-11 md:order-6 md:px-10 md:pt-20">
+          <SectionHeading eyebrow="Reviews" title="What customers say" />
+          {/* Rail on phones, three columns on desktop */}
+          <div className="-mx-4 grid snap-x snap-mandatory auto-cols-[86%] grid-flow-col gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:auto-cols-auto md:grid-flow-row md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0">
+            {reviews.map(review => (
+              <Link
+                key={`${review.product.id}-${review.author}`}
+                href={getProductHref(review.product.id)}
+                className="grid snap-start grid-cols-[96px_minmax(0,1fr)] gap-4 rounded-[14px] border border-stone-200 bg-white p-3.5"
+              >
+                {/* The product that was reviewed, not a customer photo. */}
+                <img src={review.product.image} alt={review.product.name} loading="lazy" className="h-[120px] w-24 rounded-[10px] object-cover" />
+                <div className="flex min-w-0 flex-col">
+                  <div className="flex gap-0.5" aria-label={`${review.rating} out of 5 stars`}>
+                    {[1, 2, 3, 4, 5].map(n => (
+                      <Star key={n} className="h-[13px] w-[13px] text-[#b8941f]" strokeWidth={1.2} fill={n <= Math.round(review.rating) ? '#b8941f' : 'none'} />
+                    ))}
+                  </div>
+                  {review.title && <p className="mt-2 text-sm font-medium text-stone-900">{review.title}</p>}
+                  <p className="mt-1 text-[13px] leading-[1.55] text-stone-600 [text-wrap:pretty]">{review.text}</p>
+                  <p className="mt-auto pt-2.5 text-[11px] uppercase tracking-[0.12em] text-stone-700">
+                    {review.author} <span className="normal-case tracking-normal text-stone-500">· {review.product.name}</span>
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Help CTA */}
+      <section className="order-9 mt-11 bg-forest-100 md:order-7 md:mt-20">
+        <div className="mx-auto flex max-w-[1280px] flex-col items-start justify-between gap-6 px-4 py-11 md:flex-row md:items-center md:px-10 md:py-20">
+          <div>
+            <h2 className="font-serif text-[26px] font-normal text-forest-900 md:text-[34px]">Need help choosing?</h2>
+            <p className="mt-2.5 text-[15px] text-forest-600">
+              Questions about sizing, gifting, or delivery? We reply on WhatsApp within minutes.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <a
+              href={`${WHATSAPP}?text=${encodeURIComponent('Hi, I need help choosing jewelry.')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-12 items-center rounded-full bg-forest-900 px-6 text-[11px] font-medium uppercase tracking-[0.16em] text-white"
+            >
+              Chat on WhatsApp
+            </a>
+            <Link
+              href="/about"
+              className="flex h-12 items-center rounded-full border border-forest-900 px-6 text-[11px] font-medium uppercase tracking-[0.16em] text-forest-900"
+            >
+              Our story
+            </Link>
           </div>
         </div>
       </section>
