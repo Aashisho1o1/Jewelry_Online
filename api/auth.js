@@ -4,7 +4,7 @@ import { createOAuthState } from '../lib/oauth-state.js';
 function getRequestOrigin(req) {
   const forwardedProto = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
   const forwardedHost = String(req.headers['x-forwarded-host'] || '').split(',')[0].trim();
-  const host = forwardedHost || req.headers.host || process.env.VERCEL_URL || 'jewelry-online.vercel.app';
+  const host = forwardedHost || req.headers.host || process.env.VERCEL_URL || 'aashish-jewellers.vercel.app';
   const protocol = forwardedProto || (String(host).includes('localhost') ? 'http' : 'https');
   return new URL(`${protocol}://${host}`).origin;
 }

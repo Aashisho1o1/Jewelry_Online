@@ -2,7 +2,7 @@ backend:
   name: github
   repo: Aashisho1o1/Jewelry_Online
   branch: main
-  base_url: https://jewelry-online.vercel.app
+  base_url: https://aashish-jewellers.vercel.app
   auth_endpoint: auth
 
 # Store uploaded images in Vite's served public directory
@@ -17,7 +17,7 @@ public_folder: "/images/jewelry"
 
 # Global settings for the CMS
 local_backend: false
-display_url: https://jewelry-online.vercel.app
+display_url: https://aashish-jewellers.vercel.app
 
 collections:
   # Jewelry Products Management - Individual Product Files

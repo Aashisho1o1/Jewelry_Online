@@ -3,6 +3,7 @@
   "outputDirectory": "dist",
   "devCommand": "vite --port 3001",
   "framework": null,
+  "regions": ["sin1"],
   "crons": [
     { "path": "/api/metal-rates/sync", "schedule": "30 5 * * *" }
   ],
