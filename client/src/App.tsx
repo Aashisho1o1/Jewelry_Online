@@ -31,6 +31,7 @@ import StoreRateStrip from "@/components/StoreRateStrip";
 import MobileTabBar from "@/components/MobileTabBar";
 import CategorySheet from "@/components/CategorySheet";
 import WhatsAppFab from "@/components/WhatsAppFab";
+import CheckoutHeader from "@/components/CheckoutHeader";
 import { cn } from "@/lib/utils";
 
 function App() {
@@ -48,7 +49,7 @@ function App() {
           <ChatProvider>
             <div className={cn("min-h-screen flex flex-col", showTabBar && "pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0")}>
               {!isCheckout && <StoreRateStrip variant="topbar" />}
-              <Nav onOpenCategories={() => setCategoriesOpen(true)} />
+              {isCheckout ? <CheckoutHeader /> : <Nav onOpenCategories={() => setCategoriesOpen(true)} />}
               <main className="flex-1">
                 <Switch>
                   <Route path="/" component={Home} />
@@ -77,7 +78,7 @@ function App() {
                   <Route component={NotFound} />
                 </Switch>
               </main>
-              <Footer />
+              {!isCheckout && <Footer />}
               <CartSheet />
               {/* The AI ChatWidget is unmounted until GEMINI_API_KEY is configured; WhatsApp covers help meanwhile. */}
               {!isCheckout && <WhatsAppFab compact={isProduct} />}
