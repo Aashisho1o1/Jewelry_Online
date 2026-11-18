@@ -47,6 +47,11 @@ export default function Nav({ onOpenCategories }: NavProps) {
     getProducts().then(setSearchProducts).catch(() => {});
   }, []);
 
+  // Tapping a search result navigates; close the overlay so the new page isn't hidden under it.
+  useEffect(() => {
+    setIsSearchOpen(false);
+  }, [location]);
+
   const links = [
     { label: 'Shop All', onClick: () => navigate('/collections'), active: location === '/collections' },
     ...['rings', 'necklaces', 'earrings', 'bracelets'].map(id => ({

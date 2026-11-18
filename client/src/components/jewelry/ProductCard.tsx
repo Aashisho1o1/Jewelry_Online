@@ -4,6 +4,7 @@ import { JewelryProduct } from '../../types/jewelry';
 import { useEngagementContext } from '@/contexts/EngagementContext';
 import { getProductHref } from '@/lib/product-taxonomy';
 import { useToast } from '@/hooks/use-toast';
+import { needsRingSize } from '@/lib/ring-sizes';
 
 interface ProductCardProps {
   product: JewelryProduct;
@@ -118,7 +119,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
           <p className="text-[10px] uppercase tracking-[0.14em] text-stone-500">Market-linked price</p>
         )}
 
-        {onAddToCart && (
+        {onAddToCart && needsRingSize(product.category) && product.inStock ? (
+          // Rings need a size, which is picked on the product page.
+          <div className="mt-auto pt-2.5">
+            <Link
+              href={productHref}
+              className="flex h-10 w-full items-center justify-center rounded-full border border-forest-900 text-[11px] font-medium uppercase tracking-[0.16em] text-forest-900 transition-colors hover:bg-forest-900 hover:text-white"
+            >
+              Choose size
+            </Link>
+          </div>
+        ) : onAddToCart && (
           // mt-auto pins the button to the bottom so buttons line up across a row.
           <div className="mt-auto pt-2.5">
             <button

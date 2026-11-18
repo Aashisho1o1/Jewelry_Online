@@ -29,6 +29,7 @@ export interface Order {
     price: number;
     quantity: number;
     image: string;
+    size?: string;
   }>;
   customer: CustomerInfo;
   total: number;

@@ -3,6 +3,7 @@ import { Plus, Minus, X } from 'lucide-react';
 import { useCartContext } from '../../contexts/CartContext';
 import { Link } from 'wouter';
 import { Sheet, SheetContent, SheetTitle } from '../ui/sheet';
+import { needsRingSize, ringSizeLabel } from '@/lib/ring-sizes';
 
 export function CartSheet() {
   const { items, total, count, isOpen, closeCart, updateQuantity, removeItem } = useCartContext();
@@ -54,7 +55,7 @@ export function CartSheet() {
           ) : (
             <div className="divide-y divide-stone-100">
               {items.map(item => (
-                <div key={item.id} className="flex gap-4 px-6 py-5">
+                <div key={`${item.id}-${item.size || ""}`} className="flex gap-4 px-6 py-5">
                   {/* Image */}
                   <div className="h-20 w-20 shrink-0 overflow-hidden bg-[#f0ebe3]">
                     <img
@@ -74,6 +75,9 @@ export function CartSheet() {
                       <p className="mt-0.5 text-[11px] uppercase tracking-[0.12em] text-stone-400">
                         {item.material.replace(/_/g, ' ').replace('925 silver', '925 Silver')}
                       </p>
+                      {needsRingSize(item.category) && (
+                        <p className="mt-0.5 text-xs text-stone-600">{ringSizeLabel(item.size)}</p>
+                      )}
                     </div>
 
                     <div className="mt-3 flex items-center justify-between">
@@ -81,7 +85,7 @@ export function CartSheet() {
                       <div className="flex items-center gap-3">
                         <button
                           type="button"
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.id, item.quantity - 1, item.size)}
                           className="flex h-7 w-7 items-center justify-center border border-stone-200 text-stone-600 transition-colors hover:border-stone-900 hover:text-stone-900"
                           aria-label="Decrease quantity"
                         >
@@ -92,7 +96,7 @@ export function CartSheet() {
                         </span>
                         <button
                           type="button"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.id, item.quantity + 1, item.size)}
                           disabled={item.quantity >= 10}
                           className="flex h-7 w-7 items-center justify-center border border-stone-200 text-stone-600 transition-colors hover:border-stone-900 hover:text-stone-900 disabled:opacity-30"
                           aria-label="Increase quantity"
@@ -104,7 +108,7 @@ export function CartSheet() {
                       {/* Remove */}
                       <button
                         type="button"
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => removeItem(item.id, item.size)}
                         className="text-[11px] uppercase tracking-[0.12em] text-stone-400 transition-colors hover:text-stone-900"
                       >
                         Remove
