@@ -36,9 +36,10 @@ interface StoreRateStripProps {
   focusRateKey?: string;
   compact?: boolean;
   showPageLink?: boolean;
+  variant?: 'default' | 'topbar';
 }
 
-export default function StoreRateStrip({ focusRateKey, compact = false, showPageLink = !compact }: StoreRateStripProps) {
+export default function StoreRateStrip({ focusRateKey, compact = false, showPageLink = !compact, variant = 'default' }: StoreRateStripProps) {
   const [rates, setRates] = useState<StoreRate[]>([]);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -77,6 +78,39 @@ export default function StoreRateStrip({ focusRateKey, compact = false, showPage
 
   if (!ready || visibleRates.length === 0) {
     return null;
+  }
+
+  if (variant === 'topbar') {
+    const silver = visibleRates.find(rate => rate.rateKey.includes('silver'));
+    const gold = visibleRates.find(rate => rate.rateKey === 'gold_24k') || visibleRates.find(rate => rate.rateKey.includes('gold'));
+    const shown = [silver, gold].filter((rate): rate is StoreRate => Boolean(rate));
+    if (shown.length === 0) return null;
+    const formattedDate = formatDate(updatedAt);
+
+    return (
+      <Link href="/rates" className="block bg-forest-900 text-[12px] tracking-[0.03em] text-white">
+        {/* w-max + mx-auto centres it but still scrolls from the start if a narrow phone overflows */}
+        <div className="overflow-x-auto px-4 py-[9px] [scrollbar-width:none] md:px-10">
+        <div className="mx-auto flex w-max items-center gap-[18px] whitespace-nowrap">
+          <span className="flex items-center gap-2">
+            <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-[#9fd3ae]" aria-hidden="true" />
+            <span className="hidden md:inline">Today&apos;s store rate</span>
+          </span>
+          {shown.map((rate, i) => (
+            <span key={rate.rateKey} className="flex items-center gap-[18px]">
+              {i > 0 && <span className="text-forest-400" aria-hidden="true">|</span>}
+              <span>
+                {rate.label} <strong className="font-semibold">NPR {rate.pricePerGram.toLocaleString()}</strong>
+                <span className="md:hidden">/g</span>
+                <span className="hidden md:inline"> / gram</span>
+              </span>
+            </span>
+          ))}
+          {formattedDate && <span className="hidden text-forest-200 md:inline">Updated {formattedDate}</span>}
+        </div>
+        </div>
+      </Link>
+    );
   }
 
   if (compact) {
