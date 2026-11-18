@@ -10,4 +10,4 @@ Disallow: /my-orders
 Disallow: /wishlist
 Disallow: /api/
 
-Sitemap: https://www.aashish.website/sitemap.xml
+Sitemap: https://jewelry-online.vercel.app/sitemap.xml

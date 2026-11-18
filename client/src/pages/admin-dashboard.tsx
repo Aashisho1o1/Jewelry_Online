@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { BarChart2, ChevronDown, ChevronUp, Download, LogOut, MessageCircle, Package, Printer, RefreshCw, Search, Tag, Wrench, Zap } from 'lucide-react';
-import SiteMeta from '@/components/SiteMeta';
+import SiteMeta, { SITE_URL } from '@/components/SiteMeta';
 
 // Types
 
@@ -1102,7 +1102,7 @@ function AbandonedCartsTab({ adminKey }: { adminKey: string }) {
               {visible.map(cart => {
                 const waUrl = cart.phone
                   ? `https://wa.me/977${cart.phone.replace(/\D/g, '')}?text=${encodeURIComponent(
-                      `Hi ${cart.name || 'there'}! You left something at Aashish Jewellers worth ${formatNPR(cart.subtotal)}. We're holding it for you: https://www.aashish.website/checkout`
+                      `Hi ${cart.name || 'there'}! You left something at Aashish Jewellers worth ${formatNPR(cart.subtotal)}. We're holding it for you: ${SITE_URL}/checkout`
                     )}`
                   : null;
                 return (

@@ -12,14 +12,14 @@ import HeroCarousel, { HeroSlide } from '../components/home/HeroCarousel';
 import CategoryCircles from '../components/home/CategoryCircles';
 import { STORE_CATEGORIES } from '../components/CategorySheet';
 import { getFacetOptions, getProductHref } from '@/lib/product-taxonomy';
-import SiteMeta from '@/components/SiteMeta';
+import SiteMeta, { SITE_URL } from '@/components/SiteMeta';
 
 const ORG_JSON_LD = {
   '@context': 'https://schema.org',
   '@type': 'JewelryStore',
   name: 'Aashish Jewellers',
-  url: 'https://www.aashish.website',
-  image: 'https://www.aashish.website/icons/icon-512.png',
+  url: SITE_URL,
+  image: `${SITE_URL}/icons/icon-512.png`,
   description: 'Premium 925 silver jewelry handcrafted in Nepal - rings, necklaces, earrings, bracelets and traditional sets.',
   address: {
     '@type': 'PostalAddress',

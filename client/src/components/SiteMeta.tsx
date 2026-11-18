@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 
 const SITE_NAME = 'Aashish Jewellers';
-const SITE_URL = 'https://www.aashish.website';
+// Public site address used in SEO tags and shared links. Change here when a custom domain is connected.
+// (api/sitemap.js, client/public/robots.txt and client/public/admin/config.yml keep their own copy.)
+export const SITE_URL = 'https://jewelry-online.vercel.app';
 const DEFAULT_IMAGE = '/icons/icon-512.png';
 const DEFAULT_DESCRIPTION =
   'Premium 925 silver jewelry handcrafted in Nepal. Rings, necklaces, earrings, bracelets and sets - delivered in Butwal & Bhairahawa.';
@@ -67,6 +69,11 @@ export default function SiteMeta({
     createMeta('property', 'og:description', description);
     createMeta('property', 'og:image', imageUrl);
     createMeta('property', 'og:type', 'website');
+
+    // index.html ships a fixed og:url (the homepage); point it at this page while it's shown.
+    const ogUrl = document.querySelector<HTMLMetaElement>('meta[property="og:url"]:not([data-site-meta])');
+    const previousOgUrl = ogUrl?.content;
+    if (ogUrl) ogUrl.content = canonicalUrl || `${SITE_URL}${window.location.pathname}`;
     createMeta('property', 'og:site_name', SITE_NAME);
 
     createMeta('name', 'twitter:card', 'summary_large_image');
@@ -83,6 +90,7 @@ export default function SiteMeta({
 
     return () => {
       document.title = previousTitle;
+      if (ogUrl && previousOgUrl !== undefined) ogUrl.content = previousOgUrl;
       created.forEach(element => element.remove());
     };
   }, [canonicalUrl, description, fullTitle, imageUrl, jsonLdString, noindex]);

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useRoute } from 'wouter';
 import ReviewSection from '@/components/jewelry/ReviewSection';
-import SiteMeta from '@/components/SiteMeta';
+import SiteMeta, { SITE_URL } from '@/components/SiteMeta';
 import {
   ArrowLeft,
   Check,
@@ -228,7 +228,7 @@ export default function ProductDetails() {
     '@context': 'https://schema.org/',
     '@type': 'Product',
     name: product.name,
-    image: gallery.map(img => img.startsWith('http') ? img : `https://www.aashish.website${img}`),
+    image: gallery.map(img => img.startsWith('http') ? img : `${SITE_URL}${img}`),
     description: product.description,
     sku: product.id,
     brand: { '@type': 'Brand', name: 'Aashish Jewellers' },
@@ -237,7 +237,7 @@ export default function ProductDetails() {
       priceCurrency: 'NPR',
       price: product.price,
       availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      url: `https://www.aashish.website/products/${encodeURIComponent(product.id)}`,
+      url: `${SITE_URL}/products/${encodeURIComponent(product.id)}`,
       seller: { '@type': 'Organization', name: 'Aashish Jewellers' },
     },
     ...(rating && { aggregateRating: { '@type': 'AggregateRating', ratingValue: rating, reviewCount: reviewCount || 1 } }),
