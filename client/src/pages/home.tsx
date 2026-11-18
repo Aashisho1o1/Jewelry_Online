@@ -8,7 +8,6 @@ import { useCartContext } from '../contexts/CartContext';
 import { useToast } from '../hooks/use-toast';
 import homeContent from '../content/home.json';
 import TrustStrip from '../components/TrustStrip';
-import StoreRateStrip from '../components/StoreRateStrip';
 import FlashSaleBanner from '../components/FlashSaleBanner';
 import { getFacetOptions } from '@/lib/product-taxonomy';
 import SiteMeta from '@/components/SiteMeta';
@@ -269,7 +268,6 @@ export default function Home() {
       </section>
 
       <FlashSaleBanner />
-      <StoreRateStrip />
 
       <TrustStrip />
 

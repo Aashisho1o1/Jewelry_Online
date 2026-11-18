@@ -1,6 +1,6 @@
 import { JewelryProduct } from '@/types/jewelry';
 
-export type ShopFacetKey = 'occasion' | 'recipient' | 'style' | 'metal' | 'color' | 'price';
+export type ShopFacetKey = 'category' | 'occasion' | 'recipient' | 'style' | 'metal' | 'color' | 'price';
 
 export interface ShopFacetOption {
   label: string;
@@ -13,6 +13,7 @@ export const SHOP_FACETS: Array<{
   label: string;
   description: string;
 }> = [
+  { key: 'category', label: 'Category', description: 'Rings, necklaces, earrings, bracelets and wedding pieces.' },
   { key: 'occasion', label: 'Occasion', description: 'Birthday, anniversary, festive and daily wear picks.' },
   { key: 'recipient', label: 'Recipient', description: 'Find gifts for her, mother, sister and more.' },
   { key: 'style', label: 'Style', description: 'Minimal, statement, classic and stacking-friendly pieces.' },
@@ -53,6 +54,8 @@ export function getProductHref(productId: string) {
 
 function getFacetValues(product: JewelryProduct, facet: ShopFacetKey) {
   switch (facet) {
+    case 'category':
+      return product.category ? [product.category] : [];
     case 'occasion':
       return product.occasions?.length ? product.occasions : product.occasion ? [product.occasion] : [];
     case 'recipient':

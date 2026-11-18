@@ -123,7 +123,23 @@ export default function ShopByPage() {
 
         {/* Product grid */}
         <div className="container py-12">
-          {filteredProducts.length === 0 ? (
+          {filteredProducts.length === 0 && facetDefinition.key === 'category' ? (
+            // Wedding categories are sold in store before they're photographed for the site.
+            <div className="mx-auto max-w-md rounded-2xl border border-dashed border-stone-300 bg-white px-6 py-12 text-center">
+              <p className="font-serif text-[22px] text-stone-900">Not online yet</p>
+              <p className="mx-auto mt-2 max-w-[360px] text-sm leading-relaxed text-stone-600">
+                These pieces are available in store in Butwal. Ask us on WhatsApp for photos and pricing.
+              </p>
+              <a
+                href={`https://wa.me/9779811469486?text=${encodeURIComponent(`Hi, I'm looking for ${formatProductLabel(activeValue)} designs.`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 inline-flex h-11 items-center rounded-full bg-forest-900 px-6 text-[11px] uppercase tracking-[0.16em] text-white transition-colors hover:bg-forest-700"
+              >
+                Ask on WhatsApp
+              </a>
+            </div>
+          ) : filteredProducts.length === 0 ? (
             <div className="py-24 text-center text-stone-400 text-sm tracking-[0.12em] uppercase">
               No pieces match this filter yet
             </div>

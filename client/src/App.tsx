@@ -1,4 +1,5 @@
-import { Switch, Route } from "wouter";
+import { useState } from "react";
+import { Switch, Route, useLocation } from "wouter";
 import Nav from "@/components/nav";
 import Footer from "@/components/footer";
 import Home from "@/pages/home";
@@ -23,19 +24,31 @@ import { ChatProvider } from "@/contexts/ChatContext";
 import { EngagementProvider } from "@/contexts/EngagementContext";
 import { FlashSaleProvider } from "@/contexts/FlashSaleContext";
 import { CartSheet } from "@/components/cart/CartSheet";
-import ChatWidget from "@/components/chat/ChatWidget";
 import InstallPrompt from "@/components/InstallPrompt";
 import { Toaster } from "@/components/ui/toaster";
+import StoreRateStrip from "@/components/StoreRateStrip";
+import MobileTabBar from "@/components/MobileTabBar";
+import CategorySheet from "@/components/CategorySheet";
+import WhatsAppFab from "@/components/WhatsAppFab";
+import { cn } from "@/lib/utils";
 
 function App() {
+  const [location] = useLocation();
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const isCheckout = location.startsWith("/checkout");
+  const isProduct = location.startsWith("/products/");
+  // Product pages and checkout get their own sticky action bars on phones.
+  const showTabBar = !isProduct && !isCheckout && !location.startsWith("/admin-dashboard");
+
   return (
     <FlashSaleProvider>
       <CartProvider>
         <EngagementProvider>
           <ChatProvider>
-            <div className="min-h-screen flex flex-col">
-              <Nav />
-              <main className="flex-1 pt-16 md:pt-[72px]">
+            <div className={cn("min-h-screen flex flex-col", showTabBar && "pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0")}>
+              {!isCheckout && <StoreRateStrip variant="topbar" />}
+              <Nav onOpenCategories={() => setCategoriesOpen(true)} />
+              <main className="flex-1">
                 <Switch>
                   <Route path="/" component={Home} />
                   <Route path="/about" component={About} />
@@ -59,7 +72,10 @@ function App() {
               </main>
               <Footer />
               <CartSheet />
-              <ChatWidget />
+              {/* The AI ChatWidget is unmounted until GEMINI_API_KEY is configured; WhatsApp covers help meanwhile. */}
+              {!isCheckout && <WhatsAppFab compact={isProduct} />}
+              {showTabBar && <MobileTabBar categoriesOpen={categoriesOpen} onOpenCategories={() => setCategoriesOpen(true)} />}
+              <CategorySheet open={categoriesOpen} onOpenChange={setCategoriesOpen} />
               <Toaster />
               <InstallPrompt />
             </div>

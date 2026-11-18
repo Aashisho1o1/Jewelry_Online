@@ -5,6 +5,10 @@ export default {
   content: ["./index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      screens: {
+        // Below this the header drops to 3 nav links and hides the search pill.
+        xl2: "1120px",
+      },
       fontFamily: {
         serif: ['Playfair Display', 'Georgia', 'Times New Roman', 'serif'],
         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -40,6 +44,21 @@ export default {
         border: "#e5e7eb", // Subtle border
         input: "#f9fafb", // Input background
         ring: "#c0c0c0", // Silver focus ring
+        // Storefront redesign palette
+        forest: {
+          900: "#1f3a2c",
+          700: "#2d5240",
+          600: "#3f5a4a",
+          400: "#9fb8a7",
+          200: "#c9d6cc",
+          100: "#e6ede7",
+          50: "#f1f5f1",
+        },
+        cream: {
+          DEFAULT: "#faf8f5",
+          card: "#f0ebe3",
+          gift: "#fbf6ea",
+        },
         // Custom jewelry colors
         silver: {
           50: "#f8f9fa",
