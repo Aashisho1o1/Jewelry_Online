@@ -107,7 +107,7 @@ const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-amber-100 text-amber-800',
   confirmed: 'bg-blue-100 text-blue-800',
   processing: 'bg-purple-100 text-purple-800',
-  shipped: 'bg-indigo-100 text-indigo-800',
+  dispatched: 'bg-indigo-100 text-indigo-800',
   delivered: 'bg-green-100 text-green-800',
   cancelled: 'bg-red-100 text-red-800',
   refunded: 'bg-orange-100 text-orange-800',
@@ -118,7 +118,11 @@ const PAYMENT_LABELS: Record<string, string> = {
   cod: 'COD', whatsapp: 'WhatsApp', esewa: 'eSewa', khalti: 'Khalti', fonepay: 'FonePay',
 };
 
-const FILTER_TABS = ['all', 'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
+// Must match real status values; 'shipped' never matched the 'dispatched' status.
+const FILTER_TABS = ['all', 'pending', 'confirmed', 'processing', 'dispatched', 'delivered', 'cancelled'];
+
+// Closing returns stock and can't be undone, so the admin confirms first.
+const CLOSED_STATUSES = new Set(['cancelled', 'refunded', 'failed']);
 
 // Helpers
 
@@ -299,6 +303,7 @@ function OrderRow({
 
   const handleStatusChange = async (newStatus: string) => {
     if (newStatus === order.status) return;
+    if (CLOSED_STATUSES.has(newStatus) && !window.confirm(`Mark this order as ${newStatus}? Stock is returned and this can't be undone.`)) return;
     setUpdating(true);
     setUpdateError('');
     setStatusMsg('');
@@ -345,7 +350,7 @@ function OrderRow({
             aria-label="Order status"
             value={order.status}
             onChange={e => handleStatusChange(e.target.value)}
-            disabled={updating}
+            disabled={updating || CLOSED_STATUSES.has(order.status)}
             className={`text-xs px-2 py-1 rounded-full border-0 font-medium focus:outline-none focus:ring-1 focus:ring-stone-900 ${STATUS_COLORS[order.status] || 'bg-stone-100 text-stone-700'}`}
           >
             {VALID_STATUSES.map(s => (

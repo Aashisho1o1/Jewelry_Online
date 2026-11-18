@@ -123,9 +123,14 @@ export default function Home() {
     }
   }, [activeCategory, categories]);
 
-  const displayProducts = activeCategory === 'all'
+  // Featured first so best sellers lead the catalog when their own section is hidden.
+  const displayProducts = (activeCategory === 'all'
     ? products
-    : products.filter(p => p.category?.toLowerCase() === activeCategory.toLowerCase());
+    : products.filter(p => p.category?.toLowerCase() === activeCategory.toLowerCase())
+  ).slice().sort((a, b) => Number(!!b.featured) - Number(!!a.featured));
+
+  // A separate best-sellers row only adds value once the catalog is big enough to scroll.
+  const showBestSellers = products.length > 8;
 
   const bestSellerProducts = (products.filter(p => p.featured).length > 0
     ? products.filter(p => p.featured)
@@ -234,9 +239,10 @@ export default function Home() {
               <img
                 src={homeContent.hero.heroImage || homeContent.imageUrl}
                 alt="Aashish Jewellers featured collection"
-                className="aspect-[3/2] w-full rounded-xl object-cover md:aspect-[4/5]"
+                className="aspect-square w-full rounded-xl object-cover object-[50%_45%] md:aspect-[4/5] md:object-center"
                 loading="eager"
-                fetchPriority="high"
+                // React 18 only passes the lowercase attribute through to the DOM.
+                {...{ fetchpriority: 'high' }}
               />
               {spotlightProduct && (
                 <div className="hidden items-center gap-4 border border-stone-200 bg-white px-4 py-4 md:flex">
@@ -276,7 +282,7 @@ export default function Home() {
           </div>
 
           {categoryHighlights.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">
               {categoryHighlights.map(category => (
                 <button
                   key={category.id}
@@ -292,10 +298,10 @@ export default function Home() {
                       loading="lazy"
                     />
                   </div>
-                  <div className="p-4">
-                    <p className="font-serif text-lg font-light text-stone-950">{category.name}</p>
-                    <p className="mt-1 text-sm text-stone-500">{category.copy}</p>
-                    <p className="mt-3 text-[10px] uppercase tracking-[0.14em] text-stone-400">{category.count} pieces</p>
+                  <div className="p-3 md:p-4">
+                    <p className="font-serif text-base font-light text-stone-950 md:text-lg">{category.name}</p>
+                    <p className="mt-1 hidden text-sm text-stone-500 sm:block">{category.copy}</p>
+                    <p className="mt-3 text-[10px] uppercase tracking-[0.14em] text-stone-400">{category.count} {category.count === 1 ? 'piece' : 'pieces'}</p>
                   </div>
                 </button>
               ))}
@@ -309,6 +315,7 @@ export default function Home() {
       </section>
 
       {/* ── Bestsellers ── */}
+      {showBestSellers && (
       <section id="bestsellers" className="scroll-mt-32 border-y border-stone-200 bg-white py-16">
         <div className="container">
           <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -339,9 +346,11 @@ export default function Home() {
           )}
         </div>
       </section>
+      )}
 
       {/* ── Gift guide strip ── */}
-      <section className="py-16">
+      {/* No top padding when it directly follows the same-colored collections section. */}
+      <section className={showBestSellers ? 'py-16' : 'pb-16'}>
         <div className="container grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
           <div className="border border-stone-200 bg-white p-6">
             <p className="text-xs uppercase tracking-[0.22em] text-stone-400">Gift guide</p>
@@ -373,19 +382,19 @@ export default function Home() {
             {quickGuides.map(guide => (
               <div key={guide.title} className="border border-stone-200 bg-white p-5">
                 <p className="text-xs uppercase tracking-[0.18em] text-stone-400 mb-4">{guide.title}</p>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col">
                   {guide.links.length > 0 ? (
                     guide.links.map(link => (
                       <Link
                         key={`${guide.title}-${link.label}`}
                         href={link.href}
-                        className="text-sm text-stone-700 hover:text-stone-950 transition-colors"
+                        className="py-2 text-sm text-stone-700 hover:text-stone-950 transition-colors"
                       >
                         {link.label} →
                       </Link>
                     ))
                   ) : (
-                    <Link href="/shop-by" className="text-sm text-stone-700 hover:text-stone-950">
+                    <Link href="/shop-by" className="py-2 text-sm text-stone-700 hover:text-stone-950">
                       Browse →
                     </Link>
                   )}
@@ -400,7 +409,7 @@ export default function Home() {
       <section id="catalog" className="scroll-mt-32 border-y border-stone-200 bg-white py-16">
         <div className="container">
           <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
+            <div id={showBestSellers ? undefined : 'bestsellers'} className="scroll-mt-32">
               <p className="text-xs uppercase tracking-[0.22em] text-stone-400">Catalog</p>
               <h2 className="mt-2 text-3xl font-serif font-light text-stone-950 md:text-4xl">Full collection</h2>
             </div>

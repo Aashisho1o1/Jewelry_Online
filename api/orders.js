@@ -13,7 +13,7 @@
  * GET   /api/orders/top-products
  */
 
-import { createOrder, confirmOrder, updateOrderStatus, getOrderStats, getOrderById } from '../lib/db-store.js';
+import { createOrder, confirmOrder, closeOrder, updateOrderStatus, getOrderStats, getOrderById, CLOSED_ORDER_STATUSES, OrderStatusError } from '../lib/db-store.js';
 import {
   assertSubmittedTotal,
   normalizeAndPriceOrderItems,
@@ -57,6 +57,8 @@ export default async function handler(req, res) {
       if (!customer.name || !customer.phone || !customer.address?.street || !customer.address?.district) {
         return res.status(400).json({ error: 'Incomplete customer information' });
       }
+      // Customer JSON is stored as-is; cap it so one request can't bloat the orders table.
+      if (JSON.stringify(customer).length > 4000) return res.status(400).json({ error: 'Customer details are too long' });
       const pricing = await normalizeAndPriceOrderItems(items, promoCode || null);
       assertSubmittedTotal(total, pricing.total);
       const order = await createOrder({ items: pricing.items, customer, total: pricing.total, paymentMethod, status: 'pending', promoCode: pricing.appliedPromo || null, discountAmount: pricing.discountAmount || 0 });
@@ -92,24 +94,41 @@ export default async function handler(req, res) {
     if (!id || typeof id !== 'string' || id.trim().length === 0 || !phone || typeof phone !== 'string') {
       return res.status(400).json({ error: 'Order ID and phone number are required' });
     }
-    const order = await getOrderById(id.trim());
-    if (!order || normalizePhone(order.customer?.phone) !== normalizePhone(phone)) {
-      return res.status(404).json({ error: 'Order not found' });
+    try {
+      const order = await getOrderById(id.trim());
+      if (!order || normalizePhone(order.customer?.phone) !== normalizePhone(phone)) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+      return res.status(200).json({ id: order.id, status: order.status, items: order.items, total: order.total, paymentMethod: order.payment_method || order.paymentMethod, createdAt: order.created_at || order.createdAt });
+    } catch (err) {
+      console.error('Order lookup error:', err);
+      return res.status(500).json({ error: 'Internal server error' });
     }
-    return res.status(200).json({ id: order.id, status: order.status, items: order.items, total: order.total, paymentMethod: order.payment_method || order.paymentMethod, createdAt: order.created_at || order.createdAt });
   }
 
   // POST /api/orders/update-status (admin)
   if (action === 'update-status') {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
     if (!requireAdminAuth(req, res)) return;
-    const ALLOWED_STATUSES = new Set(['pending', 'confirmed', 'processing', 'dispatched', 'delivered']);
+    const ALLOWED_STATUSES = new Set(['pending', 'confirmed', 'processing', 'dispatched', 'delivered', ...CLOSED_ORDER_STATUSES]);
     const NOTIFY_STATUSES = new Set(['confirmed', 'dispatched', 'delivered']);
     const { orderId, status } = req.body || {};
     if (!orderId || !status) return res.status(400).json({ error: 'Missing orderId or status' });
     if (!ALLOWED_STATUSES.has(status)) return res.status(400).json({ error: `Invalid status. Allowed: ${[...ALLOWED_STATUSES].join(', ')}` });
     try {
-      const order = status === 'confirmed' ? await confirmOrder(orderId) : await updateOrderStatus(orderId, status);
+      const existing = await getOrderById(orderId);
+      if (!existing) return res.status(404).json({ error: 'Order not found' });
+      if (CLOSED_ORDER_STATUSES.has(existing.status) && status !== existing.status) {
+        return res.status(400).json({ error: `Order is ${existing.status} and can't be reopened.` });
+      }
+      if (status === 'pending' && existing.status !== 'pending') {
+        return res.status(400).json({ error: 'Orders can\'t be moved back to pending.' });
+      }
+      // Leaving 'pending' (to any open status) takes stock; closing gives it back.
+      let order;
+      if (CLOSED_ORDER_STATUSES.has(status)) order = await closeOrder(orderId, status);
+      else if (existing.status === 'pending') order = await confirmOrder(orderId, null, status);
+      else order = await updateOrderStatus(orderId, status);
       if (!order) return res.status(404).json({ error: 'Order not found' });
       let whatsappSent = false;
       if (NOTIFY_STATUSES.has(status) && order.customer?.phone) {
@@ -118,6 +137,7 @@ export default async function handler(req, res) {
       }
       return res.status(200).json({ success: true, order, whatsappSent });
     } catch (err) {
+      if (err instanceof OrderStatusError) return res.status(409).json({ error: err.message });
       console.error('update-status error:', err);
       return res.status(500).json({ error: 'Internal server error' });
     }

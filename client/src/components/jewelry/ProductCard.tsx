@@ -4,7 +4,6 @@ import { JewelryProduct } from '../../types/jewelry';
 import { useEngagementContext } from '@/contexts/EngagementContext';
 import { getProductHref } from '@/lib/product-taxonomy';
 import { useToast } from '@/hooks/use-toast';
-import { useFlashSale } from '@/contexts/FlashSaleContext';
 
 interface ProductCardProps {
   product: JewelryProduct;
@@ -23,7 +22,6 @@ function toDisplayLabel(value: string) {
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
   const { toggleWishlist, isWishlisted } = useEngagementContext();
   const { toast } = useToast();
-  const { sale } = useFlashSale();
 
   const galleryImages = [product.image, ...(product.images || [])].filter(Boolean);
   const primaryImage = galleryImages[0] || '/images/jewelry/placeholder.svg';
@@ -31,10 +29,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
   const productHref = getProductHref(product.id);
   const wishlisted = isWishlisted(product.id);
 
-  // Flash sale takes priority over regular discount
-  const flashActive = sale !== null && new Date(sale.ends_at).getTime() > Date.now();
-  const flashPrice = flashActive ? Math.round(product.price * (1 - sale!.discount_percent / 100)) : null;
-  const flashPercent = flashActive ? Math.round(sale!.discount_percent) : 0;
+  // The server already discounts price during a flash sale, so checkout charges what the card shows.
+  const flashActive = Boolean(product.flashSalePercent);
+  const flashPercent = product.flashSalePercent ?? 0;
 
   const hasDiscount = !flashActive && product.originalPrice && product.originalPrice > product.price;
   const discountPercent = hasDiscount
@@ -58,7 +55,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
   };
 
   return (
-    <div className="group">
+    <div className="group flex h-full flex-col">
       {/* Image block */}
       <div className="relative overflow-hidden rounded-xl bg-[#f0ebe3]">
         <Link href={productHref} className="block">
@@ -137,10 +134,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
       </div>
 
       {/* Info */}
-      <div className="pt-3">
-        <p className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
-          {toDisplayLabel(product.category || 'jewelry')}
-        </p>
+      <div className="flex flex-1 flex-col pt-3">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+            {toDisplayLabel(product.category || 'jewelry')}
+          </p>
+          {product.rating && (
+            <span className="flex items-center gap-0.5 text-[11px] text-stone-400">
+              <Star className="h-2.5 w-2.5 fill-current" strokeWidth={1} />
+              {product.rating.toFixed(1)}
+            </span>
+          )}
+        </div>
 
         <Link href={productHref}>
           <h3 className="mt-1 font-serif text-[15px] font-light leading-snug text-stone-900 transition-colors hover:text-stone-500">
@@ -148,24 +153,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
           </h3>
         </Link>
 
-        <div className="mt-1.5 flex items-center gap-2">
-          <span className="text-sm text-stone-800">
-            NPR {(flashPrice ?? product.price).toLocaleString()}
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <span className="whitespace-nowrap text-sm text-stone-800">
+            NPR {product.price.toLocaleString()}
           </span>
-          {flashActive && (
-            <span className="text-xs text-stone-400 line-through">
-              NPR {product.price.toLocaleString()}
-            </span>
-          )}
-          {!flashActive && hasDiscount && (
-            <span className="text-xs text-stone-400 line-through">
+          {(flashActive || hasDiscount) && product.originalPrice && (
+            <span className="whitespace-nowrap text-xs text-stone-400 line-through">
               NPR {product.originalPrice!.toLocaleString()}
-            </span>
-          )}
-          {product.rating && (
-            <span className="ml-auto flex items-center gap-0.5 text-[11px] text-stone-400">
-              <Star className="h-2.5 w-2.5 fill-current" strokeWidth={1} />
-              {product.rating.toFixed(1)}
             </span>
           )}
         </div>
@@ -176,16 +170,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
           </p>
         )}
 
-        {/* Mobile: always-visible add button */}
+        {/* Mobile: always-visible add button, pinned to the bottom so rows line up */}
         {onAddToCart && (
-          <button
-            type="button"
-            onClick={handleAddToCart}
-            disabled={!product.inStock}
-            className="mt-3 w-full border border-stone-200 py-2.5 text-[10px] uppercase tracking-[0.18em] text-stone-600 transition-colors active:border-stone-900 active:bg-stone-900 active:text-white disabled:opacity-40 md:hidden"
-          >
-            {product.inStock ? 'Add to bag' : 'Out of stock'}
-          </button>
+          <div className="mt-auto pt-3 md:hidden">
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={!product.inStock}
+              className="w-full border border-stone-200 py-2.5 text-[10px] uppercase tracking-[0.18em] text-stone-600 transition-colors active:border-stone-900 active:bg-stone-900 active:text-white disabled:opacity-40"
+            >
+              {product.inStock ? 'Add to bag' : 'Out of stock'}
+            </button>
+          </div>
         )}
       </div>
     </div>

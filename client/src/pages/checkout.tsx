@@ -30,7 +30,7 @@ const DEFAULT_GIFT_OPTIONS: GiftOptions = {
 };
 
 const SECTION_CLASS = 'border border-stone-200 bg-white p-6';
-const TEXTAREA_CLASS = 'min-h-24 w-full border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-900/10';
+const TEXTAREA_CLASS = 'min-h-24 w-full border border-stone-300 bg-white px-3 py-2 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-stone-900/10';
 
 export default function Checkout() {
   const { items, total, clearCart, refreshPrices } = useCartContext();
@@ -59,25 +59,6 @@ export default function Checkout() {
   const cartSaved = useRef(false);
   const initialPriceSyncDone = useRef(false);
   const giftOptions = customerInfo.giftOptions || DEFAULT_GIFT_OPTIONS;
-
-  if (items.length === 0) {
-    return (
-      <div className="min-h-screen bg-[#faf8f5] pt-24">
-        <div className="container py-20">
-          <div className="mx-auto max-w-md border border-stone-200 bg-white px-8 py-10 text-center">
-            <h1 className="text-3xl font-serif font-light text-stone-900">Your bag is empty</h1>
-            <p className="mt-4 text-stone-500">Add a few pieces before moving to checkout.</p>
-            <Link
-              href="/"
-              className="mt-8 inline-flex bg-stone-900 px-6 py-3 text-sm uppercase tracking-[0.16em] text-white transition-colors hover:bg-stone-800"
-            >
-              Continue shopping
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const discountAmount = promoApplied?.discountAmount ?? 0;
   const deliveryFee = total >= 5000 ? 0 : 150;
@@ -116,6 +97,26 @@ export default function Checkout() {
       cancelled = true;
     };
   }, [refreshPrices, toast]);
+
+  // Must stay below all hooks: the cart empties after a successful order.
+  if (items.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#faf8f5] pt-24">
+        <div className="container py-20">
+          <div className="mx-auto max-w-md border border-stone-200 bg-white px-8 py-10 text-center">
+            <h1 className="text-3xl font-serif font-light text-stone-900">Your bag is empty</h1>
+            <p className="mt-4 text-stone-500">Add a few pieces before moving to checkout.</p>
+            <Link
+              href="/"
+              className="mt-8 inline-flex bg-stone-900 px-6 py-3 text-sm uppercase tracking-[0.16em] text-white transition-colors hover:bg-stone-800"
+            >
+              Continue shopping
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleInputChange = (field: string, value: string) => {
     if (field.startsWith('address.')) {
@@ -456,6 +457,7 @@ Please confirm this order and estimated delivery time.`;
                     <Label htmlFor="name">Full Name *</Label>
                     <Input
                       id="name"
+                      autoComplete="name"
                       value={customerInfo.name}
                       onChange={e => handleInputChange('name', e.target.value)}
                       placeholder="Enter your full name"
@@ -466,6 +468,9 @@ Please confirm this order and estimated delivery time.`;
                     <Label htmlFor="phone">Phone Number *</Label>
                     <Input
                       id="phone"
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
                       value={customerInfo.phone}
                       onChange={e => handleInputChange('phone', e.target.value)}
                       onBlur={handlePhoneBlur}
@@ -478,6 +483,7 @@ Please confirm this order and estimated delivery time.`;
                     <Input
                       id="email"
                       type="email"
+                      autoComplete="email"
                       value={customerInfo.email}
                       onChange={e => handleInputChange('email', e.target.value)}
                       placeholder="your@email.com"
@@ -499,6 +505,7 @@ Please confirm this order and estimated delivery time.`;
                     <div className="mt-2 flex gap-2">
                       <Input
                         id="street"
+                        autoComplete="street-address"
                         value={customerInfo.address.street}
                         onChange={e => handleInputChange('address.street', e.target.value)}
                         placeholder="House no, street name"
@@ -521,6 +528,7 @@ Please confirm this order and estimated delivery time.`;
                       <Label htmlFor="district">District *</Label>
                       <Input
                         id="district"
+                        autoComplete="address-level2"
                         value={customerInfo.address.district}
                         onChange={e => handleInputChange('address.district', e.target.value)}
                         placeholder="e.g. Kathmandu"
@@ -531,6 +539,7 @@ Please confirm this order and estimated delivery time.`;
                       <Label htmlFor="zone">Zone</Label>
                       <Input
                         id="zone"
+                        autoComplete="address-level1"
                         value={customerInfo.address.zone}
                         onChange={e => handleInputChange('address.zone', e.target.value)}
                         placeholder="e.g. Bagmati"
@@ -757,7 +766,7 @@ Please confirm this order and estimated delivery time.`;
                         }}
                         onKeyDown={e => e.key === 'Enter' && handleApplyPromo()}
                         placeholder="Promo code"
-                        className="flex-1 rounded-full border border-stone-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-stone-900/10"
+                        className="flex-1 rounded-full border border-stone-300 px-4 py-2.5 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-stone-900/10"
                       />
                       <button
                         type="button"

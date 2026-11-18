@@ -70,6 +70,8 @@ export function useCart() {
   };
 
   const clearCart = () => {
+    // Write now: checkout does a full-page redirect before the save effect runs.
+    localStorage.setItem(CART_STORAGE_KEY, '[]');
     setItems([]);
   };
 
