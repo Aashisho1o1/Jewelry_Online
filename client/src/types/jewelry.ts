@@ -14,6 +14,7 @@ export interface JewelryProduct {
   description: string;
   price: number; // Current price in NPR
   originalPrice?: number; // Optional compare-at price
+  flashSalePercent?: number; // Set by the server while a flash sale is active; price is already discounted
   image: string; // Primary image used in cards
   images?: string[]; // Optional gallery images
   category: string; // Category slugs are CMS-driven

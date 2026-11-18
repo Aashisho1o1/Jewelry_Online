@@ -4,9 +4,10 @@ import { JewelryProduct } from '../types/jewelry';
 // This ensures your website only shows YOUR actual products
 
 // Pure CMS product loader - no hardcoded fallbacks
-async function loadProducts(): Promise<JewelryProduct[]> {
+async function loadProducts(bypassHttpCache = false): Promise<JewelryProduct[]> {
   try {
-    const response = await fetch('/api/products');
+    // Checkout forces a refresh; skip the 60s HTTP cache so a flash sale starting/ending is seen at once.
+    const response = await fetch('/api/products', bypassHttpCache ? { cache: 'no-store' } : undefined);
 
     if (!response.ok) {
       throw new Error(`API request failed with status: ${response.status}`);
@@ -46,7 +47,7 @@ export async function getProducts(forceRefresh: boolean = false): Promise<Jewelr
   const cacheExpired = (now - cacheTimestamp) > CACHE_DURATION;
 
   if (cachedProducts === null || forceRefresh || cacheExpired) {
-    cachedProducts = await loadProducts();
+    cachedProducts = await loadProducts(forceRefresh);
     cacheTimestamp = now;
   }
 

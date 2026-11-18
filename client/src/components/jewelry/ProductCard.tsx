@@ -4,7 +4,6 @@ import { JewelryProduct } from '../../types/jewelry';
 import { useEngagementContext } from '@/contexts/EngagementContext';
 import { getProductHref } from '@/lib/product-taxonomy';
 import { useToast } from '@/hooks/use-toast';
-import { useFlashSale } from '@/contexts/FlashSaleContext';
 
 interface ProductCardProps {
   product: JewelryProduct;
@@ -23,7 +22,6 @@ function toDisplayLabel(value: string) {
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
   const { toggleWishlist, isWishlisted } = useEngagementContext();
   const { toast } = useToast();
-  const { sale } = useFlashSale();
 
   const galleryImages = [product.image, ...(product.images || [])].filter(Boolean);
   const primaryImage = galleryImages[0] || '/images/jewelry/placeholder.svg';
@@ -31,10 +29,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
   const productHref = getProductHref(product.id);
   const wishlisted = isWishlisted(product.id);
 
-  // Flash sale takes priority over regular discount
-  const flashActive = sale !== null && new Date(sale.ends_at).getTime() > Date.now();
-  const flashPrice = flashActive ? Math.round(product.price * (1 - sale!.discount_percent / 100)) : null;
-  const flashPercent = flashActive ? Math.round(sale!.discount_percent) : 0;
+  // The server already discounts price during a flash sale, so checkout charges what the card shows.
+  const flashActive = Boolean(product.flashSalePercent);
+  const flashPercent = product.flashSalePercent ?? 0;
 
   const hasDiscount = !flashActive && product.originalPrice && product.originalPrice > product.price;
   const discountPercent = hasDiscount
@@ -158,14 +155,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
 
         <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
           <span className="whitespace-nowrap text-sm text-stone-800">
-            NPR {(flashPrice ?? product.price).toLocaleString()}
+            NPR {product.price.toLocaleString()}
           </span>
-          {flashActive && (
-            <span className="whitespace-nowrap text-xs text-stone-400 line-through">
-              NPR {product.price.toLocaleString()}
-            </span>
-          )}
-          {!flashActive && hasDiscount && (
+          {(flashActive || hasDiscount) && product.originalPrice && (
             <span className="whitespace-nowrap text-xs text-stone-400 line-through">
               NPR {product.originalPrice!.toLocaleString()}
             </span>
