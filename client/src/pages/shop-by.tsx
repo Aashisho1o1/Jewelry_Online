@@ -20,7 +20,7 @@ const QUICK_LINKS = [
   { label: 'For Her', href: '/shop-by/recipient/her' },
   { label: 'Birthday', href: '/shop-by/occasion/birthday' },
   { label: 'Anniversary', href: '/shop-by/occasion/anniversary' },
-  { label: 'Under NPR 3,000', href: '/shop-by/price/under-3000' },
+  { label: 'Under NPR 2,500', href: '/collections?price=under-2500' },
   { label: 'Minimalist', href: '/shop-by/style/minimalist' },
 ];
 

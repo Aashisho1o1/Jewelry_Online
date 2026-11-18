@@ -10,6 +10,7 @@ interface OrderItem {
   price: number;
   quantity: number;
   image: string;
+  size?: string;
 }
 
 interface AdminOrder {
@@ -98,6 +99,10 @@ interface DbProduct {
 
 // Constants
 
+// Ring size shown with the item name wherever an order is listed, printed or exported.
+const itemLabel = (i: { name: string; size?: string }) =>
+  i.size ? `${i.name} (${i.size === 'not-sure' ? 'size to confirm' : `size ${i.size}`})` : i.name;
+
 const VALID_STATUSES = [
   'pending', 'confirmed', 'processing', 'dispatched', 'delivered',
   'cancelled', 'refunded', 'failed',
@@ -150,7 +155,7 @@ function exportOrdersCSV(orders: AdminOrder[]) {
     o.customer?.name || '',
     o.customer?.phone || '',
     [o.customer?.address?.street, o.customer?.address?.landmark, o.customer?.address?.district].filter(Boolean).join(', '),
-    (o.items || []).map(i => `${i.name} x${i.quantity}`).join('; '),
+    (o.items || []).map(i => `${itemLabel(i)} x${i.quantity}`).join('; '),
     o.total,
     o.payment_method,
     o.status,
@@ -176,7 +181,7 @@ function printOrder(order: AdminOrder) {
     .filter(Boolean)
     .join(', ');
   const itemRows = (order.items || []).map(i =>
-    `<tr><td>${escapeHtml(i.name)}</td><td>${escapeHtml(i.quantity)}</td><td>NPR ${Number(i.price).toLocaleString()}</td><td>NPR ${(i.price * i.quantity).toLocaleString()}</td></tr>`
+    `<tr><td>${escapeHtml(itemLabel(i))}</td><td>${escapeHtml(i.quantity)}</td><td>NPR ${Number(i.price).toLocaleString()}</td><td>NPR ${(i.price * i.quantity).toLocaleString()}</td></tr>`
   ).join('');
   // Escape user-controlled fields before writing printable HTML into the popup.
   w.document.write(`<!DOCTYPE html><html><head><title>Order ${escapeHtml(order.id)}</title><style>
@@ -387,7 +392,7 @@ function OrderRow({
                     <div key={`${item.id}-${i}`} className="flex gap-3 items-center">
                       <img src={item.image} alt={item.name} className="w-10 h-10 object-cover border border-stone-200" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-stone-700 truncate">{item.name}</p>
+                        <p className="text-sm text-stone-700 truncate">{itemLabel(item)}</p>
                         <p className="text-xs text-stone-400">Qty {item.quantity} x NPR {item.price.toLocaleString()}</p>
                       </div>
                     </div>

@@ -21,7 +21,7 @@ export const SHOP_FACETS: Array<{
   { key: 'price', label: 'Price', description: 'Quick ranges for gifting budgets and self-purchase.' },
 ];
 
-const PRICE_BUCKETS = [
+export const PRICE_BUCKETS = [
   { slug: 'under-2500', label: 'Under NPR 2,500', match: (product: JewelryProduct) => product.price < 2500 },
   { slug: '2500-5000', label: 'NPR 2,500 - 5,000', match: (product: JewelryProduct) => product.price >= 2500 && product.price <= 5000 },
   { slug: '5000-10000', label: 'NPR 5,000 - 10,000', match: (product: JewelryProduct) => product.price > 5000 && product.price <= 10000 },

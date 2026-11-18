@@ -4,6 +4,7 @@ import { JewelryProduct } from '../types/jewelry';
 import { getProducts } from '../data/product-loader';
 
 const CART_STORAGE_KEY = 'aashish-cart';
+const GIFT_STORAGE_KEY = 'aashish-gift';
 
 export function useCart() {
   const [items, setItems] = useState<CartItem[]>(() => {
@@ -21,20 +22,31 @@ export function useCart() {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
-  const addItem = (product: JewelryProduct) => {
+  // Gift choice is shared by the product page, cart and checkout.
+  const [gift, setGiftState] = useState<boolean>(() => {
+    try { return localStorage.getItem(GIFT_STORAGE_KEY) === '1'; } catch { return false; }
+  });
+  const setGift = (value: boolean) => {
+    setGiftState(value);
+    try { localStorage.setItem(GIFT_STORAGE_KEY, value ? '1' : '0'); } catch { /* storage blocked */ }
+  };
+
+  // A cart line is a product in one size, so two sizes of a ring are separate lines.
+  const sameLine = (item: CartItem, productId: string, size?: string) =>
+    item.id === productId && (item.size || undefined) === (size || undefined);
+
+  const addItem = (product: JewelryProduct, size?: string) => {
     setItems(current => {
-      const existingItem = current.find(item => item.id === product.id);
-      
+      const existingItem = current.find(item => sameLine(item, product.id, size));
+
       if (existingItem) {
-        // Increase quantity if item already exists
         return current.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: Math.min(item.quantity + 1, 10) } // Max 10 per item
+          item === existingItem
+            ? { ...item, quantity: Math.min(item.quantity + 1, 10) } // Max 10 per line
             : item
         );
       }
-      
-      // Add new item
+
       const newItem: CartItem = {
         id: product.id,
         name: product.name,
@@ -44,25 +56,26 @@ export function useCart() {
         quantity: 1,
         material: product.material,
         category: product.category,
+        ...(size ? { size } : {}),
       };
-      
+
       return [...current, newItem];
     });
   };
 
-  const removeItem = (productId: string) => {
-    setItems(current => current.filter(item => item.id !== productId));
+  const removeItem = (productId: string, size?: string) => {
+    setItems(current => current.filter(item => !sameLine(item, productId, size)));
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (productId: string, quantity: number, size?: string) => {
     if (quantity <= 0) {
-      removeItem(productId);
+      removeItem(productId, size);
       return;
     }
-    
+
     setItems(current =>
       current.map(item =>
-        item.id === productId
+        sameLine(item, productId, size)
           ? { ...item, quantity: Math.min(quantity, 10) }
           : item
       )
@@ -73,6 +86,7 @@ export function useCart() {
     // Write now: checkout does a full-page redirect before the save effect runs.
     localStorage.setItem(CART_STORAGE_KEY, '[]');
     setItems([]);
+    setGift(false);
   };
 
   const refreshPrices = useCallback(async () => {
@@ -133,5 +147,7 @@ export function useCart() {
     updateQuantity,
     clearCart,
     refreshPrices,
+    gift,
+    setGift,
   };
 }

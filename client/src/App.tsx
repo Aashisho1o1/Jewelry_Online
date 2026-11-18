@@ -1,10 +1,12 @@
-import { Switch, Route } from "wouter";
+import { useState } from "react";
+import { Switch, Route, Redirect, useLocation } from "wouter";
 import Nav from "@/components/nav";
 import Footer from "@/components/footer";
 import Home from "@/pages/home";
 import About from "@/pages/about";
 import RatesPage from "@/pages/rates";
 import ShopByPage from "@/pages/shop-by";
+import CollectionPage from "@/pages/collection";
 import ProductDetails from "@/pages/product-details";
 import WishlistPage from "@/pages/wishlist";
 import CareGuidePage from "@/pages/care-guide";
@@ -23,23 +25,42 @@ import { ChatProvider } from "@/contexts/ChatContext";
 import { EngagementProvider } from "@/contexts/EngagementContext";
 import { FlashSaleProvider } from "@/contexts/FlashSaleContext";
 import { CartSheet } from "@/components/cart/CartSheet";
-import ChatWidget from "@/components/chat/ChatWidget";
 import InstallPrompt from "@/components/InstallPrompt";
 import { Toaster } from "@/components/ui/toaster";
+import StoreRateStrip from "@/components/StoreRateStrip";
+import MobileTabBar from "@/components/MobileTabBar";
+import CategorySheet from "@/components/CategorySheet";
+import WhatsAppFab from "@/components/WhatsAppFab";
+import CheckoutHeader from "@/components/CheckoutHeader";
+import { cn } from "@/lib/utils";
 
 function App() {
+  const [location] = useLocation();
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const isCheckout = location.startsWith("/checkout");
+  const isProduct = location.startsWith("/products/");
+  // Product pages and checkout get their own sticky action bars on phones.
+  const showTabBar = !isProduct && !isCheckout && !location.startsWith("/admin-dashboard");
+
   return (
     <FlashSaleProvider>
       <CartProvider>
         <EngagementProvider>
           <ChatProvider>
-            <div className="min-h-screen flex flex-col">
-              <Nav />
-              <main className="flex-1 pt-16 md:pt-[72px]">
+            <div className={cn("min-h-screen flex flex-col", showTabBar && "pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0")}>
+              {!isCheckout && <StoreRateStrip variant="topbar" />}
+              {isCheckout ? <CheckoutHeader /> : <Nav onOpenCategories={() => setCategoriesOpen(true)} />}
+              <main className="flex-1">
                 <Switch>
                   <Route path="/" component={Home} />
                   <Route path="/about" component={About} />
                   <Route path="/rates" component={RatesPage} />
+                  <Route path="/collections" component={CollectionPage} />
+                  <Route path="/collections/:category" component={CollectionPage} />
+                  {/* Category pages moved to /collections; keep old links working. */}
+                  <Route path="/shop-by/category/:id">
+                    {(params: { id: string }) => <Redirect replace to={params.id === "all" ? "/collections" : `/collections/${params.id}`} />}
+                  </Route>
                   <Route path="/shop-by" component={ShopByPage} />
                   <Route path="/shop-by/:facet/:value" component={ShopByPage} />
                   <Route path="/products/:productId" component={ProductDetails} />
@@ -57,9 +78,12 @@ function App() {
                   <Route component={NotFound} />
                 </Switch>
               </main>
-              <Footer />
+              {!isCheckout && <Footer />}
               <CartSheet />
-              <ChatWidget />
+              {/* The AI ChatWidget is unmounted until GEMINI_API_KEY is configured; WhatsApp covers help meanwhile. */}
+              {!isCheckout && <WhatsAppFab compact={isProduct} />}
+              {showTabBar && <MobileTabBar categoriesOpen={categoriesOpen} onOpenCategories={() => setCategoriesOpen(true)} />}
+              <CategorySheet open={categoriesOpen} onOpenChange={setCategoriesOpen} />
               <Toaster />
               <InstallPrompt />
             </div>

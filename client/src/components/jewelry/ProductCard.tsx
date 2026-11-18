@@ -1,9 +1,10 @@
-import { Heart, Star, Zap } from 'lucide-react';
+import { Heart, Star } from 'lucide-react';
 import { Link } from 'wouter';
 import { JewelryProduct } from '../../types/jewelry';
 import { useEngagementContext } from '@/contexts/EngagementContext';
 import { getProductHref } from '@/lib/product-taxonomy';
 import { useToast } from '@/hooks/use-toast';
+import { needsRingSize } from '@/lib/ring-sizes';
 
 interface ProductCardProps {
   product: JewelryProduct;
@@ -23,20 +24,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
   const { toggleWishlist, isWishlisted } = useEngagementContext();
   const { toast } = useToast();
 
-  const galleryImages = [product.image, ...(product.images || [])].filter(Boolean);
-  const primaryImage = galleryImages[0] || '/images/jewelry/placeholder.svg';
-  const secondaryImage = galleryImages.find(img => img !== primaryImage);
+  const image = product.image || product.images?.[0] || '/images/jewelry/placeholder.svg';
   const productHref = getProductHref(product.id);
   const wishlisted = isWishlisted(product.id);
 
   // The server already discounts price during a flash sale, so checkout charges what the card shows.
-  const flashActive = Boolean(product.flashSalePercent);
   const flashPercent = product.flashSalePercent ?? 0;
-
-  const hasDiscount = !flashActive && product.originalPrice && product.originalPrice > product.price;
-  const discountPercent = hasDiscount
+  const hasDiscount = Boolean(product.originalPrice && product.originalPrice > product.price);
+  const discountPercent = flashPercent || (hasDiscount
     ? Math.round(((product.originalPrice! - product.price) / product.originalPrice!) * 100)
-    : 0;
+    : 0);
 
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -55,129 +52,91 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
   };
 
   return (
-    <div className="group flex h-full flex-col">
-      {/* Image block */}
-      <div className="relative overflow-hidden rounded-xl bg-[#f0ebe3]">
-        <Link href={productHref} className="block">
+    <div className="group flex h-full min-w-0 flex-col">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-cream-card">
+        <Link href={productHref} className="block h-full" aria-label={product.name}>
           <img
-            src={primaryImage}
+            src={image}
             alt={product.name}
-            className={`aspect-[4/5] w-full object-cover transition-all duration-700 ${
-              secondaryImage ? 'group-hover:opacity-0' : 'group-hover:scale-105'
-            }`}
             loading="lazy"
+            // Hover zoom only on devices with a real pointer; on touch it would stick after a tap.
+            className="h-full w-full object-cover transition-transform duration-[600ms] ease-out [@media(hover:hover)]:group-hover:scale-[1.04]"
             onError={e => { e.currentTarget.style.display = 'none'; }}
           />
-          {secondaryImage && (
-            <img
-              src={secondaryImage}
-              alt={`${product.name} - alternate view`}
-              className="absolute inset-0 h-full w-full object-cover opacity-0 transition-all duration-700 group-hover:scale-105 group-hover:opacity-100"
-              loading="lazy"
-              onError={e => { e.currentTarget.style.display = 'none'; }}
-            />
-          )}
         </Link>
 
-        {/* Desktop hover: Add to bag slide-up */}
-        {onAddToCart && (
-          <div className="absolute inset-x-0 bottom-0 hidden translate-y-full transition-transform duration-300 group-hover:translate-y-0 md:block">
-            <button
-              type="button"
-              onClick={handleAddToCart}
-              disabled={!product.inStock}
-              className="w-full bg-stone-900 py-3 text-[11px] uppercase tracking-[0.2em] text-white transition-colors hover:bg-stone-700 disabled:bg-stone-400 disabled:cursor-not-allowed"
-            >
-              {product.inStock ? 'Add to bag' : 'Out of stock'}
-            </button>
-          </div>
-        )}
-
-        {/* Badges */}
-        {(product.isNew || hasDiscount || flashActive) && (
-          <div className="absolute left-3 top-3 flex flex-col gap-1.5">
-            {product.isNew && (
-              <span className="bg-stone-900 px-2.5 py-1 text-[9px] uppercase tracking-[0.16em] text-white">
-                New
-              </span>
-            )}
-            {flashActive && (
-              <span className="inline-flex items-center gap-1 bg-amber-500 px-2.5 py-1 text-[9px] uppercase tracking-[0.16em] text-white">
-                <Zap className="h-2 w-2" strokeWidth={2.5} />
-                -{flashPercent}%
-              </span>
-            )}
-            {!flashActive && hasDiscount && (
-              <span className="bg-white px-2.5 py-1 text-[9px] uppercase tracking-[0.16em] text-stone-900">
+        {(discountPercent > 0 || product.isNew) && (
+          <div className="pointer-events-none absolute left-2.5 top-2.5 flex flex-col items-start gap-1">
+            {discountPercent > 0 && (
+              <span className="rounded-full bg-forest-900 px-[9px] py-1 text-[10px] font-medium tracking-[0.06em] text-white">
                 -{discountPercent}%
               </span>
             )}
+            {product.isNew && (
+              <span className="rounded-full bg-white/95 px-[9px] py-1 text-[10px] font-medium tracking-[0.06em] text-forest-900">
+                New
+              </span>
+            )}
           </div>
         )}
 
-        {/* Wishlist - always visible on mobile, hover-reveal on desktop */}
         <button
           type="button"
           onClick={handleWishlist}
           aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
-          className={`absolute right-3 top-3 flex h-10 w-10 items-center justify-center bg-white/80 backdrop-blur-sm transition-all duration-200 hover:bg-white md:h-8 md:w-8 ${
-            wishlisted ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'
-          }`}
+          aria-pressed={wishlisted}
+          className="absolute right-2.5 top-2.5 flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.92] text-forest-900"
         >
-          <Heart
-            className="h-[15px] w-[15px]"
-            strokeWidth={1.5}
-            fill={wishlisted ? '#1c1917' : 'none'}
-            color="#1c1917"
-          />
+          <Heart className="h-4 w-4" strokeWidth={1.6} fill={wishlisted ? 'currentColor' : 'none'} />
         </button>
       </div>
 
-      {/* Info */}
-      <div className="flex flex-1 flex-col pt-3">
+      <div className="flex flex-1 flex-col gap-1 pt-3">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+          <span className="truncate text-[10px] uppercase tracking-[0.18em] text-stone-500">
             {toDisplayLabel(product.category || 'jewelry')}
-          </p>
-          {product.rating && (
-            <span className="flex items-center gap-0.5 text-[11px] text-stone-400">
-              <Star className="h-2.5 w-2.5 fill-current" strokeWidth={1} />
+          </span>
+          {product.rating ? (
+            <span className="flex shrink-0 items-center gap-[3px] text-[11px] text-stone-600">
+              <Star className="h-[11px] w-[11px] fill-[#b8941f] text-[#b8941f]" strokeWidth={1} />
               {product.rating.toFixed(1)}
             </span>
-          )}
+          ) : null}
         </div>
 
-        <Link href={productHref}>
-          <h3 className="mt-1 font-serif text-[15px] font-light leading-snug text-stone-900 transition-colors hover:text-stone-500">
-            {product.name}
-          </h3>
+        <Link href={productHref} className="font-serif text-[15px] leading-[1.35] text-stone-900 [text-wrap:pretty]">
+          {product.name}
         </Link>
 
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
-          <span className="whitespace-nowrap text-sm text-stone-800">
-            NPR {product.price.toLocaleString()}
-          </span>
-          {(flashActive || hasDiscount) && product.originalPrice && (
-            <span className="whitespace-nowrap text-xs text-stone-400 line-through">
-              NPR {product.originalPrice!.toLocaleString()}
-            </span>
+        <div className="flex flex-wrap items-baseline gap-x-2">
+          <span className="whitespace-nowrap text-sm font-medium text-stone-900">NPR {product.price.toLocaleString()}</span>
+          {hasDiscount && (
+            <span className="whitespace-nowrap text-xs text-stone-500 line-through">NPR {product.originalPrice!.toLocaleString()}</span>
           )}
         </div>
 
         {product.priceSource === 'market_rate' && (
-          <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-stone-400">
-            Market-linked price
-          </p>
+          <p className="text-[10px] uppercase tracking-[0.14em] text-stone-500">Market-linked price</p>
         )}
 
-        {/* Mobile: always-visible add button, pinned to the bottom so rows line up */}
-        {onAddToCart && (
-          <div className="mt-auto pt-3 md:hidden">
+        {onAddToCart && needsRingSize(product.category) && product.inStock ? (
+          // Rings need a size, which is picked on the product page.
+          <div className="mt-auto pt-2.5">
+            <Link
+              href={productHref}
+              className="flex h-10 w-full items-center justify-center rounded-full border border-forest-900 text-[11px] font-medium uppercase tracking-[0.16em] text-forest-900 transition-colors hover:bg-forest-900 hover:text-white"
+            >
+              Choose size
+            </Link>
+          </div>
+        ) : onAddToCart && (
+          // mt-auto pins the button to the bottom so buttons line up across a row.
+          <div className="mt-auto pt-2.5">
             <button
               type="button"
               onClick={handleAddToCart}
               disabled={!product.inStock}
-              className="w-full border border-stone-200 py-2.5 text-[10px] uppercase tracking-[0.18em] text-stone-600 transition-colors active:border-stone-900 active:bg-stone-900 active:text-white disabled:opacity-40"
+              className="h-10 w-full rounded-full border border-forest-900 text-[11px] font-medium uppercase tracking-[0.16em] text-forest-900 transition-colors hover:bg-forest-900 hover:text-white active:bg-forest-900 active:text-white disabled:cursor-not-allowed disabled:border-stone-300 disabled:text-stone-400 disabled:hover:bg-transparent"
             >
               {product.inStock ? 'Add to bag' : 'Out of stock'}
             </button>

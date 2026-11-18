@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Zap } from 'lucide-react';
 import { useFlashSale } from '@/contexts/FlashSaleContext';
+import { useLocation } from 'wouter';
 
 interface TimeLeft {
   total: number;
@@ -46,6 +47,7 @@ function Countdown({ endsAt }: { endsAt: string }) {
 
 export default function FlashSaleBanner() {
   const { sale } = useFlashSale();
+  const [, navigate] = useLocation();
   const [expired, setExpired] = useState(false);
 
   useEffect(() => {
@@ -59,9 +61,9 @@ export default function FlashSaleBanner() {
 
   if (!sale || expired) return null;
 
+  // The home catalog grid moved to the collections page in the redesign.
   function scrollToCatalog() {
-    const el = document.getElementById('catalog');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    navigate('/collections');
   }
 
   return (
