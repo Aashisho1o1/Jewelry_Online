@@ -1,9 +1,8 @@
+# Local-only CMS (npm run cms). This folder is not part of the build, so it is never on the website.
 backend:
-  name: github
-  repo: Aashisho1o1/Jewelry_Online
+  name: proxy
+  proxy_url: http://localhost:8081/api/v1
   branch: main
-  base_url: https://aashish-jewellers.vercel.app
-  auth_endpoint: auth
 
 # Store uploaded images in Vite's served public directory
 media_folder: "client/public/images/jewelry"
@@ -16,8 +15,8 @@ public_folder: "/images/jewelry"
 #     publicKey: "demopublickey"
 
 # Global settings for the CMS
-local_backend: false
-display_url: https://aashish-jewellers.vercel.app
+site_url: http://localhost:5173
+display_url: http://localhost:5173
 
 collections:
   # Jewelry Products Management - Individual Product Files
@@ -207,26 +206,21 @@ collections:
         label: "Home Page Content"
         file: "client/src/content/home.json"
         fields:
-          - { label: "Hero Title", name: "title", widget: "string", hint: "Main headline - keep it inspiring!" }
-          - { label: "Hero Subtitle", name: "subtitle", widget: "text", hint: "Compelling description of your jewelry business" }
-          - { label: "Hero Background Image", name: "imageUrl", widget: "image", hint: "Beautiful jewelry hero image" }
-          - name: "hero"
-            label: "Hero Section"
-            widget: "object"
-            fields:
-              - { label: "Welcome Text", name: "welcomeText", widget: "string", default: "WELCOME" }
-              - { label: "Main Title", name: "mainTitle", widget: "string", default: "ELEGANT NEPALI JEWELRY" }
-              - { label: "Description", name: "description", widget: "text", default: "Discover unique jewelry designs and exquisite craftsmanship" }
-              - { label: "Hero Background Image", name: "heroImage", widget: "image", hint: "Main hero background image" }
-              - { label: "Call to Action Button Text", name: "ctaText", widget: "string", default: "Shop Collection" }
-              - { label: "Call to Action Link", name: "ctaLink", widget: "string", default: "/products" }
-          - name: "features"
-            label: "Why Choose Us"
+          - name: "slides"
+            label: "Banner Slides"
+            label_singular: "Slide"
             widget: "list"
+            min: 1
+            summary: "{{fields.title}}"
             fields:
-              - { label: "Feature Title", name: "title", widget: "string" }
-              - { label: "Feature Description", name: "description", widget: "text" }
-              - { label: "Feature Icon", name: "icon", widget: "select", options: ["diamond", "heart", "truck", "shield", "star"] }
+              - { label: "Small Heading", name: "eyebrow", widget: "string" }
+              - { label: "Title", name: "title", widget: "string", hint: "Must be different on every slide" }
+              - { label: "Text (laptop only)", name: "body", widget: "text" }
+              - { label: "Button Text", name: "cta", widget: "string" }
+              - { label: "Button Link", name: "href", widget: "string", hint: "e.g. /collections/rings" }
+              - { label: "Photo", name: "image", widget: "image" }
+              - { label: "Photo Position", name: "imagePosition", widget: "string", default: "50% 50%", required: false }
+              - { label: "Colour", name: "tone", widget: "select", options: ["forest", "cream", "mint"], default: "forest" }
 
   # About Page Content
   - name: "about"

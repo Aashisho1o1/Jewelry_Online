@@ -26,7 +26,7 @@ Sync rule: keep `agents.md` and `claude.md` identical. Update both in the same c
 - Backend: Vercel-style serverless handlers in `api/`
 - Shared backend logic: `lib/`
 - Database: PostgreSQL via `pg`
-- CMS/Admin: Decap CMS under `/admin`
+- CMS/Admin: Decap CMS, local only (`npm run cms`, files in `cms/`); orders/rates at `/admin-dashboard`
 - Payments: eSewa, Khalti, FonePay, WhatsApp-assisted flows
 
 ## Main Repo Boundaries
@@ -55,8 +55,6 @@ Sync rule: keep `agents.md` and `claude.md` identical. Update both in the same c
 - `vite.config.ts`
 - `lib/db-store.js`
 - `api/upload-image.js`
-- `api/auth.js`
-- `api/callback.js`
 
 ## Editing Rules
 
@@ -88,4 +86,5 @@ Sync rule: keep `agents.md` and `claude.md` identical. Update both in the same c
 - 2026-11-18: `aashish.website` no longer resolves (expired); site URL switched to `https://jewelry-online.vercel.app` via exported `SITE_URL` in `client/src/components/SiteMeta.tsx` (sitemap, robots.txt and CMS config.yml keep copies). CMS login also needs the GitHub OAuth app callback updated to the new URL. `og:url` now follows the current page.
 - 2026-11-18: daily metal rates: `lib/nepal-rates.js` reads FENEGOSIDA's website feed (api.fenegosida.org Dashboard/today, undocumented), cross-checks per-10g vs per-tola, sane ranges, refuses >15% daily jumps, saves current rate per purity (925 silver, 18/22/24K) without touching baseline. Runs via Vercel Cron (`vercel.json` crons, 05:30 UTC) at `/api/metal-rates/sync` (needs `CRON_SECRET` env) or the admin "Fetch today's rate now" button; admin can also enter per-tola rates. Database (Neon) still required.
 - 2026-11-18: moved hosting to a new Vercel project `aashish-jewellers` (account aadarshagautam) at https://aashish-jewellers.vercel.app with a free Neon Postgres in Singapore (`aashish-jewellers-db`), ADMIN_SECRET_KEY and CRON_SECRET set; functions pinned to sin1. The old jewelry-online.vercel.app project (owner account aashisho1o1s, broken Railway DB) is no longer used. The new project is not Git-connected (repo owned by Aashisho1o1): deploy with `vercel deploy --prod` from this folder.
+- 2026-11-24: CMS made local-only: moved to `cms/`, served by Vite dev at `/admin/` with `decap-server`; public `/admin` routes and the GitHub OAuth endpoints removed. `aashishjewellers.com.np` is Active at the registrar and attached in Vercel, but not yet in the com.np zone.
 - Open: Rate limiting and admin brute-force lock are in-memory per serverless instance.

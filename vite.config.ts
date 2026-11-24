@@ -1,6 +1,7 @@
 import { IncomingMessage, ServerResponse } from "node:http";
 import { defineConfig, loadEnv, Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+import fs from "node:fs";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
 import { ChatServiceError, generateChatReply } from "./lib/chat-service.js";
@@ -506,11 +507,38 @@ function localApiPlugin(apiKey?: string, model?: string): Plugin {
   };
 }
 
+// Serves the CMS from /cms in dev only, so it never reaches the built site.
+function localCmsPlugin(): Plugin {
+  const files: Record<string, [string, string]> = {
+    "/admin/": ["index.html", "text/html; charset=utf-8"],
+    "/admin/config.yml": ["config.yml", "text/yaml; charset=utf-8"],
+  };
+  return {
+    name: "local-cms",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const pathname = new URL(req.url ?? "/", "http://localhost").pathname;
+        if (pathname === "/admin") {
+          res.statusCode = 302;
+          res.setHeader("Location", "/admin/");
+          res.end();
+          return;
+        }
+        const file = files[pathname];
+        if (!file) return next();
+        res.setHeader("Content-Type", file[1]);
+        res.end(fs.readFileSync(path.resolve(__dirname, "cms", file[0])));
+      });
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
   return {
-    plugins: [react(), localApiPlugin(env.GEMINI_API_KEY, env.GEMINI_MODEL)],
+    plugins: [react(), localCmsPlugin(), localApiPlugin(env.GEMINI_API_KEY, env.GEMINI_MODEL)],
     root: "client",
     resolve: {
       alias: {
