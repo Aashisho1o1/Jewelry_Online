@@ -12,7 +12,7 @@ This is a **monolithic Vite + React SPA** deployed to **Vercel** with serverless
 - `public/images/jewelry/` - Product images (stored in Git, NOT CDN)
 
 ### Data Flow: Content → Frontend
-1. **CMS**: Decap CMS (`client/public/admin/`) writes Markdown files to `content/jewelry/*.md`
+1. **CMS**: Decap CMS (`cms/`, local only) writes Markdown files to `content/jewelry/*.md`
 2. **Build**: `product-loader.ts` parses frontmatter from `content/jewelry/` using `markdown-parser.ts`
 3. **Runtime**: Products load client-side from parsed frontmatter (NO database for products)
 4. **Images**: All paths MUST resolve to `/images/jewelry/*` (served from `public/`)
@@ -54,21 +54,14 @@ This is a **monolithic Vite + React SPA** deployed to **Vercel** with serverless
 - Order ID shown to user for manual reconciliation
 - No automatic verification (merchant manually marks orders paid)
 
-## Authentication: Decap CMS + GitHub OAuth
+## Decap CMS (local only)
 
-**OAuth Flow** (for CMS access only):
-1. `/api/auth` → Redirects to GitHub OAuth (`OAUTH_GITHUB_CLIENT_ID`)
-2. `/api/callback` → Exchanges code for `access_token`, returns postMessage to CMS
-3. CMS uses token to commit to `Aashisho1o1/Jewelry_Online` via GitHub API
+Runs on a developer machine with `npm run cms`; it is never deployed and needs no GitHub login.
 
 **Environment Variables** (Vercel dashboard):
-- `OAUTH_GITHUB_CLIENT_ID`, `OAUTH_GITHUB_CLIENT_SECRET` - OAuth app credentials
-- `GITHUB_TOKEN` - Personal Access Token for CMS backend (`repo`, `user:email` scopes)
 - `GITHUB_OWNER=Aashisho1o1`, `GITHUB_REPO=Jewelry_Online`
 - `DATABASE_URL` - Railway Postgres connection string
 - `ESEWA_MERCHANT_ID`, `ESEWA_SECRET_KEY`, `KHALTI_SECRET_KEY`
-
-**CRITICAL**: OAuth callback URL must match `https://aashish-jewellers.vercel.app/api/callback` in GitHub app settings.
 
 ## Development Workflow
 
@@ -80,9 +73,9 @@ npm run dev  # Vite on http://localhost:5173
 
 ### Decap CMS Local Development
 ```bash
-npm run cms:local  # Start netlify-cms-proxy-server on :8081
+npm run cms  # shop on :5173 + decap-server on :8081
 ```
-Then visit `http://localhost:5173/admin` and use local Git backend.
+Then visit `http://localhost:5173/admin` ; saves write files in this folder, then commit and deploy.
 
 ### Deployment
 - **Platform**: Vercel (production at `aashish-jewellers.vercel.app`, Vercel account aadarshagautam; Neon Postgres in Singapore)
@@ -132,7 +125,7 @@ Then visit `http://localhost:5173/admin` and use local Git backend.
 - **Product loading**: `client/src/data/product-loader.ts` (frontmatter parsing)
 - **Database operations**: `lib/db-store.js` (order CRUD)
 - **Payment signatures**: `api/payments/esewa/create.js` (eSewa v2 signature calculation)
-- **CMS config**: `client/public/admin/config.yml` (Decap CMS schema)
+- **CMS config**: `cms/config.yml` (Decap CMS schema)
 - **Type definitions**: `client/src/types/jewelry.ts` (minimal product schema)
 
 Also, always refer to the current codes in the codebase for the most accurate and up-to-date details because the codebase might have been changed directly without updating this instruction file.

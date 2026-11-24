@@ -11,6 +11,7 @@
     </div>
 
     <script>
+      window.CMS_MANUAL_INIT = true;
       (function () {
         const cmsLoader = document.getElementById('cms-loader');
         const sources = [
@@ -21,7 +22,11 @@
 
         function onLoaded() {
           if (window.CMS) {
-            if (cmsLoader) cmsLoader.remove();
+            // Register the price field before the form opens, so it is never missing.
+            import('/admin/sell-price.js').then(function () {
+              if (cmsLoader) cmsLoader.remove();
+              window.CMS.init();
+            }).catch(showError);
             return;
           }
           loadNext();

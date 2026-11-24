@@ -1,0 +1,284 @@
+# Local-only CMS (npm run cms). This folder is not part of the build, so it is never on the website.
+backend:
+  name: proxy
+  proxy_url: http://localhost:8081/api/v1
+  branch: main
+
+# Store uploaded images in Vite's served public directory
+media_folder: "client/public/images/jewelry"
+public_folder: "/images/jewelry"
+
+# Use local media storage instead of external CDN
+# media_library:
+#   name: uploadcare
+#   config:
+#     publicKey: "demopublickey"
+
+# Global settings for the CMS
+site_url: http://localhost:5173
+display_url: http://localhost:5173
+
+collections:
+  # Products: one file each. Delete is off; turn "In stock" off instead.
+  - name: "jewelry"
+    label: "Products"
+    label_singular: "Product"
+    folder: "content/jewelry"
+    create: true
+    delete: false
+    slug: "{{id}}"
+    summary: "{{name}} ({{id}})"
+    fields:
+      - { label: "Product Name", name: "name", widget: "string" }
+      - { label: "Product Code", name: "id", widget: "string", pattern: ["^[A-Z]{2}[0-9]{3,}$", "Two capital letters and at least three numbers, like RG005"], hint: "Never change it after saving. Rings RG005, necklaces NS002, earrings ER003, bracelets BR005, sets ST006" }
+      - { label: "Main Photo", name: "image", widget: "image" }
+      - label: "More Photos"
+        name: "images"
+        widget: "list"
+        required: false
+        hint: "Close-ups and other angles"
+        field: { label: "Item", name: "item", widget: "image" }
+      - label: "Category"
+        name: "category"
+        widget: "select"
+        options:
+          - { label: "Rings", value: "rings" }
+          - { label: "Necklaces", value: "necklaces" }
+          - { label: "Earrings", value: "earrings" }
+          - { label: "Bracelets", value: "bracelets" }
+          - { label: "Sets", value: "sets" }
+          - { label: "Tilahari", value: "tilahari" }
+          - { label: "Mangalsutra", value: "mangalsutra" }
+          - { label: "Sikri", value: "sikri" }
+          - { label: "Baala", value: "baala" }
+          - { label: "Bulaki", value: "bulaki" }
+          - { label: "Pote", value: "pote" }
+          - { label: "Pauju", value: "pauju" }
+          - { label: "Maang Tika", value: "maang-tika" }
+          - { label: "Haar", value: "haar" }
+          - { label: "Dhungri", value: "dhungri" }
+      - label: "Material"
+        name: "material"
+        widget: "select"
+        default: "925_silver"
+        options:
+          - { label: "925 Silver", value: "925_silver" }
+          - { label: "18K Gold", value: "gold_18k" }
+          - { label: "22K Gold", value: "gold_22k" }
+          - { label: "24K Gold", value: "gold_24k" }
+          - { label: "Gold plated", value: "gold_plated" }
+          - { label: "Rose gold plated", value: "rose_gold_plated" }
+          - { label: "Stone studded", value: "stone_studded" }
+          - { label: "Mixed metals", value: "mixed_metals" }
+          - { label: "Beaded", value: "beaded" }
+      - { label: "Weight (grams)", name: "weight", widget: "string", required: false, hint: "Shown to customers. Example: 11.664g" }
+
+      # Pricing
+      - label: "Price Type"
+        name: "priceMode"
+        widget: "select"
+        default: "manual"
+        options:
+          - { label: "Fixed price", value: "manual" }
+          - { label: "Calculated: today's rate + wastage + making charge", value: "formula" }
+          - { label: "Old: fixed price that moves with the rate", value: "live_metal" }
+      - { label: "Wastage / Jarti (%)", name: "wastagePercent", widget: "number", value_type: "float", min: 0, max: 50, step: 0.1, required: false, hint: "Calculated price only" }
+      - { label: "Making Charge / Jyala", name: "makingCharge", widget: "number", value_type: "float", min: 0, step: 0.1, required: false, hint: "Calculated price only" }
+      - label: "Making Charge Is"
+        name: "makingChargeType"
+        widget: "select"
+        default: "fixed"
+        required: false
+        options:
+          - { label: "NPR for the whole piece", value: "fixed" }
+          - { label: "NPR per gram", value: "per_gram" }
+          - { label: "% of metal value", value: "percent" }
+      - { label: "Stone Cost (NPR)", name: "stoneCost", widget: "number", value_type: "float", min: 0, required: false, hint: "Calculated price only. Leave empty if no stones" }
+      - { label: "Weight Without Stones (grams)", name: "pricingWeightGrams", widget: "number", value_type: "float", min: 0, step: 0.001, required: false, hint: "Only if stones are included in the weight above" }
+      - { label: "Sell Price (NPR)", name: "price", widget: "sell-price", hint: "Fixed: type it. Calculated: fills in by itself." }
+      - { label: "Old Price, crossed out", name: "originalPrice", widget: "number", value_type: "int", min: 500, required: false, hint: "Only a price you really sold it at" }
+
+      - { label: "Description", name: "description", widget: "text" }
+      - { label: "In Stock", name: "inStock", widget: "boolean", default: true, required: false }
+      - { label: "Show as Featured", name: "featured", widget: "boolean", default: false, required: false }
+      - { label: "New Arrival", name: "isNew", widget: "boolean", default: false, required: false }
+
+      # Optional from here down
+      - label: "More: Occasions"
+        name: "occasions"
+        widget: "select"
+        multiple: true
+        required: false
+        hint: "Everything from here down is optional"
+        options: ["Anniversary","Birthday Gift","Celebration","Daily Wear","Dinner","Festive","Party","Wedding Guest"]
+      - label: "More: Who It Is For"
+        name: "recipients"
+        widget: "select"
+        multiple: true
+        required: false
+        hint: "Used by the gift guide"
+        options: ["Her","Mother","Sister","Wife"]
+      - label: "More: Style"
+        name: "styles"
+        widget: "select"
+        multiple: true
+        required: false
+        hint: "Used by the gift guide"
+        options: ["Artisan","Classic","Dressy","Festive","Heritage","Minimal","Occasion","Stackable","Statement","Traditional"]
+      - label: "More: Colours"
+        name: "colors"
+        widget: "select"
+        multiple: true
+        required: false
+        hint: "Used by search and filters"
+        options: ["Silver","Gold","Rose Gold","White","Black","Blue","Red","Green"]
+      - label: "More: Tags"
+        name: "tags"
+        widget: "list"
+        required: false
+        hint: "Short labels like Giftable"
+        field: { label: "Item", name: "item", widget: "string" }
+      - label: "More: Highlights"
+        name: "highlights"
+        widget: "list"
+        required: false
+        hint: "Short selling points"
+        field: { label: "Item", name: "item", widget: "string" }
+      - { label: "More: Design Story", name: "designStory", widget: "text", required: false, hint: "The idea behind the piece" }
+      - { label: "More: How To Wear It", name: "styleNote", widget: "text", required: false, hint: "Styling tip" }
+      - label: "More: Care Tips"
+        name: "care"
+        widget: "list"
+        required: false
+        hint: "One tip per line"
+        field: { label: "Item", name: "item", widget: "string" }
+      - { label: "More: Dimensions", name: "dimensions", widget: "string", required: false, hint: "Example: 18 in chain" }
+      - { label: "More: Stone Type", name: "stoneType", widget: "string", required: false, hint: "Example: White CZ" }
+      - { label: "More: Finish", name: "plating", widget: "string", required: false, hint: "Example: High-polish silver" }
+      - { label: "More: Fit Notes", name: "fitNotes", widget: "text", required: false, hint: "How it fits" }
+      - { label: "More: Delivery Estimate", name: "deliveryEstimate", widget: "string", required: false, hint: "Example: Dispatch in 2 to 4 business days" }
+      - { label: "More: Warranty", name: "warranty", widget: "string", required: false, hint: "Example: 30-day return support" }
+      - label: "More: Matching Product Codes"
+        name: "bundleIds"
+        widget: "list"
+        required: false
+        hint: "Example: NS001"
+        field: { label: "Item", name: "item", widget: "string" }
+      - label: "More: Reviews"
+        name: "reviews"
+        widget: "list"
+        required: false
+        hint: "Real customers only. Name|5|Title|Text|photo"
+        field: { label: "Item", name: "item", widget: "string" }
+      - label: "More: Customer Photos"
+        name: "customerPhotos"
+        widget: "list"
+        required: false
+        hint: "Photos from customers"
+        field: { label: "Item", name: "item", widget: "image" }
+      - { label: "More: Gift Wrap Available", name: "giftWrapAvailable", widget: "boolean", default: true, required: false }
+      - { label: "More: Gift Card Help", name: "giftCardAvailable", widget: "boolean", default: false, required: false }
+      - label: "More: Use Another Metal Rate"
+        name: "metalRateKey"
+        widget: "select"
+        required: false
+        hint: "Normally leave empty; the material decides"
+        options:
+          - { label: "925 Silver", value: "silver_925" }
+          - { label: "18K Gold", value: "gold_18k" }
+          - { label: "22K Gold", value: "gold_22k" }
+          - { label: "24K Gold", value: "gold_24k" }
+      - { label: "More: Round Price To (NPR)", name: "priceRoundingIncrement", widget: "number", value_type: "int", min: 1, required: false, hint: "Default 10" }
+
+  # Home Page Content
+  - name: "home"
+    label: "Home Page"
+    files:
+      - name: "home"
+        label: "Home Page Content"
+        file: "client/src/content/home.json"
+        fields:
+          - name: "slides"
+            label: "Banner Slides"
+            label_singular: "Slide"
+            widget: "list"
+            min: 1
+            summary: "{{fields.title}}"
+            fields:
+              - { label: "Small Heading", name: "eyebrow", widget: "string" }
+              - { label: "Title", name: "title", widget: "string", hint: "Must be different on every slide" }
+              - { label: "Text (laptop only)", name: "body", widget: "text" }
+              - { label: "Button Text", name: "cta", widget: "string" }
+              - { label: "Button Link", name: "href", widget: "string", hint: "e.g. /collections/rings" }
+              - { label: "Photo", name: "image", widget: "image" }
+              - { label: "Photo Position", name: "imagePosition", widget: "string", default: "50% 50%", required: false }
+              - { label: "Colour", name: "tone", widget: "select", options: ["forest", "cream", "mint"], default: "forest" }
+
+  # About Page Content
+  - name: "about"
+    label: "About Us"
+    files:
+      - name: "about"
+        label: "About Page Content"
+        file: "client/src/content/about.json"
+        fields:
+          - { label: "Page Title", name: "title", widget: "string" }
+          - name: "team"
+            label: "Family Team Members"
+            widget: "list"
+            fields:
+              - { label: "Name", name: "name", widget: "string" }
+              - { label: "Role", name: "title", widget: "string", hint: "e.g., Founder, Designer, Quality Manager" }
+              - { label: "Bio", name: "description", widget: "text" }
+              - { label: "Profile Photo", name: "imageUrl", widget: "image" }
+          - name: "story"
+            label: "Our Story"
+            widget: "object"
+            fields:
+              - { label: "Story Title", name: "title", widget: "string" }
+              - { label: "Story Content", name: "content", widget: "markdown", hint: "Tell your jewelry business story" }
+          - name: "craftsmanship"
+            label: "Our Craftsmanship Process"
+            widget: "object"
+            fields:
+              - { label: "Section Title", name: "title", widget: "string" }
+              - name: "steps"
+                label: "Crafting Steps"
+                widget: "list"
+                fields:
+                  - { label: "Step Title", name: "title", widget: "string" }
+                  - { label: "Step Description", name: "description", widget: "text" }
+          - name: "contact"
+            label: "Contact Information"
+            widget: "object"
+            fields:
+              - { label: "Email Address", name: "email", widget: "string" }
+              - { label: "Phone Number", name: "phone", widget: "string", hint: "Nepal phone format: +977-XX-XXXXXXX" }
+              - { label: "WhatsApp Number", name: "whatsapp", widget: "string", required: false }
+
+  # Website Settings
+  - name: "settings"
+    label: "Website Settings"
+    files:
+      - name: "settings"
+        label: "Website Settings"
+        file: "client/src/content/settings.json"
+        fields:
+          - { label: "Website Title", name: "siteTitle", widget: "string", default: "Aashish Jewellers" }
+          - { label: "Company Name", name: "companyName", widget: "string" }
+          - { label: "Tagline", name: "tagline", widget: "string" }
+          - { label: "Logo", name: "logo", widget: "image", required: false }
+          - name: "social"
+            label: "Social Media Links"
+            widget: "object"
+            fields:
+              - { label: "Facebook", name: "facebook", widget: "string", required: false }
+              - { label: "Instagram", name: "instagram", widget: "string", required: false }
+              - { label: "TikTok", name: "tiktok", widget: "string", required: false }
+              - { label: "WhatsApp Business", name: "whatsapp", widget: "string", required: false }
+          - name: "footer"
+            label: "Footer Information"
+            widget: "object"
+            fields:
+              - { label: "Footer Text", name: "text", widget: "text" }
+              - { label: "Copyright Text", name: "copyright", widget: "string" }

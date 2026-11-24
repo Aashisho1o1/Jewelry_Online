@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 const SITE_NAME = 'Aashish Jewellers';
 // Public site address used in SEO tags and shared links. Change here when a custom domain is connected.
-// (api/sitemap.js, client/public/robots.txt and client/public/admin/config.yml keep their own copy.)
+// (api/sitemap.js and client/public/robots.txt keep their own copy.)
 export const SITE_URL = 'https://aashish-jewellers.vercel.app';
 const DEFAULT_IMAGE = '/icons/icon-512.png';
 const DEFAULT_DESCRIPTION =
