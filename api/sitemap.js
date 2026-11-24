@@ -1,7 +1,7 @@
 import { loadCatalogProducts } from '../lib/catalog.js';
 
 // Keep in sync with SITE_URL in client/src/components/SiteMeta.tsx.
-const BASE_URL = 'https://aashish-jewellers.vercel.app';
+const BASE_URL = 'https://aashishjewellers.com.np';
 
 const STATIC_PAGES = [
   { loc: '/', priority: '1.0', changefreq: 'weekly' },

@@ -78,7 +78,7 @@ npm run cms  # shop on :5173 + decap-server on :8081
 Then visit `http://localhost:5173/admin` ; saves write files in this folder, then commit and deploy.
 
 ### Deployment
-- **Platform**: Vercel (production at `aashish-jewellers.vercel.app`, Vercel account aadarshagautam; Neon Postgres in Singapore)
+- **Platform**: Vercel (production at `aashishjewellers.com.np`, Vercel account aadarshagautam; Neon Postgres in Singapore)
 - **Build**: `npm run build` → outputs to `dist/` (Vite root is `client/`)
 - **Routes**: See `vercel.json` for API rewrites (`/api/*` → `/api/*.js` serverless functions)
 

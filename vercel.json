@@ -19,6 +19,12 @@
       },
       "continue": true
     },
+    {
+      "src": "/(?!api/)(.*)",
+      "has": [{ "type": "host", "value": "www.aashishjewellers.com.np" }],
+      "headers": { "Location": "https://aashishjewellers.com.np/$1" },
+      "status": 308
+    },
     { "src": "/api/orders/(.*)", "dest": "/api/orders" },
     { "src": "/api/products/(.*)", "dest": "/api/products" },
     { "src": "/api/reviews(.*)", "dest": "/api/products" },
