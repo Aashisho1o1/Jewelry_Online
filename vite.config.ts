@@ -507,7 +507,7 @@ function localApiPlugin(apiKey?: string, model?: string): Plugin {
   };
 }
 
-const LIVE_SITE = "https://aashish-jewellers.vercel.app";
+const LIVE_SITE = "https://aashishjewellers.com.np";
 
 // Serves the CMS from /cms in dev only, so it never reaches the built site.
 function localCmsPlugin(): Plugin {

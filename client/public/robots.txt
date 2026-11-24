@@ -10,4 +10,4 @@ Disallow: /my-orders
 Disallow: /wishlist
 Disallow: /api/
 
-Sitemap: https://aashish-jewellers.vercel.app/sitemap.xml
+Sitemap: https://aashishjewellers.com.np/sitemap.xml
