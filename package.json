@@ -32,6 +32,7 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "class-variance-authority": "^0.7.0",
     "dotenv": "^17.3.1",
+    "js-yaml": "^4.3.2",
     "lucide-react": "^0.576.0",
     "node-fetch": "^3.3.2",
     "pg": "^8.19.0",

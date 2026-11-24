@@ -23,7 +23,7 @@ export interface JewelryProduct {
   featured?: boolean;
   isNew?: boolean;
   weight?: string;
-  priceMode?: 'manual' | 'live_metal';
+  priceMode?: 'manual' | 'formula' | 'live_metal';
   metalRateKey?: string;
   pricingWeightGrams?: number;
   priceRoundingIncrement?: number;

@@ -19,184 +19,176 @@ site_url: http://localhost:5173
 display_url: http://localhost:5173
 
 collections:
-  # Jewelry Products Management - Individual Product Files
+  # Products: one file each. Delete is off; turn "In stock" off instead.
   - name: "jewelry"
-    label: "Jewelry Products"
+    label: "Products"
+    label_singular: "Product"
     folder: "content/jewelry"
     create: true
+    delete: false
     slug: "{{id}}"
+    summary: "{{name}} ({{id}})"
     fields:
-      - { label: "Product ID", name: "id", widget: "string", hint: "Unique code like NS001, ER002, etc." }
-      - { label: "Product Name", name: "name", widget: "string", hint: "e.g., Timeless Elegance Silver Necklace" }
-      - { label: "Description", name: "description", widget: "text", hint: "Detailed product description for customers" }
-      - { label: "Price (NPR)", name: "price", widget: "number", value_type: "int", min: 500, max: 500000 }
-      - { label: "Original Price (NPR)", name: "originalPrice", widget: "number", value_type: "int", min: 500, max: 500000, required: false }
-      - label: "Price Mode"
-        name: "priceMode"
-        widget: "select"
-        default: "manual"
-        required: false
-        hint: "Use live metal pricing only for products that should move with the daily silver/gold rate."
-        options:
-          - "manual"
-          - "live_metal"
-      - { label: "Main Product Image", name: "image", widget: "image", hint: "Primary product photo" }
-      - label: "Gallery Images (optional)"
+      - { label: "Product Name", name: "name", widget: "string" }
+      - { label: "Product Code", name: "id", widget: "string", pattern: ["^[A-Z]{2}[0-9]{3,}$", "Two capital letters and at least three numbers, like RG005"], hint: "Never change it after saving. Rings RG005, necklaces NS002, earrings ER003, bracelets BR005, sets ST006" }
+      - { label: "Main Photo", name: "image", widget: "image" }
+      - label: "More Photos"
         name: "images"
         widget: "list"
         required: false
-        hint: "Add multiple photos for product gallery and close-up views."
-        field:
-          label: "Image"
-          name: "image"
-          widget: "image"
+        hint: "Close-ups and other angles"
+        field: { label: "Item", name: "item", widget: "image" }
       - label: "Category"
         name: "category"
         widget: "select"
         options:
-          - "rings"
-          - "necklaces"
-          - "earrings"
-          - "bracelets"
-          - "sets"
-          - "tilahari"
-          - "mangalsutra"
-          - "sikri"
-          - "baala"
-          - "bulaki"
-          - "pote"
-          - "pauju"
-          - "maang-tika"
-          - "haar"
-          - "dhungri"
+          - { label: "Rings", value: "rings" }
+          - { label: "Necklaces", value: "necklaces" }
+          - { label: "Earrings", value: "earrings" }
+          - { label: "Bracelets", value: "bracelets" }
+          - { label: "Sets", value: "sets" }
+          - { label: "Tilahari", value: "tilahari" }
+          - { label: "Mangalsutra", value: "mangalsutra" }
+          - { label: "Sikri", value: "sikri" }
+          - { label: "Baala", value: "baala" }
+          - { label: "Bulaki", value: "bulaki" }
+          - { label: "Pote", value: "pote" }
+          - { label: "Pauju", value: "pauju" }
+          - { label: "Maang Tika", value: "maang-tika" }
+          - { label: "Haar", value: "haar" }
+          - { label: "Dhungri", value: "dhungri" }
       - label: "Material"
         name: "material"
         widget: "select"
         default: "925_silver"
         options:
-          - "925_silver"
-          - "gold_plated"
-          - "rose_gold_plated"
-          - "gold_18k"
-          - "gold_22k"
-          - "gold_24k"
-          - "stone_studded"
-          - "mixed_metals"
-          - "beaded"
-      - { label: "Weight (optional)", name: "weight", widget: "string", required: false, hint: "Example: 12.5g" }
-      - label: "Pricing Weight (grams)"
-        name: "pricingWeightGrams"
-        widget: "number"
-        value_type: "float"
-        required: false
-        hint: "Optional override for live pricing. Use metal-only grams if the display weight includes stones."
-      - label: "Metal Rate Key"
-        name: "metalRateKey"
+          - { label: "925 Silver", value: "925_silver" }
+          - { label: "18K Gold", value: "gold_18k" }
+          - { label: "22K Gold", value: "gold_22k" }
+          - { label: "24K Gold", value: "gold_24k" }
+          - { label: "Gold plated", value: "gold_plated" }
+          - { label: "Rose gold plated", value: "rose_gold_plated" }
+          - { label: "Stone studded", value: "stone_studded" }
+          - { label: "Mixed metals", value: "mixed_metals" }
+          - { label: "Beaded", value: "beaded" }
+      - { label: "Weight (grams)", name: "weight", widget: "string", required: false, hint: "Shown to customers. Example: 11.664g" }
+
+      # Pricing
+      - label: "Price Type"
+        name: "priceMode"
         widget: "select"
-        required: false
-        hint: "Optional override. Leave blank to infer from material."
+        default: "manual"
         options:
-          - "silver_925"
-          - "gold_18k"
-          - "gold_22k"
-          - "gold_24k"
-      - { label: "Price Rounding Increment", name: "priceRoundingIncrement", widget: "number", value_type: "int", required: false, hint: "Example: 10 or 50 for live price rounding." }
-      - { label: "Dimensions (optional)", name: "dimensions", widget: "string", required: false, hint: "Example: 18 in chain length" }
-      - { label: "Stone Type (optional)", name: "stoneType", widget: "string", required: false, hint: "Example: Ruby, Emerald, CZ" }
-      - { label: "Occasion (optional)", name: "occasion", widget: "string", required: false, hint: "Example: Wedding, Daily Wear, Festive" }
-      - label: "Occasions"
+          - { label: "Fixed price", value: "manual" }
+          - { label: "Calculated: today's rate + wastage + making charge", value: "formula" }
+          - { label: "Old: fixed price that moves with the rate", value: "live_metal" }
+      - { label: "Wastage / Jarti (%)", name: "wastagePercent", widget: "number", value_type: "float", min: 0, max: 50, step: 0.1, required: false, hint: "Calculated price only" }
+      - { label: "Making Charge / Jyala", name: "makingCharge", widget: "number", value_type: "float", min: 0, step: 0.1, required: false, hint: "Calculated price only" }
+      - label: "Making Charge Is"
+        name: "makingChargeType"
+        widget: "select"
+        default: "fixed"
+        required: false
+        options:
+          - { label: "NPR for the whole piece", value: "fixed" }
+          - { label: "NPR per gram", value: "per_gram" }
+          - { label: "% of metal value", value: "percent" }
+      - { label: "Stone Cost (NPR)", name: "stoneCost", widget: "number", value_type: "float", min: 0, required: false, hint: "Calculated price only. Leave empty if no stones" }
+      - { label: "Weight Without Stones (grams)", name: "pricingWeightGrams", widget: "number", value_type: "float", min: 0, step: 0.001, required: false, hint: "Only if stones are included in the weight above" }
+      - { label: "Sell Price (NPR)", name: "price", widget: "sell-price", hint: "Fixed: type it. Calculated: fills in by itself." }
+      - { label: "Old Price, crossed out", name: "originalPrice", widget: "number", value_type: "int", min: 500, required: false, hint: "Only a price you really sold it at" }
+
+      - { label: "Description", name: "description", widget: "text" }
+      - { label: "In Stock", name: "inStock", widget: "boolean", default: true, required: false }
+      - { label: "Show as Featured", name: "featured", widget: "boolean", default: false, required: false }
+      - { label: "New Arrival", name: "isNew", widget: "boolean", default: false, required: false }
+
+      # Optional from here down
+      - label: "More: Occasions"
         name: "occasions"
-        widget: "list"
+        widget: "select"
+        multiple: true
         required: false
-        hint: "Used for Shop By pages. Example: Daily Wear, Birthday Gift, Anniversary"
-        field:
-          label: "Occasion"
-          name: "occasion"
-          widget: "string"
-      - label: "Recipients"
+        hint: "Everything from here down is optional"
+        options: ["Anniversary","Birthday Gift","Celebration","Daily Wear","Dinner","Festive","Party","Wedding Guest"]
+      - label: "More: Who It Is For"
         name: "recipients"
-        widget: "list"
+        widget: "select"
+        multiple: true
         required: false
-        hint: "Example: Her, Mother, Sister"
-        field:
-          label: "Recipient"
-          name: "recipient"
-          widget: "string"
-      - label: "Styles"
+        hint: "Used by the gift guide"
+        options: ["Her","Mother","Sister","Wife"]
+      - label: "More: Style"
         name: "styles"
-        widget: "list"
+        widget: "select"
+        multiple: true
         required: false
-        hint: "Example: Minimal, Statement, Classic"
-        field:
-          label: "Style"
-          name: "style"
-          widget: "string"
-      - label: "Colors"
+        hint: "Used by the gift guide"
+        options: ["Artisan","Classic","Dressy","Festive","Heritage","Minimal","Occasion","Stackable","Statement","Traditional"]
+      - label: "More: Colours"
         name: "colors"
-        widget: "list"
+        widget: "select"
+        multiple: true
         required: false
-        hint: "Example: Silver, Rose Gold, White"
-        field:
-          label: "Color"
-          name: "color"
-          widget: "string"
-      - label: "Tags"
+        hint: "Used by search and filters"
+        options: ["Silver","Gold","Rose Gold","White","Black","Blue","Red","Green"]
+      - label: "More: Tags"
         name: "tags"
         widget: "list"
         required: false
-        hint: "Short merchandising labels like Giftable, Everyday, Signature"
-        field:
-          label: "Tag"
-          name: "tag"
-          widget: "string"
-      - label: "Care Tips"
+        hint: "Short labels like Giftable"
+        field: { label: "Item", name: "item", widget: "string" }
+      - label: "More: Highlights"
+        name: "highlights"
+        widget: "list"
+        required: false
+        hint: "Short selling points"
+        field: { label: "Item", name: "item", widget: "string" }
+      - { label: "More: Design Story", name: "designStory", widget: "text", required: false, hint: "The idea behind the piece" }
+      - { label: "More: How To Wear It", name: "styleNote", widget: "text", required: false, hint: "Styling tip" }
+      - label: "More: Care Tips"
         name: "care"
         widget: "list"
         required: false
-        hint: "One care instruction per line"
-        field:
-          label: "Care Tip"
-          name: "care_tip"
-          widget: "string"
-      - { label: "Plating / Finish", name: "plating", widget: "string", required: false, hint: "Example: Rose gold plated, High-polish silver finish" }
-      - { label: "Collection", name: "collection", widget: "string", required: false, hint: "Example: Everyday Silver, Signature Rings" }
-      - { label: "Metal Tone", name: "metalTone", widget: "string", required: false, hint: "Example: Silver, Rose Gold" }
-      - { label: "Size Guide Note", name: "sizeGuide", widget: "string", required: false, hint: "Short note for size guidance" }
-      - { label: "Fit Notes", name: "fitNotes", widget: "text", required: false, hint: "Explain how the piece fits or should be styled" }
-      - { label: "Delivery Estimate", name: "deliveryEstimate", widget: "string", required: false, hint: "Example: Dispatch in 2 to 4 business days" }
-      - { label: "Warranty / Support", name: "warranty", widget: "string", required: false, hint: "Example: 30-day return support and finish-care guidance" }
-      - { label: "Gift Wrap Available", name: "giftWrapAvailable", widget: "boolean", default: true, required: false }
-      - { label: "Gift Card Assistance Available", name: "giftCardAvailable", widget: "boolean", default: false, required: false }
-      - label: "Complete The Look Product IDs"
+        hint: "One tip per line"
+        field: { label: "Item", name: "item", widget: "string" }
+      - { label: "More: Dimensions", name: "dimensions", widget: "string", required: false, hint: "Example: 18 in chain" }
+      - { label: "More: Stone Type", name: "stoneType", widget: "string", required: false, hint: "Example: White CZ" }
+      - { label: "More: Finish", name: "plating", widget: "string", required: false, hint: "Example: High-polish silver" }
+      - { label: "More: Fit Notes", name: "fitNotes", widget: "text", required: false, hint: "How it fits" }
+      - { label: "More: Delivery Estimate", name: "deliveryEstimate", widget: "string", required: false, hint: "Example: Dispatch in 2 to 4 business days" }
+      - { label: "More: Warranty", name: "warranty", widget: "string", required: false, hint: "Example: 30-day return support" }
+      - label: "More: Matching Product Codes"
         name: "bundleIds"
         widget: "list"
         required: false
-        hint: "Add matching product IDs like ER002, NS001"
-        field:
-          label: "Product ID"
-          name: "bundle_id"
-          widget: "string"
-      - label: "Review Entries"
+        hint: "Example: NS001"
+        field: { label: "Item", name: "item", widget: "string" }
+      - label: "More: Reviews"
         name: "reviews"
         widget: "list"
         required: false
-        hint: "Format each line as Name|5|Review Title|Review text|/images/jewelry/example.jpg"
-        field:
-          label: "Review Entry"
-          name: "review"
-          widget: "string"
-      - label: "Customer Photos"
+        hint: "Real customers only. Name|5|Title|Text|photo"
+        field: { label: "Item", name: "item", widget: "string" }
+      - label: "More: Customer Photos"
         name: "customerPhotos"
         widget: "list"
         required: false
-        hint: "Use lifestyle or customer-shot style images for the review gallery"
-        field:
-          label: "Customer Photo"
-          name: "customer_photo"
-          widget: "image"
-      - { label: "In Stock", name: "inStock", widget: "boolean", default: true }
-      - { label: "Featured Product", name: "featured", widget: "boolean", default: false }
-      - { label: "New Arrival", name: "isNew", widget: "boolean", default: false }
+        hint: "Photos from customers"
+        field: { label: "Item", name: "item", widget: "image" }
+      - { label: "More: Gift Wrap Available", name: "giftWrapAvailable", widget: "boolean", default: true, required: false }
+      - { label: "More: Gift Card Help", name: "giftCardAvailable", widget: "boolean", default: false, required: false }
+      - label: "More: Use Another Metal Rate"
+        name: "metalRateKey"
+        widget: "select"
+        required: false
+        hint: "Normally leave empty; the material decides"
+        options:
+          - { label: "925 Silver", value: "silver_925" }
+          - { label: "18K Gold", value: "gold_18k" }
+          - { label: "22K Gold", value: "gold_22k" }
+          - { label: "24K Gold", value: "gold_24k" }
+      - { label: "More: Round Price To (NPR)", name: "priceRoundingIncrement", widget: "number", value_type: "int", min: 1, required: false, hint: "Default 10" }
 
   # Home Page Content
   - name: "home"
@@ -290,14 +282,3 @@ collections:
             fields:
               - { label: "Footer Text", name: "text", widget: "text" }
               - { label: "Copyright Text", name: "copyright", widget: "string" }
-
-  # Media Library (for jewelry photos)
-  - name: "media"
-    label: "Jewelry Photos"
-    folder: "client/public/images/jewelry"
-    create: true
-    fields:
-      - { label: "Photo Title", name: "title", widget: "string" }
-      - { label: "Product Related", name: "productId", widget: "string", required: false, hint: "Product ID this photo belongs to" }
-      - { label: "Photo Type", name: "type", widget: "select", options: ["product", "lifestyle", "detail", "packaging"], default: "product" }
-      - { label: "Alt Text", name: "alt", widget: "string", required: false, hint: "Important for accessibility and SEO" }

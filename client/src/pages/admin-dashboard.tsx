@@ -819,7 +819,7 @@ function RatesTab({ adminKey }: { adminKey: string }) {
         <div>
           <p className="text-sm text-stone-500">Set the current market rate and the baseline rate used by your catalog pricing.</p>
           <p className="mt-2 text-xs text-stone-400">
-            Live-priced products use: stored price + (current rate - baseline rate) x pricing weight.
+            Calculated products use: current rate x weight + wastage + making charge + stones (set in the CMS; no baseline needed). Older live-priced products use: stored price + (current rate - baseline rate) x weight.
           </p>
         </div>
         <button

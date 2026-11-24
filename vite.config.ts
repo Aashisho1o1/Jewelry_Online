@@ -507,18 +507,33 @@ function localApiPlugin(apiKey?: string, model?: string): Plugin {
   };
 }
 
+const LIVE_SITE = "https://aashish-jewellers.vercel.app";
+
 // Serves the CMS from /cms in dev only, so it never reaches the built site.
 function localCmsPlugin(): Plugin {
   const files: Record<string, [string, string]> = {
-    "/admin/": ["index.html", "text/html; charset=utf-8"],
-    "/admin/config.yml": ["config.yml", "text/yaml; charset=utf-8"],
+    "/admin/": ["cms/index.html", "text/html; charset=utf-8"],
+    "/admin/config.yml": ["cms/config.yml", "text/yaml; charset=utf-8"],
+    "/admin/sell-price.js": ["cms/sell-price.js", "text/javascript; charset=utf-8"],
+    "/admin/metal-pricing.js": ["lib/metal-pricing.js", "text/javascript; charset=utf-8"],
   };
   return {
     name: "local-cms",
     apply: "serve",
     configureServer(server) {
-      server.middlewares.use((req, res, next) => {
+      server.middlewares.use(async (req, res, next) => {
         const pathname = new URL(req.url ?? "/", "http://localhost").pathname;
+        // This machine has no database, so show the live shop's public rates in the CMS.
+        if (pathname === "/admin/rates.json") {
+          try {
+            const live = await fetch(`${LIVE_SITE}/api/rates`, { signal: AbortSignal.timeout(8000) });
+            if (!live.ok) throw new Error(String(live.status));
+            sendJson(res, 200, await live.json());
+          } catch {
+            sendJson(res, 502, { error: "Live rates unavailable" });
+          }
+          return;
+        }
         if (pathname === "/admin") {
           res.statusCode = 302;
           res.setHeader("Location", "/admin/");
@@ -528,7 +543,7 @@ function localCmsPlugin(): Plugin {
         const file = files[pathname];
         if (!file) return next();
         res.setHeader("Content-Type", file[1]);
-        res.end(fs.readFileSync(path.resolve(__dirname, "cms", file[0])));
+        res.end(fs.readFileSync(path.resolve(__dirname, file[0])));
       });
     },
   };
