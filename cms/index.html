@@ -26,6 +26,7 @@
             import('/admin/sell-price.js').then(function () {
               if (cmsLoader) cmsLoader.remove();
               window.CMS.init();
+              import('/admin/go-live.js');
             }).catch(showError);
             return;
           }
