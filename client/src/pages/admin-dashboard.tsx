@@ -409,6 +409,26 @@ function RatesTab({ adminKey }: { adminKey: string }) {
   const [loading, setLoading] = useState(true);
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [saveError, setSaveError] = useState('');
+  const [savedRows, setSavedRows] = useState<MetalRateRow[]>([]);
+  const [canAcceptBig, setCanAcceptBig] = useState(false);
+  const [priceChanges, setPriceChanges] = useState<string[] | null>(null);
+
+  // Shows the owner exactly what a new rate did to customer prices.
+  const readPrices = async () => {
+    try {
+      const res = await fetch(`/api/products?fresh=${Date.now()}`, { cache: 'no-store' });
+      const products: { id: string; name: string; price: number }[] = await res.json();
+      return res.ok ? new Map(products.map(p => [p.id, p])) : null;
+    } catch {
+      return null;
+    }
+  };
+  const reportPrices = async (before: Awaited<ReturnType<typeof readPrices>>) => {
+    const after = await readPrices();
+    if (!before || !after) return setPriceChanges(null);
+    setPriceChanges(Array.from(after.values()).filter(p => before.has(p.id) && before.get(p.id)!.price !== p.price)
+      .map(p => `${p.id} ${p.name}: ${formatNPR(before.get(p.id)!.price)} → ${formatNPR(p.price)}`));
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -416,6 +436,7 @@ function RatesTab({ adminKey }: { adminKey: string }) {
       const res = await fetch('/api/metal-rates', { headers: { 'x-admin-key': adminKey } });
       const data = await res.json();
       setRows(data.rates || []);
+      setSavedRows(data.rates || []);
     } finally {
       setLoading(false);
     }
@@ -436,20 +457,29 @@ function RatesTab({ adminKey }: { adminKey: string }) {
   const [tola, setTola] = useState({ gold: '', silver: '' });
 
   // Pulls today's FENEGOSIDA rates on the server (the same job the daily cron runs).
-  const handleSync = async () => {
+  const handleSync = async (acceptBigChange = false) => {
     setSyncing(true);
+    setCanAcceptBig(false);
+    setPriceChanges(null);
     setSyncMessage('');
     setSaveError('');
     try {
-      const res = await fetch('/api/metal-rates/sync', { method: 'POST', headers: { 'x-admin-key': adminKey } });
+      const before = await readPrices();
+      const res = await fetch('/api/metal-rates/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+        body: JSON.stringify({ acceptBigChange }),
+      });
       const data = await res.json();
       if (!res.ok) {
         setSaveError(`FENEGOSIDA: ${data.error || 'sync failed'}. Rates were not changed.`);
         return;
       }
+      setCanAcceptBig(data.skipped?.length > 0);
       const skipped = data.skipped?.length ? ` Skipped (changed over 15%): ${data.skipped.map((s: { rateKey: string }) => s.rateKey).join(', ')}.` : '';
       setSyncMessage(`Saved FENEGOSIDA rates for ${data.date}: fine gold NPR ${Math.round(data.fineGoldPerGram).toLocaleString()}/g, pure silver NPR ${data.fineSilverPerGram.toFixed(2)}/g.${skipped}`);
       await load();
+      await reportPrices(before);
     } catch {
       setSaveError('Network error while fetching FENEGOSIDA rates.');
     } finally {
@@ -468,13 +498,29 @@ function RatesTab({ adminKey }: { adminKey: string }) {
     setSyncMessage('Current rates filled from your per-tola entry. Press "Save all" to apply them.');
   };
 
-  const handleSaveAll = async () => {
-    for (const row of rows) await handleSave(row);
-    setSyncMessage('All rates saved.');
+  const changed = (row: MetalRateRow) => JSON.stringify(row) !== JSON.stringify(savedRows.find(saved => saved.rateKey === row.rateKey));
+
+  const saveRows = async (list: MetalRateRow[]) => {
+    setSyncMessage('');
+    setSaveError('');
+    setPriceChanges(null);
+    const before = await readPrices();
+    const results = [];
+    for (const row of list) results.push(await handleSave(row));
+    const saved = results.filter(Boolean).length;
+    if (saved) {
+      setSyncMessage(`${saved} of ${list.length} rate${list.length === 1 ? '' : 's'} saved.`);
+      await reportPrices(before);
+    }
   };
 
-  const handleSave = async (row: MetalRateRow) => {
-    setSaveError('');
+  const handleSaveAll = async () => {
+    const list = rows.filter(changed);
+    if (!list.length) setSyncMessage('Nothing to save: no rate was changed.');
+    else await saveRows(list);
+  };
+
+  const handleSave = async (row: MetalRateRow, confirmBigChange = false): Promise<boolean> => {
     setSavingKey(row.rateKey);
 
     try {
@@ -488,18 +534,23 @@ function RatesTab({ adminKey }: { adminKey: string }) {
           baselinePricePerGram: row.baselinePricePerGram,
           source: row.source,
           notes: row.notes,
+          confirmBigChange,
         }),
       });
       const data = await res.json();
 
       if (!res.ok) {
-        setSaveError(data.error || 'Failed to update metal rate.');
-        return;
+        if (data.needsConfirm && window.confirm(`${data.error}\n\nCustomer prices that follow this rate will change.`)) return await handleSave(row, true);
+        setSaveError(data.needsConfirm ? `${row.label} was not saved.` : data.error || 'Failed to update metal rate.');
+        return false;
       }
 
       setRows(prev => prev.map(item => item.rateKey === row.rateKey ? data.rate : item));
+      setSavedRows(prev => prev.map(item => item.rateKey === row.rateKey ? data.rate : item));
+      return true;
     } catch {
       setSaveError('Network error while updating metal rate.');
+      return false;
     } finally {
       setSavingKey(null);
     }
@@ -511,7 +562,7 @@ function RatesTab({ adminKey }: { adminKey: string }) {
         <div>
           <p className="text-sm text-stone-500">Set the current market rate and the baseline rate used by your catalog pricing.</p>
           <p className="mt-2 text-xs text-stone-400">
-            Calculated products use: current rate x weight + wastage + making charge + stones (set in the CMS; no baseline needed). Older live-priced products use: stored price + (current rate - baseline rate) x weight.
+            "Follows rate" products: the price you typed, moved by (rate now - rate when you typed it) x weight. "Built from rate" products: rate x weight + wastage + making + stones. "Fixed" products never move.
           </p>
         </div>
         <button
@@ -532,7 +583,7 @@ function RatesTab({ adminKey }: { adminKey: string }) {
           </p>
           <button
             type="button"
-            onClick={handleSync}
+            onClick={() => handleSync()}
             disabled={syncing}
             className="mt-3 bg-stone-900 px-4 py-2 text-xs uppercase tracking-[0.15em] text-white hover:bg-stone-700 disabled:opacity-50"
           >
@@ -567,12 +618,24 @@ function RatesTab({ adminKey }: { adminKey: string }) {
       </div>
 
       <p className="mb-4 text-xs text-stone-500">
-        <strong className="font-medium text-stone-700">Baseline / g</strong> is set once: the rate your product prices were based on. Don&apos;t change it daily;
-        while it is 0, products keep their fixed prices.
+        <strong className="font-medium text-stone-700">Baseline / g</strong> is no longer needed: each product remembers its own starting rate. Leave it at 0.
       </p>
 
       {syncMessage && <p className="mb-4 text-sm text-emerald-700">{syncMessage}</p>}
       {saveError && <p className="mb-4 text-sm text-red-600">{saveError}</p>}
+      {canAcceptBig && (
+        <div role="alert" className="mb-4 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">
+          <p>FENEGOSIDA is more than 15% away from your saved rate. If your saved rate was a typing mistake, use theirs.</p>
+          <button type="button" disabled={syncing} onClick={() => handleSync(true)} className="mt-3 h-11 rounded-full bg-amber-700 px-5 text-white">Use FENEGOSIDA&apos;s rate</button>
+        </div>
+      )}
+      {priceChanges && (
+        <div role="status" className="mb-4 rounded-xl bg-forest-50 p-4 text-sm text-forest-900">
+          {priceChanges.length === 0 ? 'No product price changed.' : (
+            <><p className="font-medium">{priceChanges.length} product price{priceChanges.length === 1 ? '' : 's'} changed:</p>{priceChanges.map(text => <p key={text}>{text}</p>)}</>
+          )}
+        </div>
+      )}
 
       {loading ? (
         <div className="py-12 text-center text-stone-400 text-sm">Loading...</div>
@@ -630,7 +693,7 @@ function RatesTab({ adminKey }: { adminKey: string }) {
                   <td className="px-4 py-3">
                     <button
                       type="button"
-                      onClick={() => handleSave(row)}
+                      onClick={() => saveRows([row])}
                       disabled={savingKey === row.rateKey}
                       className="bg-stone-900 px-4 py-2 text-xs tracking-[0.15em] uppercase text-white transition-colors hover:bg-stone-700 disabled:opacity-50"
                     >

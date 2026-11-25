@@ -80,8 +80,8 @@ collections:
         default: "manual"
         options:
           - { label: "Fixed price", value: "manual" }
-          - { label: "Calculated: today's rate + wastage + making charge", value: "formula" }
-          - { label: "Old: fixed price that moves with the rate", value: "live_metal" }
+          - { label: "Built from rate: rate x weight + wastage + making charge", value: "formula" }
+          - { label: "Follows rate: type today's price, it moves with the rate", value: "live_metal" }
       - { label: "Wastage / Jarti (%)", name: "wastagePercent", widget: "number", value_type: "float", min: 0, max: 50, step: 0.1, required: false, hint: "Calculated price only" }
       - { label: "Making Charge / Jyala", name: "makingCharge", widget: "number", value_type: "float", min: 0, step: 0.1, required: false, hint: "Calculated price only" }
       - label: "Making Charge Is"
@@ -95,7 +95,8 @@ collections:
           - { label: "% of metal value", value: "percent" }
       - { label: "Stone Cost (NPR)", name: "stoneCost", widget: "number", value_type: "float", min: 0, required: false, hint: "Calculated price only. Leave empty if no stones" }
       - { label: "Weight Without Stones (grams)", name: "pricingWeightGrams", widget: "number", value_type: "float", min: 0, step: 0.001, required: false, hint: "Only if stones are included in the weight above" }
-      - { label: "Sell Price (NPR)", name: "price", widget: "sell-price", hint: "Fixed: type it. Calculated: fills in by itself." }
+      - { label: "Sell Price (NPR)", name: "price", widget: "sell-price", hint: "Type it. For Built from rate it fills in by itself." }
+      - { label: "Rate When Price Was Set", name: "priceBaseRate", widget: "base-rate", required: false, hint: "Filled in by itself for Follows rate" }
       - { label: "Old Price, crossed out", name: "originalPrice", widget: "number", value_type: "int", min: 500, required: false, hint: "Only a price you really sold it at" }
 
       - { label: "Description", name: "description", widget: "text" }

@@ -16,7 +16,7 @@ const PROJECT_NAME = 'aashish-jewellers';
 const SUBJECT = 'content: go live';
 const LABELS = {
   name: 'Name', price: 'Price', originalPrice: 'Old price', priceMode: 'Price type', wastagePercent: 'Wastage %',
-  makingCharge: 'Making charge', makingChargeType: 'Making charge is', stoneCost: 'Stone cost', weight: 'Weight',
+  makingCharge: 'Making charge', makingChargeType: 'Making charge is', stoneCost: 'Stone cost', priceBaseRate: 'Rate when price was set', weight: 'Weight',
   pricingWeightGrams: 'Weight without stones', material: 'Material', category: 'Category', inStock: 'In stock', image: 'Main photo',
 };
 
@@ -49,6 +49,8 @@ function checkProduct(code, data, imageExists) {
   for (const key of ['makingCharge', 'stoneCost']) {
     if (!(Number(data[key] || 0) >= 0)) bad(`${LABELS[key].toLowerCase()} can't be negative.`);
   }
+  if (!(Number(data.priceBaseRate || 0) >= 0)) bad('rate when price was set is not valid. Type the price again.');
+  if (data.priceMode === 'live_metal' && !(Number(data.priceBaseRate) > 0)) bad('follows the rate, but no starting rate is saved. Type the sell price again.');
   if (!data.image) bad('main photo is missing.');
   for (const src of [data.image, ...(Array.isArray(data.images) ? data.images : [])].filter(Boolean)) {
     if (!imageExists(src)) bad(`photo not found: ${src}`);
