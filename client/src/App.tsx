@@ -25,7 +25,6 @@ import { ChatProvider } from "@/contexts/ChatContext";
 import { EngagementProvider } from "@/contexts/EngagementContext";
 import { FlashSaleProvider } from "@/contexts/FlashSaleContext";
 import { CartSheet } from "@/components/cart/CartSheet";
-import InstallPrompt from "@/components/InstallPrompt";
 import { Toaster } from "@/components/ui/toaster";
 import StoreRateStrip from "@/components/StoreRateStrip";
 import MobileTabBar from "@/components/MobileTabBar";
@@ -86,7 +85,6 @@ function App() {
               {showTabBar && <MobileTabBar categoriesOpen={categoriesOpen} onOpenCategories={() => setCategoriesOpen(true)} />}
               <CategorySheet open={categoriesOpen} onOpenChange={setCategoriesOpen} />
               <Toaster />
-              <InstallPrompt />
             </div>
           </ChatProvider>
         </EngagementProvider>

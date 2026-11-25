@@ -2,6 +2,9 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
+// Customers just use the website: stop Chrome's own install bar (its menu can still add a shortcut).
+window.addEventListener('beforeinstallprompt', event => event.preventDefault());
+
 if ('serviceWorker' in navigator) {
   if (import.meta.env.PROD) {
     // Production: register service worker for PWA
