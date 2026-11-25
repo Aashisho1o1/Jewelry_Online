@@ -1,4 +1,4 @@
-import { loadCatalogProducts } from '../lib/catalog.js';
+import { loadCatalogProductsWithPricing } from '../lib/catalog.js';
 
 // Keep in sync with SITE_URL in client/src/components/SiteMeta.tsx.
 const BASE_URL = 'https://aashishjewellers.com.np';
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const products = await loadCatalogProducts();
+    const products = await loadCatalogProductsWithPricing();
     const today = new Date().toISOString().split('T')[0];
 
     const staticEntries = STATIC_PAGES.map(page => urlEntry(page));

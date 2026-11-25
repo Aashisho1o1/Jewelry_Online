@@ -16,10 +16,6 @@ import {
   getActiveFlashSale,
   upsertFlashSale,
   deactivateFlashSale,
-  getDbProducts,
-  createDbProduct,
-  updateDbProduct,
-  deleteDbProduct,
   getOrderStats,
   getMetalRates,
   upsertMetalRate,
@@ -32,6 +28,7 @@ import {
   updateOrderStatus,
 } from "./lib/db-store.js";
 import { query, queryMany } from "./lib/db.js";
+import { createAdminProduct, listAdminProducts, ProductInputError, updateAdminProduct } from "./lib/product-admin.js";
 import { createGoLive, GoLiveError } from "./scripts/go-live.js";
 import { RateSyncError, syncMetalRatesFromFenegosida } from "./lib/nepal-rates.js";
 
@@ -372,44 +369,21 @@ function localApiPlugin(apiKey?: string, model?: string): Plugin {
         }
 
         // ── Admin: Products CMS ───────────────────────────────────────────────
-        if (pathname === "/api/products/admin-list" && req.method === "GET") {
+        const productAction = pathname.match(/^\/api\/products\/(admin-list|create|update)$/)?.[1];
+        if (productAction) {
           try {
-            const products = await getDbProducts();
-            sendJson(res, 200, { products });
-          } catch { sendJson(res, 200, { products: [] }); }
-          return;
-        }
-        if (pathname === "/api/products/create" && req.method === "POST") {
-          try {
-            const body = await readJsonBody(req);
-            if (!body.id || !body.name || !body.category || !body.material || !body.price) {
-              sendJson(res, 400, { error: "id, name, category, material, price are required" });
-              return;
+            if (productAction === "admin-list") sendJson(res, 200, await listAdminProducts());
+            else {
+              const save = productAction === "create" ? createAdminProduct : updateAdminProduct;
+              sendJson(res, 200, { product: await save(await readJsonBody(req)) });
             }
-            const product = await createDbProduct(body);
-            sendJson(res, 200, { success: true, product });
           } catch (e: any) {
-            console.error("Local products/create error:", e.message);
-            sendJson(res, 500, { error: e.message });
+            if (e instanceof ProductInputError) sendJson(res, e.status, { error: e.message, ...e.extra });
+            else {
+              console.error("Local products error:", e.message);
+              sendJson(res, 500, { error: "Internal server error" });
+            }
           }
-          return;
-        }
-        if (pathname === "/api/products/update" && req.method === "PUT") {
-          try {
-            const body = await readJsonBody(req);
-            const { id, ...fields } = body;
-            if (!id) { sendJson(res, 400, { error: "id required" }); return; }
-            const product = await updateDbProduct(id, fields);
-            sendJson(res, 200, { success: true, product });
-          } catch (e: any) { sendJson(res, 500, { error: e.message }); }
-          return;
-        }
-        if (pathname === "/api/products/delete" && req.method === "DELETE") {
-          try {
-            const body = await readJsonBody(req);
-            await deleteDbProduct(body.id);
-            sendJson(res, 200, { success: true });
-          } catch (e: any) { sendJson(res, 500, { error: e.message }); }
           return;
         }
 
