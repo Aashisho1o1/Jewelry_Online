@@ -20,6 +20,16 @@ export default function OrderSuccess() {
   const transactionId = urlParams.get('txn');
   const customerPhone = urlParams.get('phone') || '';
 
+  // Saved by checkout in this tab only; matched to this order so an old message is never sent.
+  const [whatsappUrl] = React.useState(() => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem('whatsappOrder') || 'null');
+      return saved?.orderId === orderId && String(saved.url).startsWith('https://wa.me/') ? String(saved.url) : null;
+    } catch {
+      return null;
+    }
+  });
+
   React.useEffect(() => {
     localStorage.removeItem('pendingOrderId');
   }, []);
@@ -43,6 +53,22 @@ export default function OrderSuccess() {
               Thank you - we&apos;ll call to confirm your order shortly.
             </p>
           </div>
+
+          {whatsappUrl && (
+            <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center">
+              <p className="text-base font-medium text-stone-900">One more step: send your order on WhatsApp</p>
+              <p className="mt-1 text-sm text-stone-600">Your order is saved. Tap below, then press Send so we can confirm it in chat.</p>
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-5 text-sm font-medium text-white"
+              >
+                <MessageCircle className="h-5 w-5" strokeWidth={1.75} />
+                Open WhatsApp
+              </a>
+            </div>
+          )}
 
           {/* Order details card */}
           <div className="bg-white border border-stone-200 mb-6">
