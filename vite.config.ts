@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
 import { ChatServiceError, generateChatReply } from "./lib/chat-service.js";
-import { loadCatalogProductsWithPricing } from "./lib/catalog.js";
+import { loadCatalogProducts, loadCatalogProductsWithPricing } from "./lib/catalog.js";
 import { getPublicStoreRates } from "./lib/store-rates.js";
 import {
   assertSubmittedTotal,
@@ -508,13 +508,15 @@ function localApiPlugin(apiKey?: string, model?: string): Plugin {
   };
 }
 
-const LIVE_SITE = "https://aashishjewellers.com.np";
+// The vercel.app address works even when a .com.np nameserver is out of date. Same shop, and /api is never redirected.
+const LIVE_SITE = "https://aashish-jewellers.vercel.app";
 
 // Serves the CMS from /cms in dev only, so it never reaches the built site.
 function localCmsPlugin(): Plugin {
   const files: Record<string, [string, string]> = {
     "/admin/": ["cms/index.html", "text/html; charset=utf-8"],
     "/admin/config.yml": ["cms/config.yml", "text/yaml; charset=utf-8"],
+    "/admin/product-code.js": ["cms/product-code.js", "text/javascript; charset=utf-8"],
     "/admin/sell-price.js": ["cms/sell-price.js", "text/javascript; charset=utf-8"],
     "/admin/go-live.js": ["cms/go-live.js", "text/javascript; charset=utf-8"],
     "/admin/metal-pricing.js": ["lib/metal-pricing.js", "text/javascript; charset=utf-8"],
@@ -535,6 +537,17 @@ function localCmsPlugin(): Plugin {
           } catch {
             sendJson(res, 502, { error: "Live rates unavailable" });
           }
+          return;
+        }
+        // Codes in use: this folder plus the live shop (which may have products added in the admin dashboard).
+        if (pathname === "/admin/codes.json") {
+          let live: any[] = [];
+          try {
+            const response = await fetch(`${LIVE_SITE}/api/products`, { signal: AbortSignal.timeout(6000) });
+            const data = await response.json();
+            if (Array.isArray(data)) live = data;
+          } catch { /* Go Live checks the live shop again */ }
+          sendJson(res, 200, [...loadCatalogProducts(), ...live].map(p => ({ id: p.id, name: p.name })));
           return;
         }
         const action = pathname.match(/^\/admin\/go-live\/(preview|publish|retry|undo)$/)?.[1] as keyof typeof goLive | undefined;

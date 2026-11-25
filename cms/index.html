@@ -23,7 +23,7 @@
         function onLoaded() {
           if (window.CMS) {
             // Register the price field before the form opens, so it is never missing.
-            import('/admin/sell-price.js').then(function () {
+            Promise.all([import('/admin/sell-price.js'), import('/admin/product-code.js')]).then(function () {
               if (cmsLoader) cmsLoader.remove();
               window.CMS.init();
               import('/admin/go-live.js');

@@ -10,7 +10,7 @@
  * POST /api/reviews                — submit review
  */
 
-import { loadCatalogProductsWithPricing } from '../lib/catalog.js';
+import { loadCatalogProducts, loadCatalogProductsWithPricing } from '../lib/catalog.js';
 import { apiRateLimit, rateLimit } from '../lib/rate-limiter.js';
 import { requireAdminAuth } from '../lib/admin-auth.js';
 import { createDbProduct, updateDbProduct, deleteDbProduct, getDbProducts } from '../lib/db-store.js';
@@ -104,6 +104,9 @@ export default async function handler(req, res) {
     const { id, name, category, material, price } = req.body || {};
     if (!id || !name || !category || !material || !price) return res.status(400).json({ error: 'Missing required fields: id, name, category, material, price' });
     if (!/^[a-zA-Z0-9_-]+$/.test(id)) return res.status(400).json({ error: 'Product ID must contain only letters, numbers, hyphens, and underscores' });
+    // A database product with a CMS product's code would replace it on the website.
+    const taken = loadCatalogProducts().find(p => p.id.toUpperCase() === String(id).toUpperCase());
+    if (taken) return res.status(409).json({ error: `Product code "${taken.id}" is already used by ${taken.name}` });
     try {
       const product = await createDbProduct(req.body);
       return res.status(201).json({ product });
