@@ -6,7 +6,7 @@ import { requireAdminAuth } from '../lib/admin-auth.js';
 import { getMetalRates, upsertMetalRate } from '../lib/db-store.js';
 import { DEFAULT_METAL_RATES, normalizeMetalRateRecord } from '../lib/metal-pricing.js';
 import { getPublicStoreRates } from '../lib/store-rates.js';
-import { RateSyncError, syncMetalRatesFromFenegosida } from '../lib/nepal-rates.js';
+import { MAX_DAILY_CHANGE, RateSyncError, syncMetalRatesFromFenegosida } from '../lib/nepal-rates.js';
 
 // Vercel Cron sends 'Authorization: Bearer <CRON_SECRET>' when CRON_SECRET is set; refuse if it isn't.
 function isVercelCron(req) {
@@ -35,7 +35,10 @@ export default async function handler(req, res) {
   if (req.url && req.url.split('?')[0].endsWith('/metal-rates/sync')) {
     if (!isVercelCron(req) && !requireAdminAuth(req, res)) return;
     try {
-      const result = await syncMetalRatesFromFenegosida();
+      // The daily job never accepts a big jump; the owner can, after a typo left a wrong rate behind.
+      const acceptBigChange = req.method === 'POST' && req.body?.acceptBigChange === true;
+      if (acceptBigChange && isVercelCron(req)) return res.status(400).json({ error: 'Not allowed' });
+      const result = await syncMetalRatesFromFenegosida({ acceptBigChange });
       await clearCache('rates', 'products');
       return res.status(200).json({ success: true, ...result });
     } catch (error) {
@@ -107,12 +110,23 @@ export default async function handler(req, res) {
     }
 
     try {
+      const existing = (await getMetalRates()).find(row => row.rate_key === rateKey.trim());
+      const previous = Number(existing?.price_per_gram) || 0;
+      const change = previous > 0 ? Math.abs(parsedPricePerGram - previous) / previous : 0;
+      // Product prices follow this number, so a typo must not slip through (the rate 0 switches following off).
+      if (change > MAX_DAILY_CHANGE && req.body.confirmBigChange !== true) {
+        return res.status(409).json({
+          needsConfirm: true,
+          error: `${existing.label || rateKey}: ${previous} to ${parsedPricePerGram} is a ${Math.round(change * 100)}% change. Is this right?`,
+        });
+      }
       const updatedRate = await upsertMetalRate({
         rateKey: rateKey.trim(),
         label: typeof label === 'string' && label.trim() ? label.trim() : rateKey.trim(),
         pricePerGram: parsedPricePerGram,
         baselinePricePerGram: parsedBaselinePricePerGram,
-        source: typeof source === 'string' && source.trim() ? source.trim() : null,
+        // A hand-typed rate must not keep claiming to come from FENEGOSIDA.
+        source: change > 0 && /^FENEGOSIDA/.test(String(source || '')) ? 'Entered by hand' : typeof source === 'string' && source.trim() ? source.trim() : null,
         notes: typeof notes === 'string' && notes.trim() ? notes.trim() : null,
       });
 

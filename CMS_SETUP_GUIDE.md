@@ -13,6 +13,7 @@ Stop with Ctrl+C. Orders, stock, rates and promos are managed online at `/admin-
 ## Prices
 
 - **Fixed price:** type the sell price.
-- **Calculated:** (rate per gram x weight) + wastage % + making charge + stone cost, rounded to NPR 10. The website recalculates it with the daily rate; if no rate is available it uses the last price saved in the CMS. Wastage and a % making charge are both taken on the metal value. No VAT or luxury tax is added.
+- **Follows rate:** type today's sell price. The website moves it by (rate now - rate when you typed it) x weight, rounded to NPR 10.
+- **Built from rate:** (rate per gram x weight) + wastage % + making charge + stone cost, rounded to NPR 10. The website recalculates it with the daily rate; if no rate is available it uses the last price saved in the CMS. Wastage and a % making charge are both taken on the metal value. No VAT or luxury tax is added.
 
 The CMS helper on port 8081 has no password. It only accepts connections from this computer; keep it that way.

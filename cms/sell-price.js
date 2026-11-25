@@ -1,5 +1,5 @@
 // Price field: a plain number for fixed prices, a live breakdown for calculated ones.
-import { calculateFormulaPrice, inferMetalRateKey, parseWeightGrams } from '/admin/metal-pricing.js';
+import { calculateFormulaPrice, followRatePrice, inferMetalRateKey, parseWeightGrams } from '/admin/metal-pricing.js';
 
 const { CMS, createClass, h } = window;
 const ratesRequest = fetch('/admin/rates.json').then(r => (r.ok ? r.json() : null)).catch(() => null);
@@ -88,4 +88,47 @@ const Control = createClass({
   },
 });
 
+// Remembers the rate a price was typed at, so only later rate changes move it.
+const BASE_INPUTS = ['price', 'priceMode', 'material', 'metalRateKey', 'weight', 'pricingWeightGrams'];
+const BaseRate = createClass({
+  getInitialState() { return { rates: undefined }; },
+  componentDidMount() {
+    this.alive = true;
+    this.last = this.inputs();
+    ratesRequest.then(data => this.alive && this.setState({ rates: data }));
+  },
+  componentWillUnmount() { this.alive = false; },
+  shouldComponentUpdate() { return true; },
+  get(name) { return this.props.entry.getIn(['data', name]); },
+  inputs() { return BASE_INPUTS.map(name => this.get(name)).join('|'); },
+  rate() {
+    const key = this.get('metalRateKey') || inferMetalRateKey(this.get('material'));
+    const found = this.state.rates && this.state.rates.rates.find(r => r.rateKey === key && r.isActive);
+    return found ? found.pricePerGram : null;
+  },
+  componentDidUpdate() {
+    if (this.state.rates === undefined) return;
+    const inputs = this.inputs();
+    if (inputs === this.last) return;
+    this.last = inputs;
+    const rate = this.rate();
+    if (this.get('priceMode') === 'live_metal' && rate && rate !== this.props.value) this.props.onChange(rate);
+  },
+  render() {
+    const weight = Number(this.get('pricingWeightGrams')) || parseWeightGrams(this.get('weight'));
+    const now = followRatePrice({
+      price: this.get('price'), baseRate: this.props.value, ratePerGram: this.rate(), weightGrams: weight,
+      roundingIncrement: this.get('priceRoundingIncrement'),
+    });
+    const text = this.get('priceMode') !== 'live_metal' ? 'Not used for this price type.'
+      : this.state.rates === undefined ? 'Loading...'
+        : !this.rate() ? 'No rate for this metal today, so the price stays as typed.'
+          : !weight ? 'Enter the weight, or the price cannot move.'
+            : now === null ? 'Type the sell price again to start following the rate.'
+              : `Typed at rate ${this.props.value}. Customers pay ${npr(now)} today.`;
+    return h('div', { id: this.props.forID, className: this.props.classNameWrapper, 'data-follow': now === null ? '' : now }, text);
+  },
+});
+
+CMS.registerWidget('base-rate', BaseRate);
 CMS.registerWidget('sell-price', Control, ({ value }) => h('span', null, value));

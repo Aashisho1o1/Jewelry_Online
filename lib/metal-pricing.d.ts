@@ -9,4 +9,5 @@ export interface FormulaInput {
   roundingIncrement?: number;
 }
 export function calculateFormulaPrice(input: FormulaInput): { metal: number; wastage: number; making: number; stones: number; price: number } | null;
+export function followRatePrice(input: { price?: number | string; baseRate?: number | string | null; ratePerGram?: number; weightGrams?: number; roundingIncrement?: number }): number | null;
 export function inferMetalRateKey(material: string): string | null;

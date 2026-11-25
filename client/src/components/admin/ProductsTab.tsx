@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-import { calculateFormulaPrice, inferMetalRateKey } from '../../../../lib/metal-pricing.js';
+import { calculateFormulaPrice, followRatePrice, inferMetalRateKey } from '../../../../lib/metal-pricing.js';
 
 type Status = 'draft' | 'live' | 'hidden';
-type PriceMode = 'manual' | 'formula';
+type PriceMode = 'manual' | 'live_metal' | 'formula';
 
 interface AdminProduct {
   id: string; name: string; category: string; material: string; status: Status;
   price: number | string; current_price: number; original_price: number | string | null;
   price_mode: PriceMode | null; wastage_percent: number | string | null; making_charge: number | string | null;
-  making_charge_type: string | null; stone_cost: number | string | null; pricing_weight_grams: number | string | null;
+  making_charge_type: string | null; stone_cost: number | string | null; pricing_weight_grams: number | string | null; price_base_rate: number | string | null;
   description: string | null; care_instructions: string | null; weight: string | null; dimensions: string | null;
   in_stock: boolean; is_new: boolean; featured: boolean; images: string[]; stock: number | null;
 }
@@ -46,7 +46,7 @@ type Form = typeof EMPTY;
 function toForm(p: AdminProduct): Form {
   return {
     name: p.name, category: p.category, material: p.material, weight: str(p.weight).replace(/g$/, ''),
-    price_mode: p.price_mode === 'formula' ? 'formula' : 'manual', price: str(Number(p.price) || ''),
+    price_mode: p.price_mode === 'formula' || p.price_mode === 'live_metal' ? p.price_mode : 'manual', price: str(Number(p.price) || ''),
     wastage_percent: str(p.wastage_percent), making_charge: str(p.making_charge), making_charge_type: p.making_charge_type || 'fixed',
     stone_cost: str(p.stone_cost), pricing_weight_grams: str(p.pricing_weight_grams), original_price: str(p.original_price),
     description: str(p.description), care_instructions: str(p.care_instructions), dimensions: str(p.dimensions),
@@ -108,6 +108,17 @@ function ProductForm({ product, rates, adminKey, onClose, onSaved }: {
     makingChargeType: form.making_charge_type,
     stoneCost: form.stone_cost,
   });
+  const priceTouched = !product || form.price !== initial.price || form.weight !== initial.weight || form.material !== initial.material
+    || form.price_mode !== initial.price_mode || form.pricing_weight_grams !== initial.pricing_weight_grams;
+  const followWeight = Number(form.pricing_weight_grams) || grams;
+  const baseRate = priceTouched ? rate?.pricePerGram : Number(product?.price_base_rate);
+  const followNow = followRatePrice({ price: form.price, baseRate, ratePerGram: rate?.pricePerGram, weightGrams: followWeight });
+  const followHint = form.price_mode !== 'live_metal' ? undefined
+    : !inferMetalRateKey(form.material) ? 'This metal has no daily rate. Use a fixed price.'
+      : !rate ? 'There is no rate for this metal. Add it under Metal rates.'
+        : !followWeight ? 'Enter the weight, so the price can move with the rate.'
+          : followNow === null ? 'Enter the price.'
+            : `Typed at rate ${baseRate}. Customers pay ${npr(followNow)} today. Each NPR 10 change in the rate moves it by about ${npr(followWeight * 10)}.`;
   const dirty = JSON.stringify(form) !== JSON.stringify(initial);
 
   const close = () => {
@@ -174,9 +185,9 @@ function ProductForm({ product, rates, adminKey, onClose, onSaved }: {
       </Field>
 
       <div className="space-y-4 rounded-xl bg-white p-4">
-        <Choices title="Price" options={[['manual', 'Fixed'], ['formula', "Today's rate"]]} value={form.price_mode} onChange={v => set('price_mode', v as PriceMode)} />
-        {form.price_mode === 'manual' ? (
-          <Field title="Sell price (NPR)">
+        <Choices title="Price" options={[['manual', 'Fixed'], ['live_metal', 'Follows rate'], ['formula', 'Built from rate']]} value={form.price_mode} onChange={v => set('price_mode', v as PriceMode)} />
+        {form.price_mode !== 'formula' ? (
+          <Field title={form.price_mode === 'live_metal' ? 'Sell price today (NPR)' : 'Sell price (NPR)'} hint={followHint}>
             <input className={INPUT} type="number" inputMode="numeric" min="0" step="1" value={form.price} onChange={e => set('price', e.target.value)} />
           </Field>
         ) : (
@@ -348,7 +359,7 @@ export default function ProductsTab({ adminKey }: { adminKey: string }) {
                   <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-xs', STATUS_STYLE[p.status])}>{STATUS_LABEL[p.status]}</span>
                 </div>
                 <p className="text-xs text-stone-500">
-                  {p.id} · {npr(p.current_price)}{p.price_mode === 'formula' ? " (today's rate)" : ''} · {p.stock === null ? (p.in_stock ? 'in stock' : 'sold out') : `${p.stock} in stock`}
+                  {p.id} · {npr(p.current_price)}{p.price_mode === 'formula' || p.price_mode === 'live_metal' ? ' (moves with rate)' : ''} · {p.stock === null ? (p.in_stock ? 'in stock' : 'sold out') : `${p.stock} in stock`}
                 </p>
                 <div className="mt-2 flex gap-2">
                   <button type="button" onClick={() => { setMessage(''); setEditing(p); }} className="h-10 rounded-full border border-stone-300 px-4 text-sm">Edit</button>
