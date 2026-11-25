@@ -20,6 +20,7 @@ const ORG_JSON_LD = {
   name: 'Aashish Jewellers',
   url: SITE_URL,
   image: `${SITE_URL}/icons/icon-512.png`,
+  logo: `${SITE_URL}/icons/icon-512.png`,
   description: 'Premium 925 silver jewelry handcrafted in Nepal - rings, necklaces, earrings, bracelets and traditional sets.',
   address: {
     '@type': 'PostalAddress',
