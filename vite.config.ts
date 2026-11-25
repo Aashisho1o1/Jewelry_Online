@@ -32,6 +32,7 @@ import {
   updateOrderStatus,
 } from "./lib/db-store.js";
 import { query, queryMany } from "./lib/db.js";
+import { createGoLive, GoLiveError } from "./scripts/go-live.js";
 import { RateSyncError, syncMetalRatesFromFenegosida } from "./lib/nepal-rates.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -515,8 +516,10 @@ function localCmsPlugin(): Plugin {
     "/admin/": ["cms/index.html", "text/html; charset=utf-8"],
     "/admin/config.yml": ["cms/config.yml", "text/yaml; charset=utf-8"],
     "/admin/sell-price.js": ["cms/sell-price.js", "text/javascript; charset=utf-8"],
+    "/admin/go-live.js": ["cms/go-live.js", "text/javascript; charset=utf-8"],
     "/admin/metal-pricing.js": ["lib/metal-pricing.js", "text/javascript; charset=utf-8"],
   };
+  const goLive = createGoLive({ root: __dirname, liveSite: LIVE_SITE });
   return {
     name: "local-cms",
     apply: "serve",
@@ -531,6 +534,26 @@ function localCmsPlugin(): Plugin {
             sendJson(res, 200, await live.json());
           } catch {
             sendJson(res, 502, { error: "Live rates unavailable" });
+          }
+          return;
+        }
+        const action = pathname.match(/^\/admin\/go-live\/(preview|publish|retry|undo)$/)?.[1] as keyof typeof goLive | undefined;
+        if (action) {
+          // It changes the live shop, so accept only this page on this computer (blocks other sites and DNS rebinding).
+          const host = req.headers.host ?? "";
+          const fromThisPage = req.method === "POST" && /^localhost:\d+$/.test(host)
+            && req.headers.origin === `http://${host}` && req.headers["x-go-live"] === "1";
+          if (!fromThisPage) {
+            sendJson(res, 403, { error: "Not allowed" });
+            return;
+          }
+          try {
+            sendJson(res, 200, await goLive[action](await readJsonBody(req)));
+          } catch (error) {
+            if (!(error instanceof GoLiveError)) console.error("Go Live error:", error);
+            sendJson(res, error instanceof GoLiveError ? 409 : 500, {
+              error: error instanceof GoLiveError ? error.message : "Something went wrong. Ask Claude.",
+            });
           }
           return;
         }

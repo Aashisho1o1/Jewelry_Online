@@ -6,7 +6,7 @@ The CMS runs only on your computer. It is not on the public website and needs no
 2. Open http://localhost:5173/admin/ and press Login (no password).
 3. Edit and press Publish. This saves files in this folder only.
 4. Check the result at http://localhost:5173.
-5. To go live: commit the changed files in `content/`, `client/src/content/` and `client/public/images/jewelry/`, then deploy.
+5. Press **Go Live** (bottom right), check the list, then **Go Live now**. It checks the content, commits it to `main` and deploys. **Undo last update** puts the previous version back. Code changes are refused; those need a PR.
 
 Stop with Ctrl+C. Orders, stock, rates and promos are managed online at `/admin-dashboard`, not here.
 
