@@ -1,34 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { BarChart2, ChevronDown, ChevronUp, Download, LogOut, MessageCircle, Package, Printer, RefreshCw, Search, Tag, Wrench, Zap } from 'lucide-react';
 import ProductsTab from '@/components/admin/ProductsTab';
+import OrderCard, { exportOrdersCSV, type AdminOrder } from '@/components/admin/OrderCard';
 import SiteMeta, { SITE_URL } from '@/components/SiteMeta';
 
 // Types
-
-interface OrderItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-  size?: string;
-}
-
-interface AdminOrder {
-  id: string;
-  items: OrderItem[];
-  customer: {
-    name: string;
-    phone: string;
-    email?: string;
-    address: { street: string; district: string; zone?: string; landmark?: string };
-  };
-  total: number;
-  payment_method: string;
-  status: string;
-  notes?: string | null;
-  created_at: string;
-}
 
 interface DailyRevenue { day: string; orders: number; revenue: number; }
 interface TopProduct { product_id: string; name: string; revenue: number; units: number; }
@@ -73,7 +49,7 @@ interface AbandonedCart {
   id: string;
   name: string | null;
   phone: string | null;
-  items: OrderItem[];
+  items: unknown[];
   subtotal: number;
   created_at: string;
   recovered: boolean;
@@ -81,35 +57,8 @@ interface AbandonedCart {
 
 // Constants
 
-// Ring size shown with the item name wherever an order is listed, printed or exported.
-const itemLabel = (i: { name: string; size?: string }) =>
-  i.size ? `${i.name} (${i.size === 'not-sure' ? 'size to confirm' : `size ${i.size}`})` : i.name;
-
-const VALID_STATUSES = [
-  'pending', 'confirmed', 'processing', 'dispatched', 'delivered',
-  'cancelled', 'refunded', 'failed',
-];
-
-const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-amber-100 text-amber-800',
-  confirmed: 'bg-blue-100 text-blue-800',
-  processing: 'bg-purple-100 text-purple-800',
-  dispatched: 'bg-indigo-100 text-indigo-800',
-  delivered: 'bg-green-100 text-green-800',
-  cancelled: 'bg-red-100 text-red-800',
-  refunded: 'bg-orange-100 text-orange-800',
-  failed: 'bg-red-50 text-red-600',
-};
-
-const PAYMENT_LABELS: Record<string, string> = {
-  cod: 'COD', whatsapp: 'WhatsApp', esewa: 'eSewa', khalti: 'Khalti', fonepay: 'FonePay',
-};
-
 // Must match real status values; 'shipped' never matched the 'dispatched' status.
 const FILTER_TABS = ['all', 'pending', 'confirmed', 'processing', 'dispatched', 'delivered', 'cancelled'];
-
-// Closing returns stock and can't be undone, so the admin confirms first.
-const CLOSED_STATUSES = new Set(['cancelled', 'refunded', 'failed']);
 
 // Helpers
 
@@ -119,79 +68,6 @@ function formatNPR(amount: number) {
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function escapeHtml(value: unknown) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;');
-}
-
-function exportOrdersCSV(orders: AdminOrder[]) {
-  const headers = ['Order ID','Customer','Phone','Address','Items','Total','Payment','Status','Date','Notes'];
-  const rows = orders.map(o => [
-    o.id,
-    o.customer?.name || '',
-    o.customer?.phone || '',
-    [o.customer?.address?.street, o.customer?.address?.landmark, o.customer?.address?.district].filter(Boolean).join(', '),
-    (o.items || []).map(i => `${itemLabel(i)} x${i.quantity}`).join('; '),
-    o.total,
-    o.payment_method,
-    o.status,
-    new Date(o.created_at).toLocaleDateString(),
-    o.notes || '',
-  ]);
-  // Customer-entered text starting with = + - @ would run as a formula in Excel/Sheets; prefix ' to keep it text.
-  const csvCell = (c: unknown) => {
-    const s = String(c ?? '');
-    return `"${(/^[=+\-@\t\r]/.test(s) ? `'${s}` : s).replace(/"/g, '""')}"`;
-  };
-  const csv = [headers, ...rows].map(r => r.map(csvCell).join(',')).join('\n');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-  a.download = `orders-${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click();
-}
-
-function printOrder(order: AdminOrder) {
-  const w = window.open('', '_blank', 'width=620,height=900');
-  if (!w) return;
-  const address = [order.customer?.address?.street, order.customer?.address?.landmark, order.customer?.address?.district, order.customer?.address?.zone]
-    .filter(Boolean)
-    .join(', ');
-  const itemRows = (order.items || []).map(i =>
-    `<tr><td>${escapeHtml(itemLabel(i))}</td><td>${escapeHtml(i.quantity)}</td><td>NPR ${Number(i.price).toLocaleString()}</td><td>NPR ${(i.price * i.quantity).toLocaleString()}</td></tr>`
-  ).join('');
-  // Escape user-controlled fields before writing printable HTML into the popup.
-  w.document.write(`<!DOCTYPE html><html><head><title>Order ${escapeHtml(order.id)}</title><style>
-    body{font-family:monospace;padding:24px;font-size:13px;color:#111}
-    h1{font-size:15px;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:12px}
-    .row{display:flex;justify-content:space-between;margin:3px 0}
-    .label{color:#555}hr{border:none;border-top:1px solid #ccc;margin:12px 0}
-    table{width:100%;border-collapse:collapse;margin:8px 0}
-    td,th{border:1px solid #ccc;padding:5px 8px;font-size:12px;text-align:left}
-    th{background:#f5f5f5}.total{font-weight:bold;font-size:14px;margin-top:8px}
-  </style></head><body>
-  <h1>Aashish Jewellers — Order Slip</h1>
-  <div class="row"><span class="label">Order ID</span><span>${escapeHtml(order.id)}</span></div>
-  <div class="row"><span class="label">Date</span><span>${escapeHtml(new Date(order.created_at).toLocaleString())}</span></div>
-  <div class="row"><span class="label">Status</span><span>${escapeHtml(order.status.toUpperCase())}</span></div>
-  <div class="row"><span class="label">Payment</span><span>${escapeHtml(order.payment_method)}</span></div>
-  <hr>
-  <div class="row"><span class="label">Name</span><span>${escapeHtml(order.customer?.name || '-')}</span></div>
-  <div class="row"><span class="label">Phone</span><span>${escapeHtml(order.customer?.phone || '-')}</span></div>
-  <div class="row"><span class="label">Address</span><span>${escapeHtml(address || '-')}</span></div>
-  <hr>
-  <table><tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Subtotal</th></tr>
-  ${itemRows}
-  </table>
-  <div class="total">Total: NPR ${Number(order.total).toLocaleString()}</div>
-  ${order.notes ? `<hr><p><strong>Note:</strong> ${escapeHtml(order.notes)}</p>` : ''}
-  <script>window.print();window.close();</script></body></html>`);
-  w.document.close();
 }
 
 function RevenueChart({ days }: { days: DailyRevenue[] }) {
@@ -255,173 +131,6 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
       <p className="text-3xl font-light text-stone-900">{value}</p>
       {sub && <p className="text-xs text-stone-400 mt-1">{sub}</p>}
     </div>
-  );
-}
-
-function OrderRow({
-  order,
-  adminKey,
-  onStatusChange,
-}: {
-  order: AdminOrder;
-  adminKey: string;
-  onStatusChange: (id: string, status: string) => void;
-}) {
-  const [expanded, setExpanded] = useState(false);
-  const [updating, setUpdating] = useState(false);
-  const [updateError, setUpdateError] = useState('');
-  const [statusMsg, setStatusMsg] = useState('');
-  const [note, setNote] = useState(order.notes || '');
-  const [noteSaving, setNoteSaving] = useState(false);
-  const [noteSaved, setNoteSaved] = useState(false);
-
-  const handleSaveNote = async () => {
-    setNoteSaving(true);
-    setNoteSaved(false);
-    try {
-      await fetch('/api/orders/add-note', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
-        body: JSON.stringify({ orderId: order.id, note }),
-      });
-      setNoteSaved(true);
-      setTimeout(() => setNoteSaved(false), 3000);
-    } finally {
-      setNoteSaving(false);
-    }
-  };
-
-  const handleStatusChange = async (newStatus: string) => {
-    if (newStatus === order.status) return;
-    if (CLOSED_STATUSES.has(newStatus) && !window.confirm(`Mark this order as ${newStatus}? Stock is returned and this can't be undone.`)) return;
-    setUpdating(true);
-    setUpdateError('');
-    setStatusMsg('');
-    try {
-      const res = await fetch('/api/orders/update-status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
-        body: JSON.stringify({ orderId: order.id, status: newStatus }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setUpdateError(data.error || 'Update failed');
-      } else {
-        onStatusChange(order.id, newStatus);
-        setStatusMsg(data.whatsappSent ? 'WhatsApp sent' : 'Updated');
-        setTimeout(() => setStatusMsg(''), 3000);
-      }
-    } catch {
-      setUpdateError('Network error');
-    } finally {
-      setUpdating(false);
-    }
-  };
-
-  return (
-    <>
-      <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-        <td className="px-4 py-3">
-          <button
-            type="button"
-            onClick={() => setExpanded(v => !v)}
-            className="font-mono text-xs text-stone-700 hover:text-stone-900 flex items-center gap-1"
-          >
-            {order.id.slice(0, 20)}...
-            {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-          </button>
-        </td>
-        <td className="px-4 py-3 text-sm text-stone-700">{order.customer?.name || '-'}</td>
-        <td className="px-4 py-3 text-sm text-stone-700">{order.items?.length ?? 0} item(s)</td>
-        <td className="px-4 py-3 text-sm font-light">{formatNPR(order.total)}</td>
-        <td className="px-4 py-3 text-xs">{PAYMENT_LABELS[order.payment_method] || order.payment_method}</td>
-        <td className="px-4 py-3">
-          <select
-            aria-label="Order status"
-            value={order.status}
-            onChange={e => handleStatusChange(e.target.value)}
-            disabled={updating || CLOSED_STATUSES.has(order.status)}
-            className={`text-xs px-2 py-1 rounded-full border-0 font-medium focus:outline-none focus:ring-1 focus:ring-stone-900 ${STATUS_COLORS[order.status] || 'bg-stone-100 text-stone-700'}`}
-          >
-            {VALID_STATUSES.map(s => (
-              <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
-            ))}
-          </select>
-          {updateError && <p className="text-red-600 text-[10px] mt-1">{updateError}</p>}
-          {statusMsg && <p className="text-emerald-700 text-[10px] mt-1">{statusMsg}</p>}
-        </td>
-        <td className="px-4 py-3 text-xs text-stone-400">{formatDate(order.created_at)}</td>
-        <td className="px-4 py-3">
-          <button
-            type="button"
-            onClick={() => printOrder(order)}
-            title="Print order slip"
-            className="text-stone-400 hover:text-stone-900 transition-colors"
-          >
-            <Printer className="w-3.5 h-3.5" strokeWidth={1.5} />
-          </button>
-        </td>
-      </tr>
-
-      {expanded && (
-        <tr className="border-b border-stone-100 bg-stone-50">
-          <td colSpan={8} className="px-6 py-5">
-            <div className="grid md:grid-cols-3 gap-6">
-              <div>
-                <p className="text-[11px] tracking-[0.15em] uppercase text-stone-500 mb-3">Items</p>
-                <div className="space-y-2">
-                  {order.items?.map((item, i) => (
-                    <div key={`${item.id}-${i}`} className="flex gap-3 items-center">
-                      <img src={item.image} alt={item.name} className="w-10 h-10 object-cover border border-stone-200" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-stone-700 truncate">{itemLabel(item)}</p>
-                        <p className="text-xs text-stone-400">Qty {item.quantity} x NPR {item.price.toLocaleString()}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="text-[11px] tracking-[0.15em] uppercase text-stone-500 mb-3">Customer</p>
-                <dl className="space-y-1 text-sm">
-                  <div><dt className="inline text-stone-400">Name: </dt><dd className="inline text-stone-700">{order.customer?.name}</dd></div>
-                  <div><dt className="inline text-stone-400">Phone: </dt><dd className="inline text-stone-700">{order.customer?.phone}</dd></div>
-                  {order.customer?.email && (
-                    <div><dt className="inline text-stone-400">Email: </dt><dd className="inline text-stone-700">{order.customer.email}</dd></div>
-                  )}
-                  <div className="pt-1">
-                    <dt className="text-stone-400 text-xs tracking-[0.1em] uppercase mb-1">Address</dt>
-                    <dd className="text-stone-700">{[
-                      order.customer?.address?.street,
-                      order.customer?.address?.landmark,
-                      order.customer?.address?.district,
-                      order.customer?.address?.zone,
-                    ].filter(Boolean).join(', ')}</dd>
-                  </div>
-                </dl>
-              </div>
-              <div>
-                <p className="text-[11px] tracking-[0.15em] uppercase text-stone-500 mb-2">Internal Note</p>
-                <textarea
-                  value={note}
-                  onChange={e => setNote(e.target.value)}
-                  placeholder="Private note visible only to admin..."
-                  className="w-full border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:border-stone-900 resize-none h-20"
-                />
-                <button
-                  type="button"
-                  onClick={handleSaveNote}
-                  disabled={noteSaving}
-                  className="mt-2 bg-stone-900 text-white px-4 py-1.5 text-xs uppercase tracking-[0.15em] hover:bg-stone-700 transition-colors disabled:opacity-50"
-                >
-                  {noteSaving ? 'Saving...' : noteSaved ? '✓ Saved' : 'Save Note'}
-                </button>
-              </div>
-            </div>
-          </td>
-        </tr>
-      )}
-    </>
   );
 }
 
@@ -1494,7 +1203,8 @@ export default function AdminDashboard() {
     if (filterStatus !== 'all' && o.status !== filterStatus) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      if (!o.customer?.name?.toLowerCase().includes(q) && !o.customer?.phone?.toLowerCase().includes(q)) return false;
+      const searchable = [o.id, o.customer?.name, o.customer?.phone, ...(o.items || []).flatMap(i => [i.id, i.name])];
+      if (!searchable.some(value => String(value || '').toLowerCase().includes(q))) return false;
     }
     if (dateFrom && new Date(o.created_at) < new Date(dateFrom)) return false;
     if (dateTo && new Date(o.created_at) > new Date(dateTo + 'T23:59:59')) return false;
@@ -1596,7 +1306,7 @@ export default function AdminDashboard() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" strokeWidth={1.5} />
                 <input
                   type="text"
-                  placeholder="Search by name or phone..."
+                  placeholder="Search name, phone, order ID or product code..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   className="w-full border border-stone-300 pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-stone-900"
@@ -1647,35 +1357,17 @@ export default function AdminDashboard() {
               ))}
             </div>
 
-            <div className="bg-white border border-stone-200 overflow-x-auto">
-              {filteredOrders.length === 0 ? (
-                <div className="py-16 text-center text-stone-500">
-                  {orders.length === 0 ? 'No orders yet.' : 'No orders match the current filters.'}
-                </div>
-              ) : (
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="border-b border-stone-200 bg-stone-50">
-                      {['Order ID', 'Customer', 'Items', 'Total', 'Payment', 'Status', 'Date', ''].map(h => (
-                        <th key={h} className="px-4 py-3 text-[11px] tracking-[0.15em] uppercase text-stone-500 font-medium">
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedOrders.map(order => (
-                      <OrderRow
-                        key={order.id}
-                        order={order}
-                        adminKey={adminKey}
-                        onStatusChange={handleStatusChange}
-                      />
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+            {filteredOrders.length === 0 ? (
+              <div className="rounded-2xl border border-stone-200 bg-white py-16 text-center text-stone-500">
+                {orders.length === 0 ? 'No orders yet.' : 'No orders match the current filters.'}
+              </div>
+            ) : (
+              <div className="grid items-start gap-4 lg:grid-cols-2">
+                {paginatedOrders.map(order => (
+                  <OrderCard key={order.id} order={order} adminKey={adminKey} onStatusChange={handleStatusChange} />
+                ))}
+              </div>
+            )}
 
             {/* Footer: count + pagination */}
             <div className="flex items-center justify-between mt-4">

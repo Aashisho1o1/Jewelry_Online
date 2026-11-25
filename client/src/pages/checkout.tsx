@@ -3,7 +3,9 @@ import { useCartContext } from '../contexts/CartContext';
 import { CustomerInfo, GiftOptions, Order } from '../types/order';
 import { Check, ChevronDown, Gift, MessageCircle } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
-import { needsRingSize, ringSizeLabel } from '@/lib/ring-sizes';
+import { needsRingSize, RING_SIZE_UNSURE, ringSizeLabel } from '@/lib/ring-sizes';
+import { countText, orderLinesText } from '@/lib/order-lines';
+import { SITE_URL } from '@/components/SiteMeta';
 import { formatProductLabel } from '@/lib/product-taxonomy';
 import { cn } from '@/lib/utils';
 import { Link } from 'wouter';
@@ -55,7 +57,7 @@ export default function Checkout() {
   const [promoApplied, setPromoApplied] = useState<{ code: string; discountAmount: number; description: string | null } | null>(null);
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoError, setPromoError] = useState('');
-  const [codSaveFailed, setCodSaveFailed] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [otherCity, setOtherCity] = useState(false);
   const cartSaved = useRef(false);
@@ -201,10 +203,11 @@ export default function Checkout() {
     return true;
   };
 
-  const buildWhatsAppOrderUrl = (paymentLabel: string) => {
-    const orderSummary = items
-      .map(item => `- ${item.name}${needsRingSize(item.category) ? ` (${ringSizeLabel(item.size)})` : ''} x${item.quantity} - NPR ${(item.price * item.quantity).toLocaleString()}`)
-      .join('\n');
+  const buildWhatsAppOrderUrl = (paymentLabel: string, orderId = '') => {
+    const orderSummary = orderLinesText(
+      items.map(item => ({ ...item, size: needsRingSize(item.category) ? item.size || RING_SIZE_UNSURE : item.size })),
+      SITE_URL,
+    );
 
     const deliveryInfo = deliveryFee === 0 ? 'Free Delivery' : `Delivery: NPR ${deliveryFee}`;
     const discountInfo = discountAmount > 0 ? `\nPromo (${promoApplied?.code}): -NPR ${discountAmount.toLocaleString()}` : '';
@@ -213,6 +216,7 @@ export default function Checkout() {
       : '';
 
     const whatsappMessage = `New Order from Aashish Jewellers
+${orderId ? `Order ID: ${orderId}` : 'Not saved on the website yet'}
 
 Customer Details:
 Name: ${customerInfo.name}
@@ -223,7 +227,7 @@ ${customerInfo.address.street}
 ${customerInfo.address.district}${customerInfo.address.zone ? `, ${customerInfo.address.zone}` : ''}
 ${customerInfo.address.landmark ? `Near: ${customerInfo.address.landmark}` : ''}
 
-Order Items:
+Order Items (${countText(items)}):
 ${orderSummary}
 
 Payment Summary:
@@ -238,19 +242,10 @@ Please confirm this order and estimated delivery time.`;
     return `https://wa.me/9779811469486?text=${encodeURIComponent(whatsappMessage)}`;
   };
 
-  // Opened from a tap (not after the failed request) so mobile pop-up blockers allow it.
-  const sendCodOrderOnWhatsApp = () => {
-    window.open(buildWhatsAppOrderUrl('Cash on Delivery'), '_blank');
-    clearCart();
-    setTimeout(() => {
-      window.location.href = `/order-success?id=&payment=whatsapp&amount=${finalTotal}&phone=${encodeURIComponent(customerInfo.phone)}`;
-    }, 1000);
-  };
-
   const handlePlaceOrder = async () => {
     if (!validateForm()) return;
 
-    setCodSaveFailed(false);
+    setSaveFailed(false);
     setLoading(true);
     try {
       const pricesChanged = await refreshPrices();
@@ -280,25 +275,29 @@ Please confirm this order and estimated delivery time.`;
         ...(promoApplied ? { promoCode: promoApplied.code } : {}),
       };
 
-      if (paymentMethod === 'cod') {
+      if (paymentMethod === 'cod' || paymentMethod === 'whatsapp') {
         const response = await fetch('/api/orders/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...order, paymentMethod: 'cod' }),
+          body: JSON.stringify(order),
         }).catch(() => null);
 
         if (response?.ok) {
           const { orderId } = await response.json();
+          if (paymentMethod === 'whatsapp') {
+            // Sent from a button on the next page: phones block WhatsApp opening by itself after saving.
+            try { sessionStorage.setItem('whatsappOrder', JSON.stringify({ orderId, url: buildWhatsAppOrderUrl('Cash on Delivery / Bank Transfer', orderId) })); } catch { /* storage blocked */ }
+          }
           clearCart();
-          toast({ title: 'Order placed successfully!', description: "We'll call you to confirm your order." });
-          window.location.href = `/order-success?id=${orderId}&payment=cod&amount=${finalTotal}&phone=${encodeURIComponent(customerInfo.phone)}`;
+          toast({ title: 'Order placed successfully!', description: "We'll contact you to confirm your order." });
+          window.location.href = `/order-success?id=${orderId}&payment=${paymentMethod}&amount=${finalTotal}&phone=${encodeURIComponent(customerInfo.phone)}`;
         } else if (response && response.status < 500) {
           // Validation problems (stock, price, details) must be fixed, not routed around.
           const data = await response.json().catch(() => ({}));
           toast({ title: 'Order not placed', description: data.error || 'Please check your details and try again.', variant: 'destructive' });
         } else {
           // Server or network down: don't lose the sale, let the customer send it on WhatsApp.
-          setCodSaveFailed(true);
+          setSaveFailed(true);
         }
       } else if (paymentMethod === 'esewa') {
         const form = document.createElement('form');
@@ -337,29 +336,6 @@ Please confirm this order and estimated delivery time.`;
           console.error('Khalti payment error:', errorData);
           throw new Error(errorData.error || 'Failed to initiate Khalti payment');
         }
-      } else if (paymentMethod === 'whatsapp') {
-        const whatsappUrl = buildWhatsAppOrderUrl('Cash on Delivery / Bank Transfer');
-
-        const response = await fetch('/api/orders/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...order, paymentMethod: 'whatsapp' }),
-        });
-
-        const orderData = response.ok ? await response.json() : null;
-
-        clearCart();
-        toast({
-          title: 'Redirecting to WhatsApp',
-          description: 'Your order details will be sent via WhatsApp',
-        });
-
-        window.open(whatsappUrl, '_blank');
-
-        const orderId = orderData?.orderId || '';
-        setTimeout(() => {
-          window.location.href = `/order-success?id=${orderId}&payment=whatsapp&amount=${finalTotal}&phone=${encodeURIComponent(customerInfo.phone)}`;
-        }, 1000);
       } else if (paymentMethod === 'fonepay') {
         const response = await fetch('/api/payments/fonepay/create', {
           method: 'POST',
@@ -392,7 +368,6 @@ Please confirm this order and estimated delivery time.`;
       setLoading(false);
     }
   };
-
 
   // City list covers most orders; "Other" opens a free-text district field.
   const cityChoice = CITIES.includes(customerInfo.address.district) ? customerInfo.address.district : customerInfo.address.district || otherCity ? 'Other' : '';
@@ -548,7 +523,7 @@ Please confirm this order and estimated delivery time.`;
                     type="button"
                     role="radio"
                     aria-checked={on}
-                    onClick={() => { setPaymentMethod(option.id); setCodSaveFailed(false); }}
+                    onClick={() => { setPaymentMethod(option.id); setSaveFailed(false); }}
                     className={cn('flex min-h-[60px] items-center gap-3.5 rounded-xl border px-4 py-3 text-left', on ? 'border-forest-900 bg-forest-50' : 'border-stone-200 bg-white')}
                   >
                     <span className={cn('flex h-5 w-5 flex-none items-center justify-center rounded-full border', on ? 'border-forest-900' : 'border-stone-300')}>
@@ -563,20 +538,21 @@ Please confirm this order and estimated delivery time.`;
               })}
             </div>
 
-            {codSaveFailed && paymentMethod === 'cod' && (
+            {saveFailed && (paymentMethod === 'cod' || paymentMethod === 'whatsapp') && (
               <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
                 <p className="font-medium">We couldn&apos;t save your order just now.</p>
                 <p className="mt-1 text-amber-800">
-                  Send it to us on WhatsApp instead. Your details are filled in, and we&apos;ll confirm by phone.
+                  Send it to us on WhatsApp instead. Your details are filled in, and we&apos;ll confirm by phone. Your bag stays here until you place the order.
                 </p>
-                <button
-                  type="button"
-                  onClick={sendCodOrderOnWhatsApp}
+                <a
+                  href={buildWhatsAppOrderUrl(paymentMethod === 'cod' ? 'Cash on Delivery' : 'Cash on Delivery / Bank Transfer')}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1ebe5b]"
                 >
                   <MessageCircle className="h-4 w-4" strokeWidth={1.75} />
                   Send order on WhatsApp
-                </button>
+                </a>
               </div>
             )}
           </div>

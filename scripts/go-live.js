@@ -30,6 +30,11 @@ function readProduct(text) {
   return data;
 }
 
+// Windows can hold files open briefly; a leftover temp folder must not turn a good deploy into a failure.
+function removeTemp(dir) {
+  try { fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 300 }); } catch { /* left for Windows to clean */ }
+}
+
 const imageFile = src => `client/public${src}`;
 
 function checkProduct(code, data, imageExists) {
@@ -233,7 +238,8 @@ export function createGoLive({ root, liveSite, deploy = deployWithVercel, fetchL
       await deploy(copy);
     } finally {
       await git('worktree', 'remove', '--force', copy).catch(() => {});
-      fs.rmSync(temp, { recursive: true, force: true });
+      removeTemp(temp);
+      await git('worktree', 'prune').catch(() => {});
     }
   }
 
@@ -242,7 +248,7 @@ export function createGoLive({ root, liveSite, deploy = deployWithVercel, fetchL
     try {
       await exec(process.execPath, [abs('node_modules/vite/bin/vite.js'), 'build', '--outDir', out, '--emptyOutDir']);
     } finally {
-      fs.rmSync(out, { recursive: true, force: true });
+      removeTemp(out);
     }
   }
 
