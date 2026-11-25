@@ -1,6 +1,7 @@
 // Also handles /api/rates (public store rates) and /api/metal-rates/sync (daily FENEGOSIDA rates)
 // to stay within Vercel's 12-function limit.
 import crypto from 'crypto';
+import { cacheUntilChanged, clearCache } from '../lib/cdn-cache.js';
 import { requireAdminAuth } from '../lib/admin-auth.js';
 import { getMetalRates, upsertMetalRate } from '../lib/db-store.js';
 import { DEFAULT_METAL_RATES, normalizeMetalRateRecord } from '../lib/metal-pricing.js';
@@ -35,6 +36,7 @@ export default async function handler(req, res) {
     if (!isVercelCron(req) && !requireAdminAuth(req, res)) return;
     try {
       const result = await syncMetalRatesFromFenegosida();
+      await clearCache('rates', 'products');
       return res.status(200).json({ success: true, ...result });
     } catch (error) {
       if (error instanceof RateSyncError) {
@@ -54,7 +56,7 @@ export default async function handler(req, res) {
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-      res.setHeader('Cache-Control', 'public, max-age=60');
+      cacheUntilChanged(req, res, 'rates');
       return res.status(200).json(payload);
     } catch (error) {
       console.error('Public rates API error:', error);
@@ -114,6 +116,7 @@ export default async function handler(req, res) {
         notes: typeof notes === 'string' && notes.trim() ? notes.trim() : null,
       });
 
+      await clearCache('rates', 'products');
       return res.status(200).json({
         success: true,
         rate: buildRatePayload(updatedRate),

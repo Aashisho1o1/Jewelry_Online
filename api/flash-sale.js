@@ -6,6 +6,7 @@
  */
 
 import { requireAdminAuth } from '../lib/admin-auth.js';
+import { cacheUntilChanged, clearCache } from '../lib/cdn-cache.js';
 import { getActiveFlashSale, upsertFlashSale, deactivateFlashSale } from '../lib/db-store.js';
 
 export default async function handler(req, res) {
@@ -13,6 +14,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
       const sale = await getActiveFlashSale();
+      cacheUntilChanged(req, res, 'flash', { maxSeconds: sale?.ends_at ? (new Date(sale.ends_at).getTime() - Date.now()) / 1000 : undefined });
       return res.status(200).json({ sale: sale || null });
     } catch (err) {
       console.error('[flash-sale] GET error:', err.message);
@@ -42,6 +44,7 @@ export default async function handler(req, res) {
 
     try {
       const sale = await upsertFlashSale({ title: title.trim(), subtitle: subtitle?.trim() || null, discount_percent: pct, ends_at });
+      await clearCache('flash', 'products');
       return res.status(200).json({ success: true, sale });
     } catch (err) {
       console.error('[flash-sale] POST error:', err.message);
@@ -55,6 +58,7 @@ export default async function handler(req, res) {
 
     try {
       await deactivateFlashSale();
+      await clearCache('flash', 'products');
       return res.status(200).json({ success: true });
     } catch (err) {
       console.error('[flash-sale] DELETE error:', err.message);

@@ -10,6 +10,7 @@
  */
 
 import { loadCatalogProductsWithPricing } from '../lib/catalog.js';
+import { cacheUntilChanged, clearCache } from '../lib/cdn-cache.js';
 import { apiRateLimit, rateLimit } from '../lib/rate-limiter.js';
 import { requireAdminAuth } from '../lib/admin-auth.js';
 import { ProductInputError, createAdminProduct, listAdminProducts, updateAdminProduct } from '../lib/product-admin.js';
@@ -32,10 +33,11 @@ export default async function handler(req, res) {
   if (action === 'reviews') {
     const { productId } = req.query;
     if (req.method === 'GET') {
-      if (!productId) return res.status(400).json({ error: 'productId is required' });
+      if (typeof productId !== 'string' || !/^[\w-]{1,40}$/.test(productId)) return res.status(400).json({ error: 'productId is required' });
       const reviews = await queryMany('SELECT id, author_name, rating, title, body, created_at FROM reviews WHERE product_id = $1 ORDER BY created_at DESC', [productId]);
       const count = reviews.length;
       const averageRating = count > 0 ? Math.round((reviews.reduce((sum, r) => sum + r.rating, 0) / count) * 10) / 10 : 0;
+      cacheUntilChanged(req, res, `reviews-${productId}`, { allowQuery: true });
       return res.status(200).json({ reviews, averageRating, count });
     }
     if (req.method === 'POST') {
@@ -44,7 +46,7 @@ export default async function handler(req, res) {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
       const { productId: bodyProductId, authorName, rating, title, body: reviewBody } = body || {};
       const pid = bodyProductId || productId;
-      if (!pid) return res.status(400).json({ error: 'productId is required' });
+      if (typeof pid !== 'string' || !/^[\w-]{1,40}$/.test(pid)) return res.status(400).json({ error: 'productId is required' });
       if (!authorName || typeof authorName !== 'string' || authorName.trim().length < 2 || authorName.trim().length > 50) {
         return res.status(400).json({ error: 'Author name must be 2-50 characters.' });
       }
@@ -57,6 +59,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Title must be text up to 100 characters.' });
       }
       const review = await query('INSERT INTO reviews (product_id, author_name, rating, title, body) VALUES ($1, $2, $3, $4, $5) RETURNING id, author_name, rating, title, body, created_at', [pid, authorName.trim(), ratingNum, title?.trim() || null, reviewBody.trim()]);
+      await clearCache(`reviews-${pid}`);
       return res.status(201).json({ review });
     }
     return res.status(405).json({ error: 'Method not allowed' });
@@ -67,11 +70,14 @@ export default async function handler(req, res) {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
     if (!(await apiRateLimit(req, res))) return;
     try {
-      const products = await loadCatalogProductsWithPricing();
+      const health = {};
+      const products = await loadCatalogProductsWithPricing(health);
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-      res.setHeader('Cache-Control', 'public, max-age=60');
+      // Never keep fallback prices, or a sale past its end.
+      if (health.ok) cacheUntilChanged(req, res, 'products', { maxSeconds: health.saleEndsAt ? (health.saleEndsAt - Date.now()) / 1000 : undefined });
+      else res.setHeader('Cache-Control', 'no-store');
       return res.status(200).json(products);
     } catch (error) {
       console.error('Error loading products:', error.message);
@@ -90,7 +96,9 @@ export default async function handler(req, res) {
     if (!requireAdminAuth(req, res)) return;
     res.setHeader('Cache-Control', 'no-store');
     try {
-      return res.status(action === 'create' ? 201 : 200).json(await run());
+      const result = await run();
+      if (method !== 'GET') await clearCache('products');
+      return res.status(action === 'create' ? 201 : 200).json(result);
     } catch (err) {
       if (err instanceof ProductInputError) return res.status(err.status).json({ error: err.message, ...err.extra });
       console.error(`${action} product error:`, err);

@@ -11,6 +11,7 @@
  * GET   /api/orders/stats
  * GET   /api/orders/daily-revenue
  * GET   /api/orders/top-products
+ * GET   /api/orders/backup
  */
 
 import { createOrder, confirmOrder, closeOrder, updateOrderStatus, getOrderStats, getOrderById, CLOSED_ORDER_STATUSES, OrderStatusError } from '../lib/db-store.js';
@@ -28,6 +29,13 @@ const ALLOWED_PAYMENT_METHODS = new Set(['cod', 'whatsapp', 'esewa', 'khalti', '
 const createOrderRateLimit = rateLimit({ windowMs: 60_000, max: 5, message: 'Too many order attempts. Please wait.' });
 const lookupRateLimit = rateLimit({ windowMs: 60_000, max: 10 });
 const historyRateLimit = rateLimit({ windowMs: 60_000, max: 3, message: 'Too many requests. Please wait a moment.' });
+
+// Fixed names only: table and key go into the SQL text.
+const BACKUP_KEYS = {
+  orders: 'id', products: 'id', product_inventory: 'product_id', metal_rates: 'rate_key',
+  promos: 'id', flash_sales: 'id', reviews: 'id', abandoned_carts: 'id',
+};
+const BACKUP_PAGE = 200;
 
 function normalizePhone(value) {
   let digits = String(value || '').replace(/\D/g, '');
@@ -82,6 +90,25 @@ export default async function handler(req, res) {
     } catch (error) {
       console.error('[orders/list] error:', error.message);
       return res.status(200).json({ orders: [] });
+    }
+  }
+
+  // GET /api/orders/backup?table=&after= (admin): one page of a table, for the dashboard backup file
+  if (action === 'backup') {
+    if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+    if (!requireAdminAuth(req, res)) return;
+    res.setHeader('Cache-Control', 'no-store');
+    const table = String(req.query?.table || '');
+    const key = Object.hasOwn(BACKUP_KEYS, table) ? BACKUP_KEYS[table] : null;
+    if (!key) return res.status(400).json({ error: 'Unknown table' });
+    try {
+      const after = String(req.query?.after || '');
+      // Paging by key, not position, so an order placed meanwhile can't make another be skipped.
+      const rows = await queryMany(`SELECT * FROM ${table} WHERE $1 = '' OR ${key}::text COLLATE "C" > $1 COLLATE "C" ORDER BY ${key}::text COLLATE "C" LIMIT ${BACKUP_PAGE}`, [after]);
+      return res.status(200).json({ rows, next: rows.length === BACKUP_PAGE ? String(rows[rows.length - 1][key]) : null });
+    } catch (error) {
+      console.error('[orders/backup] error:', error.message);
+      return res.status(500).json({ error: 'Backup failed' });
     }
   }
 

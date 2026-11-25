@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { BarChart2, ChevronDown, ChevronUp, Download, LogOut, MessageCircle, Package, Printer, RefreshCw, Search, Tag, Wrench, Zap } from 'lucide-react';
 import ProductsTab from '@/components/admin/ProductsTab';
+import BackupButton from '@/components/admin/BackupButton';
 import OrderCard, { exportOrdersCSV, type AdminOrder } from '@/components/admin/OrderCard';
 import SiteMeta, { SITE_URL } from '@/components/SiteMeta';
 
@@ -1300,6 +1301,7 @@ export default function AdminDashboard() {
         {/* Orders tab */}
         {activeTab === 'orders' && (
           <>
+            <BackupButton adminKey={adminKey} />
             {/* Search + Date + CSV row */}
             <div className="flex flex-wrap gap-3 mb-4 items-center">
               <div className="relative flex-1 min-w-48">
