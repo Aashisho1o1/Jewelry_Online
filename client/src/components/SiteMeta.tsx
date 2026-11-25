@@ -4,7 +4,7 @@ const SITE_NAME = 'Aashish Jewellers';
 // Public site address used in SEO tags and shared links. Change here if the domain changes.
 // (api/sitemap.js and client/public/robots.txt keep their own copy.)
 export const SITE_URL = 'https://aashishjewellers.com.np';
-const DEFAULT_IMAGE = '/images/jewelry/elegance.jpg';
+const DEFAULT_IMAGE = '/icons/share.png';
 const DEFAULT_DESCRIPTION =
   'Premium 925 silver jewelry handcrafted in Nepal. Rings, necklaces, earrings, bracelets and sets - delivered in Butwal & Bhairahawa.';
 

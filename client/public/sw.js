@@ -1,5 +1,5 @@
 // Service Worker for Aashish Jewellers PWA
-const CACHE_NAME = 'aashish-jewellers-v2';
+const CACHE_NAME = 'aashish-jewellers-v3';
 const STATIC_CACHE_URLS = [
   '/',
   '/index.html',
@@ -126,7 +126,7 @@ self.addEventListener('push', (event) => {
     const options = {
       body: data.body,
       icon: '/icons/icon-192.png',
-      badge: '/icons/icon-72.png',
+      badge: '/icons/favicon-96.png',
       vibrate: [100, 50, 100],
       data: {
         dateOfArrival: Date.now(),
@@ -136,12 +136,12 @@ self.addEventListener('push', (event) => {
         {
           action: 'explore',
           title: 'View Order',
-          icon: '/icons/icon-72.png'
+          icon: '/icons/favicon-96.png'
         },
         {
           action: 'close',
           title: 'Close',
-          icon: '/icons/icon-72.png'
+          icon: '/icons/favicon-96.png'
         }
       ]
     };

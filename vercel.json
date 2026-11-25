@@ -38,6 +38,7 @@
     { "src": "/api/payments/esewa/failure", "dest": "/api/payments" },
     { "src": "/sitemap.xml", "dest": "/api/sitemap" },
     { "handle": "filesystem" },
+    { "src": "/.*\.(png|jpe?g|webp|svg|ico|gif)", "status": 404 },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
