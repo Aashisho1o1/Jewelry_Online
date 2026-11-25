@@ -33,7 +33,7 @@ export default function ShopByPage() {
 
   useEffect(() => {
     let cancelled = false;
-    getProducts(true)
+    getProducts()
       .then(result => { if (!cancelled) setProducts(result); })
       .catch(() => {})
       .finally(() => { if (!cancelled) setLoading(false); });

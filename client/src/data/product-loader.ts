@@ -6,8 +6,8 @@ import { JewelryProduct } from '../types/jewelry';
 // Pure CMS product loader - no hardcoded fallbacks
 async function loadProducts(bypassHttpCache = false): Promise<JewelryProduct[]> {
   try {
-    // Checkout forces a refresh; skip the 60s HTTP cache so a flash sale starting/ending is seen at once.
-    const response = await fetch('/api/products', bypassHttpCache ? { cache: 'no-store' } : undefined);
+    // Checkout forces a refresh; the query skips every cache so it always sees the price the server will charge.
+    const response = await fetch(bypassHttpCache ? `/api/products?fresh=${Date.now()}` : '/api/products', bypassHttpCache ? { cache: 'no-store' } : undefined);
 
     if (!response.ok) {
       throw new Error(`API request failed with status: ${response.status}`);
