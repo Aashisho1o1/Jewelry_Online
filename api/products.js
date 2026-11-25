@@ -5,15 +5,14 @@
  * GET  /api/products/admin-list    — admin DB list
  * POST /api/products/create        — admin create
  * PUT  /api/products/update        — admin update
- * DELETE /api/products/delete      — admin delete
  * GET  /api/reviews                — public reviews by productId
  * POST /api/reviews                — submit review
  */
 
-import { loadCatalogProducts, loadCatalogProductsWithPricing } from '../lib/catalog.js';
+import { loadCatalogProductsWithPricing } from '../lib/catalog.js';
 import { apiRateLimit, rateLimit } from '../lib/rate-limiter.js';
 import { requireAdminAuth } from '../lib/admin-auth.js';
-import { createDbProduct, updateDbProduct, deleteDbProduct, getDbProducts } from '../lib/db-store.js';
+import { ProductInputError, createAdminProduct, listAdminProducts, updateAdminProduct } from '../lib/product-admin.js';
 import { query, queryMany } from '../lib/db.js';
 
 const reviewRateLimit = rateLimit({ windowMs: 60_000, max: 3, message: 'Too many reviews submitted. Please wait a moment before trying again.' });
@@ -80,72 +79,21 @@ export default async function handler(req, res) {
     }
   }
 
-  const DB_MISSING = !process.env.DATABASE_URL || process.env.DATABASE_URL === 'your_postgresql_connection_string_here';
-
-  // GET /api/products/admin-list (admin)
-  if (action === 'admin-list') {
-    if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+  const admin = {
+    'admin-list': ['GET', () => listAdminProducts()],
+    create: ['POST', async () => ({ product: await createAdminProduct(req.body) })],
+    update: ['PUT', async () => ({ product: await updateAdminProduct(req.body) })],
+  };
+  if (Object.hasOwn(admin, action)) {
+    const [method, run] = admin[action];
+    if (req.method !== method) return res.status(405).json({ error: 'Method not allowed' });
     if (!requireAdminAuth(req, res)) return;
-    if (DB_MISSING) return res.status(200).json({ products: [], warning: 'Database-backed products are unavailable until DATABASE_URL is configured.' });
+    res.setHeader('Cache-Control', 'no-store');
     try {
-      const products = await getDbProducts();
-      return res.status(200).json({ products: products || [] });
+      return res.status(action === 'create' ? 201 : 200).json(await run());
     } catch (err) {
-      console.error('admin-list products error:', err);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-
-  // POST /api/products/create (admin)
-  if (action === 'create') {
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-    if (!requireAdminAuth(req, res)) return;
-    if (DB_MISSING) return res.status(503).json({ error: 'Product creation requires PostgreSQL. Set a real DATABASE_URL first.' });
-    const { id, name, category, material, price } = req.body || {};
-    if (!id || !name || !category || !material || !price) return res.status(400).json({ error: 'Missing required fields: id, name, category, material, price' });
-    if (!/^[a-zA-Z0-9_-]+$/.test(id)) return res.status(400).json({ error: 'Product ID must contain only letters, numbers, hyphens, and underscores' });
-    // A database product with a CMS product's code would replace it on the website.
-    const taken = loadCatalogProducts().find(p => p.id.toUpperCase() === String(id).toUpperCase());
-    if (taken) return res.status(409).json({ error: `Product code "${taken.id}" is already used by ${taken.name}` });
-    try {
-      const product = await createDbProduct(req.body);
-      return res.status(201).json({ product });
-    } catch (err) {
-      if (err.code === '23505') return res.status(409).json({ error: `A product with ID "${id}" already exists` });
-      console.error('create product error:', err);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-
-  // PUT /api/products/update (admin)
-  if (action === 'update') {
-    if (req.method !== 'PUT') return res.status(405).json({ error: 'Method not allowed' });
-    if (!requireAdminAuth(req, res)) return;
-    if (DB_MISSING) return res.status(503).json({ error: 'Product updates require PostgreSQL. Set a real DATABASE_URL first.' });
-    const { id, ...fields } = req.body || {};
-    if (!id) return res.status(400).json({ error: 'Missing product id' });
-    try {
-      const product = await updateDbProduct(id, fields);
-      if (!product) return res.status(404).json({ error: 'Product not found' });
-      return res.status(200).json({ product });
-    } catch (err) {
-      console.error('update product error:', err);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-
-  // DELETE /api/products/delete (admin)
-  if (action === 'delete') {
-    if (req.method !== 'DELETE') return res.status(405).json({ error: 'Method not allowed' });
-    if (!requireAdminAuth(req, res)) return;
-    if (DB_MISSING) return res.status(503).json({ error: 'Product deletion requires PostgreSQL. Set a real DATABASE_URL first.' });
-    const { id } = req.body || {};
-    if (!id) return res.status(400).json({ error: 'Missing product id' });
-    try {
-      await deleteDbProduct(id);
-      return res.status(200).json({ success: true });
-    } catch (err) {
-      console.error('delete product error:', err);
+      if (err instanceof ProductInputError) return res.status(err.status).json({ error: err.message, ...err.extra });
+      console.error(`${action} product error:`, err);
       return res.status(500).json({ error: 'Internal server error' });
     }
   }
