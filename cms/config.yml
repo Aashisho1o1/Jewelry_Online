@@ -30,7 +30,7 @@ collections:
     summary: "{{name}} ({{id}})"
     fields:
       - { label: "Product Name", name: "name", widget: "string" }
-      - { label: "Product Code", name: "id", widget: "string", pattern: ["^[A-Z]{2}[0-9]{3,}$", "Two capital letters and at least three numbers, like RG005"], hint: "Never change it after saving. Rings RG005, necklaces NS002, earrings ER003, bracelets BR005, sets ST006" }
+      - { label: "Product Code", name: "id", widget: "product-code", hint: "One code per product. It is locked after the first save." }
       - { label: "Main Photo", name: "image", widget: "image" }
       - label: "More Photos"
         name: "images"

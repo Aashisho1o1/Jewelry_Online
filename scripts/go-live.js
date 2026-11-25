@@ -6,7 +6,8 @@ import os from 'node:os';
 import path from 'node:path';
 import yaml from 'js-yaml';
 
-const PRODUCT = /^content\/jewelry\/([A-Z]{2}\d{3,})\.md$/;
+// The CMS saves new products with a lowercase file name.
+const PRODUCT = /^content\/jewelry\/([a-z]{2}\d{3,})\.md$/i;
 const PAGE = /^client\/src\/content\/(home|about|settings)\.json$/;
 const IMAGE = /^client\/public\/images\/jewelry\/[\w. ()-]+\.(jpe?g|png|webp)$/i;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -131,12 +132,32 @@ export function createGoLive({ root, liveSite, deploy = deployWithVercel, fetchL
     const imageExists = src => typeof src === 'string' && !src.includes('..')
       && (tracked.has(imageFile(src)) || newImages.has(imageFile(src)));
 
+    // One code, one product: a repeat would silently replace the other product on the website.
+    const owners = new Map();
+    for (const name of fs.readdirSync(abs('content/jewelry')).filter(f => f.endsWith('.md'))) {
+      let product;
+      try { product = readProduct(fs.readFileSync(abs(`content/jewelry/${name}`), 'utf8')); } catch { continue; }
+      const id = String(product.id).toUpperCase();
+      if (owners.has(id)) errors.push(`${id} is used by two products: ${owners.get(id)} and ${product.name}. Give one a new code.`);
+      else owners.set(id, product.name);
+    }
+    let liveProducts = [];
+    if (changes.some(({ file }) => PRODUCT.test(file))) {
+      try {
+        const res = await fetchLive(`${liveSite}/api/products?t=${Date.now()}`, { signal: AbortSignal.timeout(10000) });
+        liveProducts = await res.json();
+        if (!Array.isArray(liveProducts)) throw new Error('not a list');
+      } catch {
+        throw new GoLiveError("Couldn't check the live shop. Check your internet and try again.");
+      }
+    }
+
     const before = async file => {
       try { return await git('show', `HEAD:${file}`); } catch { return null; }
     };
     let usedText = '';
     for (const { file } of changes) {
-      const code = file.match(PRODUCT)?.[1];
+      const code = file.match(PRODUCT)?.[1].toUpperCase();
       const page = file.match(PAGE)?.[1];
       if (!code && !page) continue;
       files.push(file);
@@ -165,6 +186,8 @@ export function createGoLive({ root, liveSite, deploy = deployWithVercel, fetchL
       errors.push(...checkProduct(code, data, imageExists));
       const old = oldText ? readProduct(oldText) : null;
       if (!old) {
+        const taken = liveProducts.find(p => String(p.id).toUpperCase() === code);
+        if (taken) errors.push(`${code} is already used on the live shop by ${taken.name}. Give this product a new code.`);
         items.push({ title: `New product: ${data.name} (${code})`, lines: [`Price: NPR ${data.price}`] });
         continue;
       }
