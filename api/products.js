@@ -13,7 +13,8 @@ import { loadCatalogProductsWithPricing } from '../lib/catalog.js';
 import { cacheUntilChanged, clearCache } from '../lib/cdn-cache.js';
 import { apiRateLimit, rateLimit } from '../lib/rate-limiter.js';
 import { requireAdminAuth } from '../lib/admin-auth.js';
-import { ProductInputError, createAdminProduct, listAdminProducts, updateAdminProduct } from '../lib/product-admin.js';
+import { ProductInputError, createAdminProduct, listAdminProducts, listUsedCodes, updateAdminProduct } from '../lib/product-admin.js';
+import { photoUsage, savePhoto, sendPhoto } from '../lib/product-photos.js';
 import { query, queryMany } from '../lib/db.js';
 
 const reviewRateLimit = rateLimit({ windowMs: 60_000, max: 3, message: 'Too many reviews submitted. Please wait a moment before trying again.' });
@@ -85,8 +86,32 @@ export default async function handler(req, res) {
     }
   }
 
+  // GET /api/products/photo/<id>.jpg (public, kept by the CDN for a year)
+  if (action.startsWith('photo/')) {
+    if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+    try {
+      return await sendPhoto(req.url.split('?')[0], res);
+    } catch (err) {
+      console.error('photo error:', err);
+      return res.status(500).end('Error');
+    }
+  }
+
+  // GET /api/products/codes (public): codes only, so the CMS can avoid ones the dashboard used
+  if (action === 'codes') {
+    if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+    res.setHeader('Cache-Control', 'no-store');
+    try {
+      return res.status(200).json(await listUsedCodes());
+    } catch (err) {
+      console.error('codes error:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
   const admin = {
-    'admin-list': ['GET', () => listAdminProducts()],
+    'admin-list': ['GET', async () => ({ ...(await listAdminProducts()), photoUsage: await photoUsage() })],
+    photo: ['POST', async () => savePhoto(req.body)],
     create: ['POST', async () => ({ product: await createAdminProduct(req.body) })],
     update: ['PUT', async () => ({ product: await updateAdminProduct(req.body) })],
   };
@@ -97,7 +122,7 @@ export default async function handler(req, res) {
     res.setHeader('Cache-Control', 'no-store');
     try {
       const result = await run();
-      if (method !== 'GET') await clearCache('products');
+      if (method !== 'GET' && action !== 'photo') await clearCache('products');
       return res.status(action === 'create' ? 201 : 200).json(result);
     } catch (err) {
       if (err instanceof ProductInputError) return res.status(err.status).json({ error: err.message, ...err.extra });

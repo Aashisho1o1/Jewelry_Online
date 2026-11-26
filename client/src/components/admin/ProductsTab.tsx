@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { gramsToLaal, laalToGrams, weightLabel } from '@/lib/weight';
+import { SIZE_CHOICES } from '@/lib/ring-sizes';
+import PhotoPicker from './PhotoPicker';
 import { calculateFormulaPrice, followRatePrice, inferMetalRateKey } from '../../../../lib/metal-pricing.js';
 
 type Status = 'draft' | 'live' | 'hidden';
@@ -12,7 +14,7 @@ interface AdminProduct {
   price_mode: PriceMode | null; wastage_percent: number | string | null; making_charge: number | string | null;
   making_charge_type: string | null; stone_cost: number | string | null; pricing_weight_grams: number | string | null; price_base_rate: number | string | null;
   description: string | null; care_instructions: string | null; weight: string | null; dimensions: string | null;
-  in_stock: boolean; is_new: boolean; featured: boolean; images: string[]; stock: number | null;
+  in_stock: boolean; is_new: boolean; featured: boolean; adjustable: boolean; images: string[]; stock: number | null;
 }
 interface CmsProduct { id: string; name: string; category: string; price: number; image: string }
 interface Rate { rateKey: string; pricePerGram: number; isActive: boolean; sourceLabel: string }
@@ -39,7 +41,7 @@ const str = (value: unknown) => (value === null || value === undefined ? '' : St
 const EMPTY = {
   name: '', category: 'rings', material: '925_silver', weight: '', price_mode: 'manual' as PriceMode, price: '',
   wastage_percent: '', making_charge: '', making_charge_type: 'fixed', stone_cost: '', pricing_weight_grams: '',
-  original_price: '', description: '', care_instructions: '', dimensions: '', images: '', is_new: true, featured: false, stock: '1',
+  original_price: '', description: '', care_instructions: '', dimensions: '', images: [] as string[], is_new: true, featured: false, adjustable: false, stock: '1',
 };
 type Form = typeof EMPTY;
 
@@ -50,7 +52,7 @@ function toForm(p: AdminProduct): Form {
     wastage_percent: str(p.wastage_percent), making_charge: str(p.making_charge), making_charge_type: p.making_charge_type || 'fixed',
     stone_cost: str(p.stone_cost), pricing_weight_grams: Number(p.pricing_weight_grams) > 0 ? str(gramsToLaal(Number(p.pricing_weight_grams))) : '', original_price: str(p.original_price),
     description: str(p.description), care_instructions: str(p.care_instructions), dimensions: str(p.dimensions),
-    images: (p.images || []).join('\n'), is_new: p.is_new, featured: p.featured, stock: str(p.stock),
+    images: p.images || [], is_new: p.is_new, featured: p.featured, adjustable: p.adjustable === true, stock: str(p.stock),
   };
 }
 
@@ -147,7 +149,7 @@ function ProductForm({ product, rates, adminKey, onClose, onSaved }: {
           // Unchanged weights are sent as saved, so opening and saving never rounds them.
           weight: weight === initial.weight && product ? product.weight : grams ? `${grams}g` : null,
           pricing_weight_grams: pricing_weight_grams === initial.pricing_weight_grams && product ? product.pricing_weight_grams : pricingGrams || null,
-          images: images.split('\n').map(s => s.trim()).filter(Boolean),
+          images,
           status,
           confirmPrice,
           // Sent only when changed here, so a sale made meanwhile is not overwritten.
@@ -233,9 +235,14 @@ function ProductForm({ product, rates, adminKey, onClose, onSaved }: {
         <input className={INPUT} type="number" inputMode="numeric" min="0" max="999" step="1" value={form.stock} onChange={e => set('stock', e.target.value)} />
       </Field>
 
-      <Field title="Photos" hint="Photo upload comes in the next step. For now, one address per line, like /images/jewelry/dragon.jpg">
-        <textarea className={cn(INPUT, 'h-24 py-2 text-sm')} value={form.images} onChange={e => set('images', e.target.value)} />
-      </Field>
+      <PhotoPicker value={form.images} onChange={photos => set('images', photos)} adminKey={adminKey} />
+
+      {Object.hasOwn(SIZE_CHOICES, form.category) && (
+        <label className="flex min-h-11 items-center gap-3 text-sm">
+          <input type="checkbox" className="h-5 w-5" checked={form.adjustable} onChange={e => set('adjustable', e.target.checked)} />
+          Adjustable (one size fits). Customers won't be asked for a {SIZE_CHOICES[form.category].title.toLowerCase()}.
+        </label>
+      )}
 
       <details className="rounded-xl bg-white p-4">
         <summary className="cursor-pointer text-sm font-medium text-stone-800">More details</summary>
@@ -355,7 +362,7 @@ export default function ProductsTab({ adminKey }: { adminKey: string }) {
           {products.map(p => (
             <li key={p.id} className="flex gap-3 rounded-2xl border border-stone-200 bg-white p-3">
               <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-cream-card">
-                {p.images?.[0] && <img src={p.images[0]} alt="" className="h-full w-full object-cover" />}
+                {p.images?.[0] && <img src={p.images[0].startsWith('/api/products/photo/') ? p.images[0].replace(/\.jpg$/, '-s.jpg') : p.images[0]} alt="" className="h-full w-full object-cover" />}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">
