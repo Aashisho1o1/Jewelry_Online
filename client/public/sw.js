@@ -1,5 +1,6 @@
 // Service Worker for Aashish Jewellers PWA
-const CACHE_NAME = 'aashish-jewellers-v3';
+// New name clears every old copy, including pages kept by the earlier cache-first rule.
+const CACHE_NAME = 'aashish-jewellers-v4';
 const STATIC_CACHE_URLS = [
   '/',
   '/index.html',
@@ -69,6 +70,12 @@ self.addEventListener('fetch', (event) => {
           });
         })
     );
+    return;
+  }
+
+  // Pages always come from the network when online, so a new version is seen straight away.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(fetch(event.request).catch(() => caches.match('/')));
     return;
   }
 

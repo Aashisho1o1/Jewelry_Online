@@ -185,7 +185,7 @@ collections:
         required: false
         hint: "Normally leave empty; the material decides"
         options:
-          - { label: "925 Silver", value: "silver_925" }
+          - { label: "Silver (pure)", value: "silver_925" }
           - { label: "18K Gold", value: "gold_18k" }
           - { label: "22K Gold", value: "gold_22k" }
           - { label: "24K Gold", value: "gold_24k" }
