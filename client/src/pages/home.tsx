@@ -98,7 +98,7 @@ export default function Home() {
     <div className="flex min-h-screen flex-col bg-cream">
       <SiteMeta
         title="Aashish Jewellers | Premium Silver Jewelry from Nepal"
-        description="Discover handcrafted 925 silver rings, necklaces, earrings and bracelets. Free delivery in Butwal and Bhairahawa. Shop the collection now."
+        description="Discover handcrafted 925 silver rings, necklaces, earrings and bracelets. Free delivery all over Nepal. Shop the collection now."
         jsonLd={ORG_JSON_LD}
       />
       {/* The slides are the visual headline; keep a real h1 for search engines and screen readers. */}

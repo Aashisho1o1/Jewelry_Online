@@ -8,14 +8,12 @@ import { SITE_URL } from '@/components/SiteMeta';
 import { formatProductLabel } from '@/lib/product-taxonomy';
 import { cn } from '@/lib/utils';
 
-const FREE_DELIVERY_AT = 5000;
 
 export function CartSheet() {
   const { items, total, count, isOpen, closeCart, updateQuantity, gift, setGift } = useCartContext();
 
-  const deliveryFee = total >= FREE_DELIVERY_AT ? 0 : 150;
-  const finalTotal = total + deliveryFee;
-  const freeProgress = Math.min(100, (total / FREE_DELIVERY_AT) * 100);
+  // Delivery is free all over Nepal; must match lib/order-pricing.js.
+  const finalTotal = total;
   const lineDetail = (item: typeof items[number]) =>
     needsRingSize(item.category) ? ringSizeLabel(item.size) : formatProductLabel(item.category || item.material);
   // Pre-filled so a WhatsApp order arrives with the same items and sizes as the bag.
@@ -44,19 +42,7 @@ export function CartSheet() {
 
         {items.length > 0 && (
           <div className="flex-none bg-forest-100 px-5 py-3.5">
-            <p className="text-[13px] text-forest-900">
-              {deliveryFee === 0 ? 'You have free delivery' : `Add NPR ${(FREE_DELIVERY_AT - total).toLocaleString()} more for free delivery`}
-            </p>
-            <div
-              className="mt-2 h-1 overflow-hidden rounded-full bg-forest-200"
-              role="progressbar"
-              aria-label="Progress to free delivery"
-              aria-valuenow={Math.round(freeProgress)}
-              aria-valuemin={0}
-              aria-valuemax={100}
-            >
-              <div className="h-full bg-forest-900 transition-[width] duration-[400ms]" style={{ width: `${freeProgress}%` }} />
-            </div>
+            <p className="text-[13px] text-forest-900">Free delivery all over Nepal</p>
           </div>
         )}
 
@@ -131,7 +117,7 @@ export function CartSheet() {
         {items.length > 0 && (
           <div className="flex flex-none flex-col gap-2.5 border-t border-stone-200 px-5 pb-[calc(20px+env(safe-area-inset-bottom))] pt-4">
             <div className="flex justify-between text-sm text-stone-700"><span>Subtotal</span><span>NPR {total.toLocaleString()}</span></div>
-            <div className="flex justify-between text-sm text-stone-700"><span>Delivery</span><span>{deliveryFee === 0 ? 'Free' : `NPR ${deliveryFee}`}</span></div>
+            <div className="flex justify-between text-sm text-stone-700"><span>Delivery</span><span>Free</span></div>
             <div className="flex justify-between text-[17px] font-medium text-stone-900"><span>Total</span><span>NPR {finalTotal.toLocaleString()}</span></div>
             <Link
               href="/checkout"

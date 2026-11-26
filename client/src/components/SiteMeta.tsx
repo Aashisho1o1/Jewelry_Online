@@ -6,7 +6,7 @@ const SITE_NAME = 'Aashish Jewellers';
 export const SITE_URL = 'https://aashishjewellers.com.np';
 const DEFAULT_IMAGE = '/icons/share.png';
 const DEFAULT_DESCRIPTION =
-  'Premium 925 silver jewelry handcrafted in Nepal. Rings, necklaces, earrings, bracelets and sets - delivered in Butwal & Bhairahawa.';
+  'Premium 925 silver jewelry handcrafted in Nepal. Rings, necklaces, earrings, bracelets and sets - free delivery all over Nepal.';
 
 interface SiteMetaProps {
   title: string;
