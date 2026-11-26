@@ -3,6 +3,7 @@ import { BarChart2, ChevronDown, ChevronUp, Download, LogOut, MessageCircle, Pac
 import ProductsTab from '@/components/admin/ProductsTab';
 import BackupButton from '@/components/admin/BackupButton';
 import OrderCard, { exportOrdersCSV, type AdminOrder } from '@/components/admin/OrderCard';
+import { perLaal, perTola } from '@/lib/weight';
 import SiteMeta, { SITE_URL } from '@/components/SiteMeta';
 
 // Types
@@ -666,6 +667,11 @@ function RatesTab({ adminKey }: { adminKey: string }) {
                       onChange={e => updateRow(row.rateKey, 'pricePerGram', Number(e.target.value))}
                       className="w-28 border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:border-stone-900"
                     />
+                    {row.pricePerGram > 0 && (
+                      <p className="mt-1 whitespace-nowrap text-xs text-stone-500">
+                        = NPR {perTola(row.pricePerGram).toLocaleString('en-IN')} / tola · {perLaal(row.pricePerGram)} / laal
+                      </p>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <input

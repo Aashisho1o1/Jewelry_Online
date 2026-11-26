@@ -10,6 +10,10 @@ The CMS runs only on your computer. It is not on the public website and needs no
 
 Stop with Ctrl+C. Orders, stock, rates and promos are managed online at `/admin-dashboard`, not here.
 
+## Weight
+
+Type weight in laal (100 laal = 1 tola = 11.664 g). It is saved in grams, and customers see both, e.g. "100 laal (11.664 g)".
+
 ## Prices
 
 - **Fixed price:** type the sell price.

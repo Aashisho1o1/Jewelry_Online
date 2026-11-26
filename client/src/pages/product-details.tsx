@@ -25,6 +25,7 @@ import ProductGallery from '@/components/jewelry/ProductGallery';
 import { formatProductLabel, getExplicitBundleProducts, getSimilarProducts } from '@/lib/product-taxonomy';
 import { RING_SIZES, RING_SIZE_UNSURE, needsRingSize } from '@/lib/ring-sizes';
 import { cn } from '@/lib/utils';
+import { weightLabel } from '@/lib/weight';
 
 function buildDefaultCare(product: JewelryProduct) {
   const base = [
@@ -210,7 +211,7 @@ export default function ProductDetails() {
     ...(product.highlights || []),
     materialLabel,
     product.stoneType && `Stone: ${product.stoneType}`,
-    product.weight && `Weight: ${product.weight}`,
+    product.weight && `Weight: ${weightLabel(product.weight)}`,
     product.dimensions && `Size: ${product.dimensions}`,
     giftAvailable && 'Comes in gift-ready Aashish packaging',
     'Net quantity: 1 piece',

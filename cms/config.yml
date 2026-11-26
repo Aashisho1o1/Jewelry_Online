@@ -71,7 +71,7 @@ collections:
           - { label: "Stone studded", value: "stone_studded" }
           - { label: "Mixed metals", value: "mixed_metals" }
           - { label: "Beaded", value: "beaded" }
-      - { label: "Weight (grams)", name: "weight", widget: "string", required: false, hint: "Shown to customers. Example: 11.664g" }
+      - { label: "Weight (laal)", name: "weight", widget: "weight-laal", required: false, hint: "100 laal = 1 tola = 11.664 g. Saved in grams." }
 
       # Pricing
       - label: "Price Type"
@@ -94,7 +94,7 @@ collections:
           - { label: "NPR per gram", value: "per_gram" }
           - { label: "% of metal value", value: "percent" }
       - { label: "Stone Cost (NPR)", name: "stoneCost", widget: "number", value_type: "float", min: 0, required: false, hint: "Calculated price only. Leave empty if no stones" }
-      - { label: "Weight Without Stones (grams)", name: "pricingWeightGrams", widget: "number", value_type: "float", min: 0, step: 0.001, required: false, hint: "Only if stones are included in the weight above" }
+      - { label: "Weight Without Stones (laal)", name: "pricingWeightGrams", widget: "weight-laal", store: "number", required: false, hint: "Only if stones are included in the weight above" }
       - { label: "Sell Price (NPR)", name: "price", widget: "sell-price", hint: "Type it. For Built from rate it fills in by itself." }
       - { label: "Rate When Price Was Set", name: "priceBaseRate", widget: "base-rate", required: false, hint: "Filled in by itself for Follows rate" }
       - { label: "Old Price, crossed out", name: "originalPrice", widget: "number", value_type: "int", min: 500, required: false, hint: "Only a price you really sold it at" }
