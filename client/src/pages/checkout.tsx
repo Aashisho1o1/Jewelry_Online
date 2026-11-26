@@ -66,7 +66,8 @@ export default function Checkout() {
   const giftOptions = { ...(customerInfo.giftOptions || DEFAULT_GIFT_OPTIONS), isGift: gift };
 
   const discountAmount = promoApplied?.discountAmount ?? 0;
-  const deliveryFee = total >= 5000 ? 0 : 150;
+  // Free all over Nepal; must match lib/order-pricing.js.
+  const deliveryFee = 0;
   const finalTotal = total - discountAmount + deliveryFee;
 
   useEffect(() => {
@@ -209,7 +210,7 @@ export default function Checkout() {
       SITE_URL,
     );
 
-    const deliveryInfo = deliveryFee === 0 ? 'Free Delivery' : `Delivery: NPR ${deliveryFee}`;
+    const deliveryInfo = deliveryFee === 0 ? 'Free delivery (all over Nepal)' : `Delivery: NPR ${deliveryFee}`;
     const discountInfo = discountAmount > 0 ? `\nPromo (${promoApplied?.code}): -NPR ${discountAmount.toLocaleString()}` : '';
     const giftSummary = giftOptions.isGift
       ? `\n\nGift Details:\nGift Wrap: ${giftOptions.giftWrap ? 'Yes' : 'No'}\nRecipient: ${giftOptions.recipient || 'Not specified'}\nOccasion: ${giftOptions.occasion || 'Not specified'}${giftOptions.giftCard ? '\nGift Card: Requested' : ''}${giftOptions.giftNote ? `\nGift Note: ${giftOptions.giftNote}` : ''}${giftOptions.specialInstructions ? `\nSpecial Instructions: ${giftOptions.specialInstructions}` : ''}`
@@ -437,7 +438,6 @@ Please confirm this order and estimated delivery time.`;
           <span>Delivery</span>
           <span>{deliveryFee === 0 ? 'Free' : `NPR ${deliveryFee}`}</span>
         </div>
-        {deliveryFee > 0 && <p className="text-xs text-stone-500">Add NPR {(5000 - total).toLocaleString()} more for free delivery.</p>}
         <div className="mt-1 flex justify-between border-t border-stone-200 pt-2 text-[17px] font-medium text-stone-900">
           <span>Total</span><span>NPR {finalTotal.toLocaleString()}</span>
         </div>

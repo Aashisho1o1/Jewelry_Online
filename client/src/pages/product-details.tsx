@@ -386,7 +386,7 @@ export default function ProductDetails() {
             </div>
 
             <div className="flex flex-col gap-1.5 text-[13px] text-forest-600">
-              <p className="flex items-center gap-2"><Truck className="h-4 w-4 flex-none" strokeWidth={1.5} />Dispatch in {dispatch} · Free delivery above NPR 5,000</p>
+              <p className="flex items-center gap-2"><Truck className="h-4 w-4 flex-none" strokeWidth={1.5} />Dispatch in {dispatch} · Free delivery all over Nepal</p>
               <a
                 href={`https://wa.me/9779811469486?text=${encodeURIComponent(`Hi, I want to know more about ${product.name} (${product.id}).`)}`}
                 target="_blank"
@@ -427,7 +427,7 @@ export default function ProductDetails() {
               </Accordion>
               <Accordion title="Delivery & returns">
                 <p>Dispatch in {dispatch}.</p>
-                <p>Free delivery on orders above NPR 5,000; otherwise NPR 150.</p>
+                <p>Free delivery all over Nepal.</p>
                 <p>30-day returns. <Link href="/returns" className="text-forest-900 underline underline-offset-4">Read the returns policy</Link></p>
               </Accordion>
               {isRing && (

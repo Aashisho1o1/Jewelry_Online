@@ -26,7 +26,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-xs tracking-[0.2em] uppercase text-stone-500 mb-3">Shipping</h2>
-            <p>We dispatch orders within 2–4 business days. Delivery across Nepal takes 3–7 business days depending on location. Free shipping on orders above NPR 5,000.</p>
+            <p>We dispatch orders within 2–4 business days. Delivery across Nepal takes 3–7 business days depending on location. Delivery is free all over Nepal.</p>
           </section>
 
           <section>
