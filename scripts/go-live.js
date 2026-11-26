@@ -154,6 +154,9 @@ export function createGoLive({ root, liveSite, deploy = deployWithVercel, fetchL
         const res = await fetchLive(`${liveSite}/api/products?t=${Date.now()}`, { signal: AbortSignal.timeout(10000) });
         liveProducts = await res.json();
         if (!Array.isArray(liveProducts)) throw new Error('not a list');
+        // Dashboard drafts aren't in the shop list; older deployments have no codes list yet.
+        const codes = await fetchLive(`${liveSite}/api/products/codes`, { signal: AbortSignal.timeout(10000) }).then(r => (r.ok ? r.json() : [])).catch(() => []);
+        if (Array.isArray(codes)) liveProducts.push(...codes.filter(id => !liveProducts.some(p => String(p.id).toUpperCase() === id)).map(id => ({ id, name: 'a dashboard product' })));
       } catch {
         throw new GoLiveError("Couldn't check the live shop. Check your internet and try again.");
       }

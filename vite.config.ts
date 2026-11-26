@@ -29,6 +29,7 @@ import {
 } from "./lib/db-store.js";
 import { query, queryMany } from "./lib/db.js";
 import { createAdminProduct, listAdminProducts, ProductInputError, updateAdminProduct } from "./lib/product-admin.js";
+import { savePhoto, sendPhoto } from "./lib/product-photos.js";
 import { createGoLive, GoLiveError } from "./scripts/go-live.js";
 import { RateSyncError, syncMetalRatesFromFenegosida } from "./lib/nepal-rates.js";
 
@@ -369,13 +370,20 @@ function localApiPlugin(apiKey?: string, model?: string): Plugin {
         }
 
         // ── Admin: Products CMS ───────────────────────────────────────────────
-        const productAction = pathname.match(/^\/api\/products\/(admin-list|create|update)$/)?.[1];
+        if (pathname.startsWith("/api/products/photo/")) {
+          const out = { status(code: number) { res.statusCode = code; return out; }, send(data: Buffer) { res.end(data); }, end(text: string) { res.end(text); } };
+          await sendPhoto(pathname, Object.assign(out, { setHeader: res.setHeader.bind(res) }));
+          return;
+        }
+        const productAction = pathname.match(/^\/api\/products\/(admin-list|create|update|photo)$/)?.[1];
         if (productAction) {
           try {
             if (productAction === "admin-list") sendJson(res, 200, await listAdminProducts());
             else {
-              const save = productAction === "create" ? createAdminProduct : updateAdminProduct;
-              sendJson(res, 200, { product: await save(await readJsonBody(req)) });
+              const body = await readJsonBody(req);
+              // Same reply shapes as api/products.js.
+              if (productAction === "photo") sendJson(res, 200, await savePhoto(body));
+              else sendJson(res, 200, { product: await (productAction === "create" ? createAdminProduct : updateAdminProduct)(body) });
             }
           } catch (e: any) {
             if (e instanceof ProductInputError) sendJson(res, e.status, { error: e.message, ...e.extra });
@@ -520,6 +528,9 @@ function localCmsPlugin(): Plugin {
             const response = await fetch(`${LIVE_SITE}/api/products`, { signal: AbortSignal.timeout(6000) });
             const data = await response.json();
             if (Array.isArray(data)) live = data;
+            // Dashboard drafts aren't in the shop list; their codes come without names.
+            const codes = await fetch(`${LIVE_SITE}/api/products/codes`, { signal: AbortSignal.timeout(6000) }).then(r => (r.ok ? r.json() : []));
+            if (Array.isArray(codes)) live.push(...codes.filter(id => !live.some(p => String(p.id).toUpperCase() === id)).map(id => ({ id, name: 'a dashboard product' })));
           } catch { /* Go Live checks the live shop again */ }
           sendJson(res, 200, [...loadCatalogProducts(), ...live].map(p => ({ id: p.id, name: p.name })));
           return;
