@@ -122,7 +122,9 @@ export default async function handler(req, res) {
       }
       const updatedRate = await upsertMetalRate({
         rateKey: rateKey.trim(),
-        label: typeof label === 'string' && label.trim() ? label.trim() : rateKey.trim(),
+        // Fixed names, so an old browser tab can't bring back "925 Silver".
+        label: DEFAULT_METAL_RATES.find(rate => rate.rateKey === rateKey.trim())?.label
+          || (typeof label === 'string' && label.trim() ? label.trim() : rateKey.trim()),
         pricePerGram: parsedPricePerGram,
         baselinePricePerGram: parsedBaselinePricePerGram,
         // A hand-typed rate must not keep claiming to come from FENEGOSIDA.

@@ -398,7 +398,7 @@ function PromosTab({ adminKey }: { adminKey: string }) {
 // Mirrors lib/nepal-rates.js: share of pure metal per purity, and grams in a tola.
 const GRAMS_PER_TOLA = 11.664;
 const PURITY: Record<string, { metal: 'gold' | 'silver'; factor: number }> = {
-  silver_925: { metal: 'silver', factor: 0.925 },
+  silver_925: { metal: 'silver', factor: 1 },
   gold_24k: { metal: 'gold', factor: 1 },
   gold_22k: { metal: 'gold', factor: 0.916 },
   gold_18k: { metal: 'gold', factor: 0.75 },
