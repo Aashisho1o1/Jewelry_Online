@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
+import { gramsToLaal, laalToGrams, weightLabel } from '@/lib/weight';
 import { calculateFormulaPrice, followRatePrice, inferMetalRateKey } from '../../../../lib/metal-pricing.js';
 
 type Status = 'draft' | 'live' | 'hidden';
@@ -26,7 +27,6 @@ const METALS: [string, string][] = [
   ['gold_plated', 'Gold plated'], ['rose_gold_plated', 'Rose gold plated'], ['stone_studded', 'Stone studded'],
   ['mixed_metals', 'Mixed metals'], ['beaded', 'Beaded'],
 ];
-const GRAMS_PER_TOLA = 11.664;
 const STATUS_LABEL: Record<Status, string> = { draft: 'Draft', live: 'In shop', hidden: 'Hidden' };
 const STATUS_STYLE: Record<Status, string> = {
   draft: 'bg-amber-100 text-amber-800', live: 'bg-emerald-100 text-emerald-800', hidden: 'bg-stone-200 text-stone-600',
@@ -45,10 +45,10 @@ type Form = typeof EMPTY;
 
 function toForm(p: AdminProduct): Form {
   return {
-    name: p.name, category: p.category, material: p.material, weight: str(p.weight).replace(/g$/, ''),
+    name: p.name, category: p.category, material: p.material, weight: Number.parseFloat(str(p.weight)) > 0 ? str(gramsToLaal(Number.parseFloat(str(p.weight)))) : '',
     price_mode: p.price_mode === 'formula' || p.price_mode === 'live_metal' ? p.price_mode : 'manual', price: str(Number(p.price) || ''),
     wastage_percent: str(p.wastage_percent), making_charge: str(p.making_charge), making_charge_type: p.making_charge_type || 'fixed',
-    stone_cost: str(p.stone_cost), pricing_weight_grams: str(p.pricing_weight_grams), original_price: str(p.original_price),
+    stone_cost: str(p.stone_cost), pricing_weight_grams: Number(p.pricing_weight_grams) > 0 ? str(gramsToLaal(Number(p.pricing_weight_grams))) : '', original_price: str(p.original_price),
     description: str(p.description), care_instructions: str(p.care_instructions), dimensions: str(p.dimensions),
     images: (p.images || []).join('\n'), is_new: p.is_new, featured: p.featured, stock: str(p.stock),
   };
@@ -98,11 +98,13 @@ function ProductForm({ product, rates, adminKey, onClose, onSaved }: {
     setForm(prev => ({ ...prev, [key]: value }));
   };
 
-  const grams = Number(form.weight) || 0;
+  // The form is in laal; prices and the server use grams.
+  const grams = laalToGrams(Number(form.weight) || 0);
+  const pricingGrams = laalToGrams(Number(form.pricing_weight_grams) || 0);
   const rate = rates.find(r => r.rateKey === inferMetalRateKey(form.material) && r.isActive);
   const result = calculateFormulaPrice({
     ratePerGram: rate?.pricePerGram,
-    weightGrams: Number(form.pricing_weight_grams) || grams,
+    weightGrams: pricingGrams || grams,
     wastagePercent: form.wastage_percent,
     makingCharge: form.making_charge,
     makingChargeType: form.making_charge_type,
@@ -110,7 +112,7 @@ function ProductForm({ product, rates, adminKey, onClose, onSaved }: {
   });
   const priceTouched = !product || form.price !== initial.price || form.weight !== initial.weight || form.material !== initial.material
     || form.price_mode !== initial.price_mode || form.pricing_weight_grams !== initial.pricing_weight_grams;
-  const followWeight = Number(form.pricing_weight_grams) || grams;
+  const followWeight = pricingGrams || grams;
   const baseRate = priceTouched ? rate?.pricePerGram : Number(product?.price_base_rate);
   const followNow = followRatePrice({ price: form.price, baseRate, ratePerGram: rate?.pricePerGram, weightGrams: followWeight });
   const followHint = form.price_mode !== 'live_metal' ? undefined
@@ -126,7 +128,7 @@ function ProductForm({ product, rates, adminKey, onClose, onSaved }: {
   };
 
   const suggestDescription = () => {
-    const weight = grams ? ` Weight: ${grams}g.` : '';
+    const weight = grams ? ` Weight: ${weightLabel(`${grams}g`)}.` : '';
     set('description', `${label(METALS, form.material)} ${label(TYPES, form.category).toLowerCase()} from Aashish Jewellers, Butwal.${weight}`);
   };
 
@@ -135,14 +137,16 @@ function ProductForm({ product, rates, adminKey, onClose, onSaved }: {
     setError('');
     setConfirm(null);
     try {
-      const { stock, images, weight, ...rest } = form;
+      const { stock, images, weight, pricing_weight_grams, ...rest } = form;
       const res = await fetch(product ? '/api/products/update' : '/api/products/create', {
         method: product ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
         body: JSON.stringify({
           ...rest,
           ...(product ? { id: product.id } : {}),
-          weight: weight || null,
+          // Unchanged weights are sent as saved, so opening and saving never rounds them.
+          weight: weight === initial.weight && product ? product.weight : grams ? `${grams}g` : null,
+          pricing_weight_grams: pricing_weight_grams === initial.pricing_weight_grams && product ? product.pricing_weight_grams : pricingGrams || null,
           images: images.split('\n').map(s => s.trim()).filter(Boolean),
           status,
           confirmPrice,
@@ -180,8 +184,8 @@ function ProductForm({ product, rates, adminKey, onClose, onSaved }: {
       <Choices title="Metal" options={METALS} value={form.material} onChange={v => set('material', v)} />
 
       <Field title="Name"><input className={INPUT} value={form.name} maxLength={120} onChange={e => set('name', e.target.value)} /></Field>
-      <Field title="Weight (grams)" hint={grams ? `= ${(grams / GRAMS_PER_TOLA).toFixed(3)} tola` : undefined}>
-        <input className={INPUT} type="number" inputMode="decimal" min="0" step="0.001" value={form.weight} onChange={e => set('weight', e.target.value)} />
+      <Field title="Weight (laal)" hint={grams ? `= ${grams} g = ${(Number(form.weight) / 100).toFixed(2)} tola` : '100 laal = 1 tola = 11.664 g'}>
+        <input className={INPUT} type="number" inputMode="decimal" min="0" step="0.01" value={form.weight} onChange={e => set('weight', e.target.value)} />
       </Field>
 
       <div className="space-y-4 rounded-xl bg-white p-4">
@@ -242,8 +246,8 @@ function ProductForm({ product, rates, adminKey, onClose, onSaved }: {
             <input className={INPUT} type="number" inputMode="numeric" min="0" value={form.original_price} onChange={e => set('original_price', e.target.value)} />
           </Field>
           {form.price_mode === 'formula' && (
-            <Field title="Weight without stones (grams)" hint="Only if the weight above includes stones">
-              <input className={INPUT} type="number" inputMode="decimal" min="0" step="0.001" value={form.pricing_weight_grams} onChange={e => set('pricing_weight_grams', e.target.value)} />
+            <Field title="Weight without stones (laal)" hint={pricingGrams ? `= ${pricingGrams} g` : 'Only if the weight above includes stones'}>
+              <input className={INPUT} type="number" inputMode="decimal" min="0" step="0.01" value={form.pricing_weight_grams} onChange={e => set('pricing_weight_grams', e.target.value)} />
             </Field>
           )}
           <Field title="Size" hint="Example: 18 inch chain"><input className={INPUT} maxLength={120} value={form.dimensions} onChange={e => set('dimensions', e.target.value)} /></Field>

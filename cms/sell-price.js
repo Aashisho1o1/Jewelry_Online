@@ -131,4 +131,29 @@ const BaseRate = createClass({
 });
 
 CMS.registerWidget('base-rate', BaseRate);
+
+// Weight typed in laal (100 laal = 1 tola = 11.664 g); saved in grams as before ("11.664g", or a number).
+const GRAMS_PER_LAAL = 0.11664;
+const WeightLaal = createClass({
+  getInitialState() {
+    const grams = parseFloat(this.props.value);
+    return { laal: grams > 0 ? String(Number((grams / GRAMS_PER_LAAL).toFixed(2))) : '' };
+  },
+  render() {
+    const asNumber = this.props.field.get('store') === 'number';
+    const grams = Number((Number(this.state.laal) * GRAMS_PER_LAAL).toFixed(4));
+    return h('div', null,
+      h('input', {
+        id: this.props.forID, className: this.props.classNameWrapper, type: 'number', min: 0, step: 0.01, value: this.state.laal,
+        onChange: e => {
+          const laal = e.target.value;
+          this.setState({ laal });
+          const g = Number((Number(laal) * GRAMS_PER_LAAL).toFixed(4));
+          this.props.onChange(!(g > 0) ? (asNumber ? null : '') : asNumber ? g : `${g}g`);
+        },
+      }),
+      h('small', { 'data-grams': grams || '' }, grams > 0 ? `= ${grams} g = ${(Number(this.state.laal) / 100).toFixed(2)} tola` : '100 laal = 1 tola = 11.664 g'));
+  },
+});
+CMS.registerWidget('weight-laal', WeightLaal);
 CMS.registerWidget('sell-price', Control, ({ value }) => h('span', null, value));

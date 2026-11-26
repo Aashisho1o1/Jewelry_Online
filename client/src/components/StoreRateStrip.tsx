@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { perTola } from '@/lib/weight';
 import { RefreshCw } from 'lucide-react';
 import { Link } from 'wouter';
 import { getStoreRates } from '@/data/rate-loader';
@@ -100,9 +101,9 @@ export default function StoreRateStrip({ focusRateKey, compact = false, showPage
             <span key={rate.rateKey} className="flex items-center gap-[18px]">
               {i > 0 && <span className="text-forest-400" aria-hidden="true">|</span>}
               <span>
-                {rate.label} <strong className="font-semibold">NPR {rate.pricePerGram.toLocaleString()}</strong>
-                <span className="md:hidden">/g</span>
-                <span className="hidden md:inline"> / gram</span>
+                {/* Quoted per tola, like the shop counter. */}
+                {rate.label} <strong className="font-semibold">NPR {perTola(rate.pricePerGram).toLocaleString('en-IN')}</strong>
+                <span> / tola</span>
               </span>
             </span>
           ))}
