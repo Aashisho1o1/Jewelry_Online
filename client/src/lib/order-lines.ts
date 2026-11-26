@@ -1,5 +1,5 @@
 // One way to write order items, so WhatsApp, the dashboard and the packing slip always agree.
-import { RING_SIZE_UNSURE } from './ring-sizes';
+import { sizeLabel } from './ring-sizes';
 
 export interface OrderLine {
   id: string;
@@ -12,8 +12,7 @@ export interface OrderLine {
 const npr = (value: number) => `NPR ${Math.round(value).toLocaleString('en-IN')}`;
 
 export function sizeText(size?: string | null) {
-  if (!size) return '';
-  return size === RING_SIZE_UNSURE ? 'Size to confirm' : `Size ${size}`;
+  return sizeLabel(size);
 }
 
 export const pieceCount = (items: { quantity: number }[]) => items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);

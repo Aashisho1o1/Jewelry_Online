@@ -7,7 +7,7 @@ export interface CartItem {
   quantity: number;
   material: string;
   category?: string;
-  size?: string; // Rings only; the same ring in two sizes is two cart lines.
+  size?: string; // Ring size, chain length or bracelet size; two sizes of one piece are two cart lines.
 }
 
 export interface Cart {

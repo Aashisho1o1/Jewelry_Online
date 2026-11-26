@@ -22,6 +22,7 @@ export interface JewelryProduct {
   inStock: boolean;
   featured?: boolean;
   isNew?: boolean;
+  adjustable?: boolean; // one size fits, so customers aren't asked for a size
   weight?: string;
   priceMode?: 'manual' | 'formula' | 'live_metal';
   metalRateKey?: string;

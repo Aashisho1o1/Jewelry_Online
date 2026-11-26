@@ -3,7 +3,7 @@ import { useCartContext } from '../contexts/CartContext';
 import { CustomerInfo, GiftOptions, Order } from '../types/order';
 import { Check, ChevronDown, Gift, MessageCircle } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
-import { needsRingSize, RING_SIZE_UNSURE, ringSizeLabel } from '@/lib/ring-sizes';
+import { needsRingSize, RING_SIZE_UNSURE, ringSizeLabel, sizeLabel } from '@/lib/ring-sizes';
 import { countText, orderLinesText } from '@/lib/order-lines';
 import { SITE_URL } from '@/components/SiteMeta';
 import { formatProductLabel } from '@/lib/product-taxonomy';
@@ -384,7 +384,7 @@ Please confirm this order and estimated delivery time.`;
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm text-stone-900">{item.name}</p>
-            <p className="text-xs text-stone-500">{needsRingSize(item.category) ? ringSizeLabel(item.size) : formatProductLabel(item.category || item.material)}</p>
+            <p className="text-xs text-stone-500">{item.size ? sizeLabel(item.size) : needsRingSize(item.category) ? ringSizeLabel(item.size) : formatProductLabel(item.category || item.material)}</p>
           </div>
           <p className="text-sm text-stone-900">NPR {(item.price * item.quantity).toLocaleString()}</p>
         </div>
