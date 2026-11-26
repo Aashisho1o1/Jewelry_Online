@@ -211,7 +211,7 @@ export default function OrderCard({ order, adminKey, onStatusChange }: {
       <p className="mt-3 rounded-xl bg-forest-50 px-3 py-2 text-sm font-medium text-forest-900">
         {countText(items)} · {npr(order.total)} · {PAYMENT_LABELS[order.payment_method] || order.payment_method}
       </p>
-      {unsure > 0 && <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">Call to confirm ring size ({unsure} {unsure === 1 ? 'item' : 'items'}).</p>}
+      {unsure > 0 && <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">Call to confirm the size ({unsure} {unsure === 1 ? 'item' : 'items'}).</p>}
 
       <ol className="mt-3 divide-y divide-stone-100">
         {items.map((item, index) => (

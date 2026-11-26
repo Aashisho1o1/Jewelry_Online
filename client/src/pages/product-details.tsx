@@ -23,7 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import ProductCard from '@/components/jewelry/ProductCard';
 import ProductGallery from '@/components/jewelry/ProductGallery';
 import { formatProductLabel, getExplicitBundleProducts, getSimilarProducts } from '@/lib/product-taxonomy';
-import { RING_SIZES, RING_SIZE_UNSURE, needsRingSize } from '@/lib/ring-sizes';
+import { RING_SIZE_UNSURE, SIZE_CHOICES, sizeChoicesFor } from '@/lib/ring-sizes';
 import { cn } from '@/lib/utils';
 import { weightLabel } from '@/lib/weight';
 
@@ -124,12 +124,12 @@ export default function ProductDetails() {
     if (product) trackRecentlyViewed(product);
   }, [product?.id]);
 
-  // Rings can't go in the bag without a size; send the customer to the picker instead.
+  // Pieces with sizes can't go in the bag without one; send the customer to the picker instead.
   const requireSize = () => {
-    if (!product || !needsRingSize(product.category) || size) return true;
+    if (!product || !sizeChoicesFor(product) || size) return true;
     setSizeError(true);
     sizePickerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    toast({ title: 'Choose a ring size', description: 'Pick your size, or "Not sure" and we\'ll confirm it by phone.' });
+    toast({ title: `Choose a ${sizeChoicesFor(product)!.title.toLowerCase()}`, description: 'Pick your size, or "Not sure" and we\'ll confirm it by phone.' });
     return false;
   };
 
@@ -202,7 +202,8 @@ export default function ProductDetails() {
   const rating = product.rating || (reviews.length
     ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) * 10) / 10
     : undefined);
-  const isRing = needsRingSize(product.category);
+  const sizeChoice = sizeChoicesFor(product);
+  const isRing = sizeChoice === SIZE_CHOICES.rings;
   // Stored estimates may already read 'Dispatch in ...'; keep just the time so sentences read correctly.
   const dispatch = (product.deliveryEstimate || '2 to 4 business days').replace(/^dispatch(es)? in\s*/i, '');
   const giftAvailable = product.giftWrapAvailable !== false;
@@ -293,14 +294,14 @@ export default function ProductDetails() {
               {!product.inStock && <p className="mt-2 text-sm font-medium text-red-700">Currently out of stock</p>}
             </div>
 
-            {isRing && (
+            {sizeChoice && (
               <div ref={sizePickerRef}>
                 <div className="mb-2.5 flex justify-between text-xs">
-                  <span id="ring-size-label" className="uppercase tracking-[0.16em] text-stone-600">Ring size</span>
+                  <span id="ring-size-label" className="uppercase tracking-[0.16em] text-stone-600">{sizeChoice.title}</span>
                   <Link href="/size-guide" className="text-forest-900 underline underline-offset-[3px]">Size guide</Link>
                 </div>
                 <div role="radiogroup" aria-labelledby="ring-size-label" className="flex flex-wrap gap-2">
-                  {[...RING_SIZES.map(r => ({ value: r.size, label: r.size })), { value: RING_SIZE_UNSURE, label: 'Not sure' }].map(option => {
+                  {[...sizeChoice.options, { value: RING_SIZE_UNSURE, label: 'Not sure' }].map(option => {
                     const on = size === option.value;
                     return (
                       <button
@@ -320,7 +321,7 @@ export default function ProductDetails() {
                   })}
                 </div>
                 {size === RING_SIZE_UNSURE && <p className="mt-2 text-xs text-stone-600">No problem. We&apos;ll confirm your size when we call to confirm the order.</p>}
-                {sizeError && <p role="alert" className="mt-2 text-xs font-medium text-red-700">Please choose a ring size.</p>}
+                {sizeError && <p role="alert" className="mt-2 text-xs font-medium text-red-700">Please choose a {sizeChoice.title.toLowerCase()}.</p>}
               </div>
             )}
 
@@ -430,9 +431,9 @@ export default function ProductDetails() {
                 <p>Free delivery all over Nepal.</p>
                 <p>30-day returns. <Link href="/returns" className="text-forest-900 underline underline-offset-4">Read the returns policy</Link></p>
               </Accordion>
-              {isRing && (
-                <Accordion title="Ring size guide">
-                  {RING_SIZES.map(r => <p key={r.size}><span className="font-medium text-stone-900">Size {r.size}</span> · {r.diameter} · {r.note}</p>)}
+              {sizeChoice && (
+                <Accordion title={`${sizeChoice.title} guide`}>
+                  {sizeChoice.options.map(r => <p key={r.value}><span className="font-medium text-stone-900">{r.label}</span> · {r.note}</p>)}
                   {product.fitNotes && <p className="mt-1">{product.fitNotes}</p>}
                 </Accordion>
               )}

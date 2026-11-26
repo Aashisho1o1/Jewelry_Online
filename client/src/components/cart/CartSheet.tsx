@@ -2,7 +2,7 @@ import { Check, Minus, Plus, X } from 'lucide-react';
 import { Link } from 'wouter';
 import { useCartContext } from '../../contexts/CartContext';
 import { Sheet, SheetContent, SheetTitle } from '../ui/sheet';
-import { needsRingSize, ringSizeLabel, RING_SIZE_UNSURE } from '@/lib/ring-sizes';
+import { needsRingSize, ringSizeLabel, RING_SIZE_UNSURE, sizeLabel } from '@/lib/ring-sizes';
 import { orderLinesText } from '@/lib/order-lines';
 import { SITE_URL } from '@/components/SiteMeta';
 import { formatProductLabel } from '@/lib/product-taxonomy';
@@ -15,7 +15,7 @@ export function CartSheet() {
   // Delivery is free all over Nepal; must match lib/order-pricing.js.
   const finalTotal = total;
   const lineDetail = (item: typeof items[number]) =>
-    needsRingSize(item.category) ? ringSizeLabel(item.size) : formatProductLabel(item.category || item.material);
+    item.size ? sizeLabel(item.size) : needsRingSize(item.category) ? ringSizeLabel(item.size) : formatProductLabel(item.category || item.material);
   // Pre-filled so a WhatsApp order arrives with the same items and sizes as the bag.
   const whatsappText = items.length
     ? `Hi, I'd like to order:\n${orderLinesText(items.map(i => ({ ...i, size: needsRingSize(i.category) ? i.size || RING_SIZE_UNSURE : i.size })), SITE_URL)}\nTotal: NPR ${finalTotal.toLocaleString()}`

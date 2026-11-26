@@ -1,19 +1,17 @@
-// Ring sizes offered at checkout. Keep RING_SIZE_VALUES in lib/order-pricing.js in sync.
-export const RING_SIZES = [
-  { size: '6', diameter: '16.5 mm', note: 'Slim fingers / snug fit' },
-  { size: '7', diameter: '17.3 mm', note: 'Common regular fit' },
-  { size: '8', diameter: '18.1 mm', note: 'Comfortable medium-large fit' },
-  { size: '9', diameter: '19.0 mm', note: 'Statement or larger fit' },
-];
+// Kept as the import path the shop already uses; the real lists live in lib/sizes.js (also used by order checks).
+import { SIZE_CHOICES, SIZE_UNSURE, sizeLabel } from '../../../lib/sizes.js';
 
-// Orders are confirmed by phone, so an unsure customer can settle the size then.
-export const RING_SIZE_UNSURE = 'not-sure';
+export { SIZE_CHOICES, sizeChoicesFor, sizeLabel } from '../../../lib/sizes.js';
 
+export const RING_SIZE_UNSURE = SIZE_UNSURE;
+
+// Older ring orders without a size are confirmed by phone, so those still show "to confirm".
 export function ringSizeLabel(size?: string | null) {
-  if (!size || size === RING_SIZE_UNSURE) return 'Size to confirm by phone';
-  return `Ring size ${size}`;
+  return size ? sizeLabel(size) : 'Size to confirm by phone';
 }
 
 export function needsRingSize(category?: string) {
   return category?.toLowerCase() === 'rings';
 }
+
+export const RING_SIZES = SIZE_CHOICES.rings.options;
