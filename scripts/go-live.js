@@ -11,7 +11,8 @@ import { shrinkPhoto } from './shrink-photo.js';
 const PRODUCT = /^content\/jewelry\/([a-z]{2}\d{3,})\.md$/i;
 const PAGE = /^client\/src\/content\/(home|about|settings)\.json$/;
 const IMAGE = /^client\/public\/images\/jewelry\/[\w. ()-]+\.(jpe?g|png|webp)$/i;
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // after shrinking
+const MAX_UPLOAD_BYTES = 25 * 1024 * 1024; // before shrinking (big phone photos)
 const BIG_PRICE_CHANGE = 0.3;
 const PROJECT_NAME = 'aashish-jewellers';
 const SUBJECT = 'content: go live';
@@ -131,7 +132,7 @@ export function createGoLive({ root, liveSite, deploy = deployWithVercel, fetchL
       hash.update(`\0${status}\0${file}\0`).update(exists ? fs.readFileSync(abs(file)) : 'deleted');
       if (IMAGE.test(file)) {
         if (!exists) errors.push(`Photo deleted: ${path.basename(file)}. Ask Claude, because other pages may use it.`);
-        else if (fs.statSync(abs(file)).size > MAX_IMAGE_BYTES) errors.push(`${path.basename(file)} is over 5 MB. Make it smaller.`);
+        else if (fs.statSync(abs(file)).size > MAX_UPLOAD_BYTES) errors.push(`${path.basename(file)} is over 25 MB. Make it smaller.`);
         else newImages.set(file, tracked.has(file));
       } else if (!PRODUCT.test(file) && !PAGE.test(file)) {
         errors.push(`Not a product, page or photo: ${file}. Ask Claude to handle it.`);
@@ -313,6 +314,8 @@ export function createGoLive({ root, liveSite, deploy = deployWithVercel, fetchL
       }
       result[result.indexOf(file)] = renamed;
     }
+    const tooBig = result.filter(f => IMAGE.test(f) && fs.statSync(abs(f)).size > MAX_IMAGE_BYTES);
+    if (tooBig.length) throw new GoLiveError(`${tooBig.map(f => path.basename(f)).join(', ')}: still over 5 MB after shrinking, so nothing went live. Use a smaller photo.`);
     return result;
   }
 
