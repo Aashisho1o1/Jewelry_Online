@@ -5,12 +5,14 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import yaml from 'js-yaml';
+import { shrinkPhoto } from './shrink-photo.js';
 
 // The CMS saves new products with a lowercase file name.
 const PRODUCT = /^content\/jewelry\/([a-z]{2}\d{3,})\.md$/i;
 const PAGE = /^client\/src\/content\/(home|about|settings)\.json$/;
 const IMAGE = /^client\/public\/images\/jewelry\/[\w. ()-]+\.(jpe?g|png|webp)$/i;
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // after shrinking
+const MAX_UPLOAD_BYTES = 25 * 1024 * 1024; // before shrinking (big phone photos)
 const BIG_PRICE_CHANGE = 0.3;
 const PROJECT_NAME = 'aashish-jewellers';
 const SUBJECT = 'content: go live';
@@ -130,7 +132,7 @@ export function createGoLive({ root, liveSite, deploy = deployWithVercel, fetchL
       hash.update(`\0${status}\0${file}\0`).update(exists ? fs.readFileSync(abs(file)) : 'deleted');
       if (IMAGE.test(file)) {
         if (!exists) errors.push(`Photo deleted: ${path.basename(file)}. Ask Claude, because other pages may use it.`);
-        else if (fs.statSync(abs(file)).size > MAX_IMAGE_BYTES) errors.push(`${path.basename(file)} is over 5 MB. Make it smaller.`);
+        else if (fs.statSync(abs(file)).size > MAX_UPLOAD_BYTES) errors.push(`${path.basename(file)} is over 25 MB. Make it smaller.`);
         else newImages.set(file, tracked.has(file));
       } else if (!PRODUCT.test(file) && !PAGE.test(file)) {
         errors.push(`Not a product, page or photo: ${file}. Ask Claude to handle it.`);
@@ -296,6 +298,27 @@ export function createGoLive({ root, liveSite, deploy = deployWithVercel, fetchL
     return { live: true, verified: await verifyLive() };
   }
 
+  // Big photos are shrunk just before saving. A new PNG may become a JPG, so the files using it are updated too.
+  async function shrinkPhotos(files) {
+    const result = [...files];
+    for (const file of files.filter(f => IMAGE.test(f))) {
+      const isNew = !(await git('ls-files', '--', file)).trim();
+      let saved;
+      try { saved = await shrinkPhoto(abs(file), { allowRename: isNew }); } catch { continue; } // goes up as it is
+      if (!saved || saved === abs(file)) continue;
+      const renamed = path.relative(root, saved).split(path.sep).join('/');
+      const [from, to] = [file, renamed].map(f => f.replace('client/public', ''));
+      for (const text of result.filter(f => (PRODUCT.test(f) || PAGE.test(f)) && fs.existsSync(abs(f)))) {
+        const body = fs.readFileSync(abs(text), 'utf8');
+        if (body.includes(from)) fs.writeFileSync(abs(text), body.split(from).join(to));
+      }
+      result[result.indexOf(file)] = renamed;
+    }
+    const tooBig = result.filter(f => IMAGE.test(f) && fs.statSync(abs(f)).size > MAX_IMAGE_BYTES);
+    if (tooBig.length) throw new GoLiveError(`${tooBig.map(f => path.basename(f)).join(', ')}: still over 5 MB after shrinking, so nothing went live. Use a smaller photo.`);
+    return result;
+  }
+
   async function locked(work) {
     if (busy) throw new GoLiveError('Already updating. Please wait.');
     busy = true;
@@ -317,8 +340,9 @@ export function createGoLive({ root, liveSite, deploy = deployWithVercel, fetchL
         throw new GoLiveError('The website would not build with these changes, so nothing went live. Ask Claude.');
       }
       if ((await preview()).fingerprint !== fingerprint) throw new GoLiveError('Something changed during the check. Check it again.');
-      await git('add', '--', ...now.files);
-      await git('commit', '--quiet', '-m', SUBJECT, '-m', now.items.map(i => `- ${i.title}`).join('\n'), '--', ...now.files);
+      const files = await shrinkPhotos(now.files);
+      await git('add', '--', ...files);
+      await git('commit', '--quiet', '-m', SUBJECT, '-m', now.items.map(i => `- ${i.title}`).join('\n'), '--', ...files);
       return pushAndDeploy();
     }),
 
