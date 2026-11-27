@@ -23,7 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import ProductCard from '@/components/jewelry/ProductCard';
 import ProductGallery from '@/components/jewelry/ProductGallery';
 import { formatProductLabel, getExplicitBundleProducts, getSimilarProducts } from '@/lib/product-taxonomy';
-import { RING_SIZE_UNSURE, SIZE_CHOICES, sizeChoicesFor } from '@/lib/ring-sizes';
+import { RING_SIZE_UNSURE, sizeChoicesFor } from '@/lib/ring-sizes';
 import { cn } from '@/lib/utils';
 import { weightLabel } from '@/lib/weight';
 
@@ -203,7 +203,6 @@ export default function ProductDetails() {
     ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) * 10) / 10
     : undefined);
   const sizeChoice = sizeChoicesFor(product);
-  const isRing = sizeChoice === SIZE_CHOICES.rings;
   // Stored estimates may already read 'Dispatch in ...'; keep just the time so sentences read correctly.
   const dispatch = (product.deliveryEstimate || '2 to 4 business days').replace(/^dispatch(es)? in\s*/i, '');
   const giftAvailable = product.giftWrapAvailable !== false;
@@ -433,7 +432,7 @@ export default function ProductDetails() {
               </Accordion>
               {sizeChoice && (
                 <Accordion title={`${sizeChoice.title} guide`}>
-                  {sizeChoice.options.map(r => <p key={r.value}><span className="font-medium text-stone-900">{r.label}</span> · {r.note}</p>)}
+                  {sizeChoice.options.map(r => <p key={r.value}><span className="font-medium text-stone-900">{r.label}</span>{r.note && ` · ${r.note}`}</p>)}
                   {product.fitNotes && <p className="mt-1">{product.fitNotes}</p>}
                 </Accordion>
               )}

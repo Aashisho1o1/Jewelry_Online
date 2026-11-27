@@ -104,6 +104,7 @@ collections:
       - { label: "Show as Featured", name: "featured", widget: "boolean", default: false, required: false }
       - { label: "New Arrival", name: "isNew", widget: "boolean", default: false, required: false }
       - { label: "Adjustable (one size fits)", name: "adjustable", widget: "boolean", default: false, required: false, hint: "Rings, necklaces and bracelets ask customers for a size unless this is on" }
+      - { label: "Sizes you have", name: "sizes", widget: "list", required: false, hint: "Separate with commas, like 17, 19, 20. Empty means the usual sizes (rings 6-9, necklaces 16-22 inch, bracelets 6.5-8 inch)" }
 
       # Optional from here down
       - label: "More: Occasions"

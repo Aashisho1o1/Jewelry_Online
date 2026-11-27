@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import yaml from 'js-yaml';
 import { shrinkPhoto } from './shrink-photo.js';
+import { parseSizes } from '../lib/sizes.js';
 
 // The CMS saves new products with a lowercase file name.
 const PRODUCT = /^content\/jewelry\/([a-z]{2}\d{3,})\.md$/i;
@@ -19,7 +20,7 @@ const SUBJECT = 'content: go live';
 const LABELS = {
   name: 'Name', price: 'Price', originalPrice: 'Old price', priceMode: 'Price type', wastagePercent: 'Wastage %',
   makingCharge: 'Making charge', makingChargeType: 'Making charge is', stoneCost: 'Stone cost', priceBaseRate: 'Rate when price was set', weight: 'Weight',
-  pricingWeightGrams: 'Weight without stones', material: 'Material', category: 'Category', inStock: 'In stock', image: 'Main photo',
+  pricingWeightGrams: 'Weight without stones', material: 'Material', category: 'Category', inStock: 'In stock', image: 'Main photo', sizes: 'Sizes',
 };
 
 export class GoLiveError extends Error {}
@@ -53,6 +54,7 @@ function checkProduct(code, data, imageExists) {
   }
   if (!(Number(data.priceBaseRate || 0) >= 0)) bad('rate when price was set is not valid. Type the price again.');
   if (data.priceMode === 'live_metal' && !(Number(data.priceBaseRate) > 0)) bad('follows the rate, but no starting rate is saved. Type the sell price again.');
+  if (data.sizes) { try { parseSizes(data.sizes); } catch (error) { bad(error.message); } }
   if (!data.image) bad('main photo is missing.');
   for (const src of [data.image, ...(Array.isArray(data.images) ? data.images : [])].filter(Boolean)) {
     if (!imageExists(src)) bad(`photo not found: ${src}`);
