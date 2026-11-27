@@ -23,6 +23,7 @@ export interface JewelryProduct {
   featured?: boolean;
   isNew?: boolean;
   adjustable?: boolean; // one size fits, so customers aren't asked for a size
+  sizes?: string[]; // sizes this piece is made in; replaces the usual list
   weight?: string;
   priceMode?: 'manual' | 'formula' | 'live_metal';
   metalRateKey?: string;

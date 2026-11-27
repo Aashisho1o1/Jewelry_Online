@@ -14,7 +14,7 @@ interface AdminProduct {
   price_mode: PriceMode | null; wastage_percent: number | string | null; making_charge: number | string | null;
   making_charge_type: string | null; stone_cost: number | string | null; pricing_weight_grams: number | string | null; price_base_rate: number | string | null;
   description: string | null; care_instructions: string | null; weight: string | null; dimensions: string | null;
-  in_stock: boolean; is_new: boolean; featured: boolean; adjustable: boolean; images: string[]; stock: number | null;
+  in_stock: boolean; is_new: boolean; featured: boolean; adjustable: boolean; sizes?: string[] | null; images: string[]; stock: number | null;
 }
 interface CmsProduct { id: string; name: string; category: string; price: number; image: string }
 interface Rate { rateKey: string; pricePerGram: number; isActive: boolean; sourceLabel: string }
@@ -41,7 +41,7 @@ const str = (value: unknown) => (value === null || value === undefined ? '' : St
 const EMPTY = {
   name: '', category: 'rings', material: '925_silver', weight: '', price_mode: 'manual' as PriceMode, price: '',
   wastage_percent: '', making_charge: '', making_charge_type: 'fixed', stone_cost: '', pricing_weight_grams: '',
-  original_price: '', description: '', care_instructions: '', dimensions: '', images: [] as string[], is_new: true, featured: false, adjustable: false, stock: '1',
+  original_price: '', description: '', care_instructions: '', dimensions: '', images: [] as string[], is_new: true, featured: false, adjustable: false, sizes: '', stock: '1',
 };
 type Form = typeof EMPTY;
 
@@ -52,7 +52,7 @@ function toForm(p: AdminProduct): Form {
     wastage_percent: str(p.wastage_percent), making_charge: str(p.making_charge), making_charge_type: p.making_charge_type || 'fixed',
     stone_cost: str(p.stone_cost), pricing_weight_grams: Number(p.pricing_weight_grams) > 0 ? str(gramsToLaal(Number(p.pricing_weight_grams))) : '', original_price: str(p.original_price),
     description: str(p.description), care_instructions: str(p.care_instructions), dimensions: str(p.dimensions),
-    images: p.images || [], is_new: p.is_new, featured: p.featured, adjustable: p.adjustable === true, stock: str(p.stock),
+    images: p.images || [], is_new: p.is_new, featured: p.featured, adjustable: p.adjustable === true, sizes: (p.sizes || []).join(', '), stock: str(p.stock),
   };
 }
 
@@ -242,6 +242,14 @@ function ProductForm({ product, rates, adminKey, onClose, onSaved }: {
           <input type="checkbox" className="h-5 w-5" checked={form.adjustable} onChange={e => set('adjustable', e.target.checked)} />
           Adjustable (one size fits). Customers won't be asked for a {SIZE_CHOICES[form.category].title.toLowerCase()}.
         </label>
+      )}
+      {Object.hasOwn(SIZE_CHOICES, form.category) && !form.adjustable && (
+        <Field
+          title="Sizes you have"
+          hint={`Separate with commas. Empty means the usual sizes: ${SIZE_CHOICES[form.category].options.map(o => o.label).join(', ')}.`}
+        >
+          <input className={INPUT} inputMode="decimal" maxLength={80} placeholder={form.category === 'rings' ? 'e.g. 17, 19, 20' : 'e.g. 16, 18'} value={form.sizes} onChange={e => set('sizes', e.target.value)} />
+        </Field>
       )}
 
       <details className="rounded-xl bg-white p-4">
