@@ -1,27 +1,9 @@
-import { useState } from "react";
+import { lazy, Suspense, useState, type ComponentType } from "react";
 import { Switch, Route, Redirect, useLocation } from "wouter";
 import Nav from "@/components/nav";
 import Footer from "@/components/footer";
 import Home from "@/pages/home";
-import About from "@/pages/about";
-import RatesPage from "@/pages/rates";
-import ShopByPage from "@/pages/shop-by";
-import CollectionPage from "@/pages/collection";
-import ProductDetails from "@/pages/product-details";
-import WishlistPage from "@/pages/wishlist";
-import CareGuidePage from "@/pages/care-guide";
-import SizeGuidePage from "@/pages/size-guide";
-import Checkout from "@/pages/checkout";
-import OrderSuccess from "@/pages/order-success";
-import OrderTrack from "@/pages/order-track";
-import AdminDashboard from "@/pages/admin-dashboard";
-import MyOrders from "@/pages/my-orders";
-import PrivacyPolicy from "@/pages/privacy-policy";
-import ReturnsPage from "@/pages/returns";
-import TermsPage from "@/pages/terms";
-import NotFound from "@/pages/not-found";
 import { CartProvider } from "@/contexts/CartContext";
-import { ChatProvider } from "@/contexts/ChatContext";
 import { EngagementProvider } from "@/contexts/EngagementContext";
 import { FlashSaleProvider } from "@/contexts/FlashSaleContext";
 import { CartSheet } from "@/components/cart/CartSheet";
@@ -32,6 +14,38 @@ import CategorySheet from "@/components/CategorySheet";
 import WhatsAppFab from "@/components/WhatsAppFab";
 import CheckoutHeader from "@/components/CheckoutHeader";
 import { cn } from "@/lib/utils";
+
+// Pages load when opened, so customers don't download the admin dashboard or checkout up front.
+// After a new deploy the old page files are gone, so a failed load reloads the site once.
+function page(load: () => Promise<{ default: ComponentType<any> }>) {
+  return lazy(() => load().then(
+    module => { sessionStorage.removeItem("page-reload"); return module; },
+    error => {
+      if (sessionStorage.getItem("page-reload")) throw error;
+      sessionStorage.setItem("page-reload", "1");
+      window.location.reload();
+      return new Promise<never>(() => {});
+    },
+  ));
+}
+
+const About = page(() => import("@/pages/about"));
+const RatesPage = page(() => import("@/pages/rates"));
+const ShopByPage = page(() => import("@/pages/shop-by"));
+const CollectionPage = page(() => import("@/pages/collection"));
+const ProductDetails = page(() => import("@/pages/product-details"));
+const WishlistPage = page(() => import("@/pages/wishlist"));
+const CareGuidePage = page(() => import("@/pages/care-guide"));
+const SizeGuidePage = page(() => import("@/pages/size-guide"));
+const Checkout = page(() => import("@/pages/checkout"));
+const OrderSuccess = page(() => import("@/pages/order-success"));
+const OrderTrack = page(() => import("@/pages/order-track"));
+const AdminDashboard = page(() => import("@/pages/admin-dashboard"));
+const MyOrders = page(() => import("@/pages/my-orders"));
+const PrivacyPolicy = page(() => import("@/pages/privacy-policy"));
+const ReturnsPage = page(() => import("@/pages/returns"));
+const TermsPage = page(() => import("@/pages/terms"));
+const NotFound = page(() => import("@/pages/not-found"));
 
 function App() {
   const [location] = useLocation();
@@ -45,11 +59,11 @@ function App() {
     <FlashSaleProvider>
       <CartProvider>
         <EngagementProvider>
-          <ChatProvider>
             <div className={cn("min-h-screen flex flex-col", showTabBar && "pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0")}>
               {!isCheckout && <StoreRateStrip variant="topbar" />}
               {isCheckout ? <CheckoutHeader /> : <Nav onOpenCategories={() => setCategoriesOpen(true)} />}
               <main className="flex-1">
+                <Suspense fallback={<div className="min-h-[60vh]" />}>
                 <Switch>
                   <Route path="/" component={Home} />
                   <Route path="/about" component={About} />
@@ -76,6 +90,7 @@ function App() {
                   <Route path="/admin-dashboard" component={AdminDashboard} />
                   <Route component={NotFound} />
                 </Switch>
+                </Suspense>
               </main>
               {!isCheckout && <Footer />}
               <CartSheet />
@@ -85,7 +100,6 @@ function App() {
               <CategorySheet open={categoriesOpen} onOpenChange={setCategoriesOpen} />
               <Toaster />
             </div>
-          </ChatProvider>
         </EngagementProvider>
       </CartProvider>
     </FlashSaleProvider>

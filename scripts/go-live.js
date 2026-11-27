@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import yaml from 'js-yaml';
+import { shrinkPhoto } from './shrink-photo.js';
 
 // The CMS saves new products with a lowercase file name.
 const PRODUCT = /^content\/jewelry\/([a-z]{2}\d{3,})\.md$/i;
@@ -296,6 +297,25 @@ export function createGoLive({ root, liveSite, deploy = deployWithVercel, fetchL
     return { live: true, verified: await verifyLive() };
   }
 
+  // Big photos are shrunk just before saving. A new PNG may become a JPG, so the files using it are updated too.
+  async function shrinkPhotos(files) {
+    const result = [...files];
+    for (const file of files.filter(f => IMAGE.test(f))) {
+      const isNew = !(await git('ls-files', '--', file)).trim();
+      let saved;
+      try { saved = await shrinkPhoto(abs(file), { allowRename: isNew }); } catch { continue; } // goes up as it is
+      if (!saved || saved === abs(file)) continue;
+      const renamed = path.relative(root, saved).split(path.sep).join('/');
+      const [from, to] = [file, renamed].map(f => f.replace('client/public', ''));
+      for (const text of result.filter(f => (PRODUCT.test(f) || PAGE.test(f)) && fs.existsSync(abs(f)))) {
+        const body = fs.readFileSync(abs(text), 'utf8');
+        if (body.includes(from)) fs.writeFileSync(abs(text), body.split(from).join(to));
+      }
+      result[result.indexOf(file)] = renamed;
+    }
+    return result;
+  }
+
   async function locked(work) {
     if (busy) throw new GoLiveError('Already updating. Please wait.');
     busy = true;
@@ -317,8 +337,9 @@ export function createGoLive({ root, liveSite, deploy = deployWithVercel, fetchL
         throw new GoLiveError('The website would not build with these changes, so nothing went live. Ask Claude.');
       }
       if ((await preview()).fingerprint !== fingerprint) throw new GoLiveError('Something changed during the check. Check it again.');
-      await git('add', '--', ...now.files);
-      await git('commit', '--quiet', '-m', SUBJECT, '-m', now.items.map(i => `- ${i.title}`).join('\n'), '--', ...now.files);
+      const files = await shrinkPhotos(now.files);
+      await git('add', '--', ...files);
+      await git('commit', '--quiet', '-m', SUBJECT, '-m', now.items.map(i => `- ${i.title}`).join('\n'), '--', ...files);
       return pushAndDeploy();
     }),
 
