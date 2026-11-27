@@ -1,10 +1,9 @@
 import { IncomingMessage, ServerResponse } from "node:http";
-import { defineConfig, loadEnv, Plugin } from "vite";
+import { defineConfig, Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import fs from "node:fs";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
-import { ChatServiceError, generateChatReply } from "./lib/chat-service.js";
 import { loadCatalogProducts, loadCatalogProductsWithPricing } from "./lib/catalog.js";
 import { getPublicStoreRates } from "./lib/store-rates.js";
 import {
@@ -59,7 +58,7 @@ function readJsonBody(req: IncomingMessage) {
       try {
         resolve(JSON.parse(body));
       } catch {
-        reject(new ChatServiceError(400, "Invalid JSON body"));
+        reject(new Error("Invalid JSON body"));
       }
     });
 
@@ -67,7 +66,7 @@ function readJsonBody(req: IncomingMessage) {
   });
 }
 
-function localApiPlugin(apiKey?: string, model?: string): Plugin {
+function localApiPlugin(): Plugin {
   return {
     name: "local-api",
     configureServer(server) {
@@ -455,36 +454,7 @@ function localApiPlugin(apiKey?: string, model?: string): Plugin {
           return;
         }
 
-        if (pathname !== "/api/chat") {
-          next();
-          return;
-        }
-
-        if (req.method !== "POST") {
-          sendJson(res, 405, { error: "Method not allowed" });
-          return;
-        }
-
-        try {
-          const body = await readJsonBody(req);
-          const reply = await generateChatReply(body?.messages, {
-            apiKey,
-            model,
-          });
-          sendJson(res, 200, { reply });
-        } catch (error) {
-          const status = error instanceof ChatServiceError ? error.status : 500;
-          const message =
-            error instanceof ChatServiceError
-              ? error.message
-              : "Something went wrong. Please try again or contact us on WhatsApp.";
-
-          if (!(error instanceof ChatServiceError)) {
-            console.error("Local chat API error:", error);
-          }
-
-          sendJson(res, status, { error: message });
-        }
+        next();
       });
     },
   };
@@ -570,11 +540,9 @@ function localCmsPlugin(): Plugin {
   };
 }
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "");
-
+export default defineConfig(() => {
   return {
-    plugins: [react(), localCmsPlugin(), localApiPlugin(env.GEMINI_API_KEY, env.GEMINI_MODEL)],
+    plugins: [react(), localCmsPlugin(), localApiPlugin()],
     root: "client",
     resolve: {
       alias: {

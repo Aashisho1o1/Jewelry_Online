@@ -79,7 +79,6 @@ function App() {
               </main>
               {!isCheckout && <Footer />}
               <CartSheet />
-              {/* The AI ChatWidget is unmounted until GEMINI_API_KEY is configured; WhatsApp covers help meanwhile. */}
               {/* Customer help button; hidden where it would cover checkout or admin controls. */}
               {!isCheckout && !location.startsWith("/admin") && <WhatsAppFab compact={isProduct} />}
               {showTabBar && <MobileTabBar categoriesOpen={categoriesOpen} onOpenCategories={() => setCategoriesOpen(true)} />}
